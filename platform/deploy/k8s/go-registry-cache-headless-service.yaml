@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-registry-cache-headless
+spec:
+  clusterIP: None
+  selector:
+    app: go-registry-cache
+  ports:
+    - port: 8093
+      targetPort: 8093

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="720">
+<rect width="100%" height="100%" fill="#F8FBFF"/>
+<text x="70" y="58" font-size="34" fill="#0F172A" font-weight="bold">6-Step Teaching Page Template</text>
+<text x="70" y="90" font-size="18" fill="#334155">每次授课页可按此模板插入：步骤、任务、代码、验证、复盘</text>
+<g font-family="Microsoft YaHei" font-size="18" fill="#0F172A">
+<rect x="70" y="130" width="400" height="250" rx="14" fill="#DBEAFE" stroke="#60A5FA"/><text x="95" y="168" font-weight="bold">Step 1-2 导入/澄清</text><text x="95" y="205">课堂目标</text><text x="95" y="235">企业任务卡</text>
+<rect x="500" y="130" width="400" height="250" rx="14" fill="#DCFCE7" stroke="#22C55E"/><text x="525" y="168" font-weight="bold">Step 3-4 设计/实施</text><text x="525" y="205">代码与函数截图</text><text x="525" y="235">实现过程说明</text>
+<rect x="930" y="130" width="400" height="250" rx="14" fill="#FEF3C7" stroke="#F59E0B"/><text x="955" y="168" font-weight="bold">Step 5-6 验收/反思</text><text x="955" y="205">测试与压测证据</text><text x="955" y="235">复盘与改进项</text>
+
+<rect x="70" y="410" width="1260" height="220" rx="14" fill="#FFFFFF" stroke="#CBD5E1"/>
+<text x="95" y="450" font-weight="bold">Page checklist</text>
+<text x="95" y="485">- 至少1张图（架构/流程/证据）</text>
+<text x="95" y="515">- 至少1段代码截图并配注释</text>
+<text x="95" y="545">- 明确本节任务与验收口径</text>
+<text x="95" y="575">- 收尾给出反思与下一步任务</text>
+</g>
+</svg>

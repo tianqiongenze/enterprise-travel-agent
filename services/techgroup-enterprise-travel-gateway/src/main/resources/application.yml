@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: techgroup-enterprise-travel-gateway
+  ai:
+    dashscope:
+      api-key: ${AI_DASHSCOPE_API_KEY:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+travel:
+  runtime:
+    base-url: ${TRAVEL_RUNTIME_BASE_URL:http://localhost:8000}
+  internal:
+    shared-secret: demo-internal-secret
+    mtls-client-id: techgroup-enterprise-travel-gateway

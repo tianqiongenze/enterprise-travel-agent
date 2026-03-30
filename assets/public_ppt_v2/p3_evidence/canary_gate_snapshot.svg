@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680">
+<rect width="100%" height="100%" fill="#F8FAFC"/>
+<text x="70" y="56" font-size="32" fill="#0F172A" font-weight="bold">Canary Gate Decision Snapshot</text>
+<rect x="90" y="120" width="1020" height="500" rx="14" fill="#FFFFFF" stroke="#CBD5E1"/>
+<text x="130" y="210" font-size="42" fill="#16A34A" font-weight="bold">action: promote</text>
+<text x="130" y="280" font-size="24" fill="#0F172A">reasons:</text>
+<text x="130" y="320" font-size="20" fill="#334155" xml:space="preserve">- none</text>
+<text x="130" y="560" font-size="18" fill="#475569">Source: stress/canary_gate_decision.json</text>
+</svg>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="720">
+<rect width="100%" height="100%" fill="#F8FBFF"/>
+<text x="70" y="60" font-size="34" fill="#0F172A" font-weight="bold">German Dual Education 6-Step Method</text>
+<text x="70" y="92" font-size="18" fill="#334155">1. 情境导入 2.任务澄清 3.方案设计 4.实施执行 5.结果验收 6.反思迁移</text>
+<circle cx="700" cy="360" r="235" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="4"/>
+<g font-family="Microsoft YaHei" font-size="18" font-weight="bold" fill="#0F172A">
+  <circle cx="700" cy="150" r="72" fill="#DBEAFE" stroke="#60A5FA" stroke-width="3"/><text x="648" y="157">1.导入</text>
+  <circle cx="885" cy="255" r="72" fill="#DCFCE7" stroke="#22C55E" stroke-width="3"/><text x="833" y="262">2.澄清</text>
+  <circle cx="885" cy="465" r="72" fill="#FEF3C7" stroke="#F59E0B" stroke-width="3"/><text x="833" y="472">3.设计</text>
+  <circle cx="700" cy="570" r="72" fill="#E9D5FF" stroke="#A855F7" stroke-width="3"/><text x="648" y="577">4.实施</text>
+  <circle cx="515" cy="465" r="72" fill="#FCE7F3" stroke="#F472B6" stroke-width="3"/><text x="463" y="472">5.验收</text>
+  <circle cx="515" cy="255" r="72" fill="#FFE4E6" stroke="#FB7185" stroke-width="3"/><text x="463" y="262">6.反思</text>
+</g>
+<text x="585" y="355" font-size="28" fill="#1E3A8A" font-weight="bold">课堂 × 企业</text>
+<text x="602" y="388" font-size="20" fill="#334155">任务闭环</text>
+<text x="70" y="660" font-size="18" fill="#475569">每次授课都按6步法推进：讲概念 -> 布任务 -> 看代码 -> 做实验 -> 出证据 -> 做复盘。</text>
+</svg>

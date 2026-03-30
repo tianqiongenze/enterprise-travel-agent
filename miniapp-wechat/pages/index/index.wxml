@@ -1,0 +1,48 @@
+<view class="container">
+  <view class="card">
+    <view class="title">Enterprise Travel Agent Mini Program</view>
+
+    <view class="row"><text>Tenant ID</text><input value="{{form.tenantId}}" data-key="tenantId" bindinput="onInput" /></view>
+    <view class="row"><text>User ID</text><input value="{{form.userId}}" data-key="userId" bindinput="onInput" /></view>
+    <view class="row"><text>Policy ID</text><input value="{{form.policyId}}" data-key="policyId" bindinput="onInput" /></view>
+    <view class="row"><text>Conversation ID</text><input value="{{form.conversationId}}" data-key="conversationId" bindinput="onInput" /></view>
+    <view class="row"><text>Idempotency Key</text><input value="{{form.idempotencyKey}}" data-key="idempotencyKey" bindinput="onInput" /></view>
+    <view class="row"><text>City</text><input value="{{form.city}}" data-key="city" bindinput="onInput" /></view>
+    <view class="row"><text>Days</text><input type="number" value="{{form.days}}" data-key="days" bindinput="onInput" /></view>
+    <view class="row"><text>Budget</text><input type="digit" value="{{form.budget}}" data-key="budget" bindinput="onInput" /></view>
+    <view class="row"><text>Travelers</text><input type="number" value="{{form.travelers}}" data-key="travelers" bindinput="onInput" /></view>
+    <view class="row"><text>Preferences</text><input value="{{form.preferences}}" data-key="preferences" bindinput="onInput" /></view>
+    <view class="row"><text>Max Agent Steps</text><input type="number" value="{{form.maxAgentSteps}}" data-key="maxAgentSteps" bindinput="onInput" /></view>
+    <view class="row"><text>Max Tool Calls</text><input type="number" value="{{form.maxToolCalls}}" data-key="maxToolCalls" bindinput="onInput" /></view>
+    <view class="row"><text>Allowed Tools</text><input value="{{form.allowedTools}}" data-key="allowedTools" bindinput="onInput" /></view>
+
+    <button class="submit" bindtap="onSubmit" loading="{{loading}}">{{loading ? '请求中...' : '获取推荐'}}</button>
+    <button class="secondary" bindtap="goMetrics">查看埋点事件</button>
+  </view>
+
+  <view class="card result">
+    <view class="title">Result Cards</view>
+    <view wx:if="{{error}}" class="error">{{error}}</view>
+
+    <view wx:if="{{cards.traceId}}" class="meta">Trace ID: {{cards.traceId}}</view>
+    <view wx:if="{{cards.aiRationale}}" class="meta">AI Rationale: {{cards.aiRationale}}</view>
+
+    <view class="result-group">
+      <view class="group-title">Hotels</view>
+      <view wx:for="{{cards.hotels}}" wx:key="index" class="result-item">{{item.name}} | score: {{item.score}}</view>
+    </view>
+
+    <view class="result-group">
+      <view class="group-title">Transports</view>
+      <view wx:for="{{cards.transports}}" wx:key="index" class="result-item">{{item.type}} | score: {{item.score}}</view>
+    </view>
+
+    <view class="result-group">
+      <view class="group-title">Itinerary</view>
+      <view wx:for="{{cards.itinerary}}" wx:key="index" class="result-item">{{item.day}} - {{item.plan}}</view>
+    </view>
+
+    <view class="group-title">Raw JSON</view>
+    <text selectable="true" class="raw">{{response}}</text>
+  </view>
+</view>

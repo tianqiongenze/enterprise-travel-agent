@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.eclipse.jdt.ls</groupId>
+		<artifactId>parent</artifactId>
+		<version>1.58.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>org.eclipse.jdt.ls.core</artifactId>
+	<packaging>eclipse-plugin</packaging>
+	<name>${base.name} :: Core</name>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.gmavenplus</groupId>
+				<artifactId>gmavenplus-plugin</artifactId>
+				<version>4.3.1</version>
+				<executions>
+					<execution>
+						<?m2e ignore?>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>execute</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<scripts>
+						<script>
+								import groovy.json.JsonSlurper
+								import groovy.json.JsonOutput
+
+								import java.net.http.HttpClient
+								import java.net.http.HttpClient.Redirect
+								import java.net.http.HttpRequest
+								import java.net.http.HttpResponse.BodyHandlers
+								import java.util.concurrent.CompletableFuture
+								import java.util.concurrent.ExecutorService
+								import java.util.concurrent.Executors
+								import java.util.stream.Collectors
+
+
+								def checksumsFile = new File(project.basedir.absolutePath, "gradle/checksums/checksums.json")
+								if (System.getProperty("eclipse.jdt.ls.skipGradleChecksums") != null &amp;&amp; checksumsFile.exists()) {
+									println "Skipping gradle wrapper validation checksums ..."
+									return
+								}
+
+								def versionUrl = new URL("https://services.gradle.org/versions/all")
+								def versionStr = versionUrl.text;
+								def versionsFile = new File(project.basedir.absolutePath, "gradle/checksums/versions.json")
+								versionsFile.parentFile.mkdirs() //just in case
+								versionsFile.write(versionStr)
+								println "Wrote to ${versionsFile}"
+
+								def versions = new JsonSlurper().parseText(versionStr)
+
+								class Checksum {
+									String wrapperChecksumUrl;
+									String sha256
+								}
+								def checksums = []
+								versions.each {
+                                    boolean isNonRelease = it.nightly || it.snapshot || (it.rcFor != "") || it.broken
+									if (it.wrapperChecksumUrl == null || (System.getProperty("eclipse.jdt.ls.onlyGradleReleases") &amp;&amp; isNonRelease)) {
+										return
+									}
+									checksums.add(new Checksum(wrapperChecksumUrl: it.wrapperChecksumUrl, sha256: it.wrapperChecksum));
+								}
+								def json = JsonOutput.toJson(checksums)
+								checksumsFile.write(JsonOutput.prettyPrint(json))
+								println "Wrote to ${checksumsFile}"
+						</script>
+					</scripts>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.groovy</groupId>
+						<artifactId>groovy</artifactId>
+						<version>${groovy-version}</version>
+						<scope>runtime</scope>
+					</dependency>
+					<dependency>
+						<groupId>org.apache.groovy</groupId>
+						<artifactId>groovy-json</artifactId>
+						<version>${groovy-version}</version>
+						<scope>runtime</scope>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>io.github.git-commit-id</groupId>
+				<artifactId>git-commit-id-maven-plugin</artifactId>
+				<version>9.0.2</version>
+				<executions>
+					<execution>
+						<id>get-the-git-infos</id>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+						<phase>initialize</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<generateGitPropertiesFile>true</generateGitPropertiesFile>
+					<generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+					<includeOnlyProperties>
+						<includeOnlyProperty>^git.commit.id$</includeOnlyProperty>
+						<includeOnlyProperty>^git.commit.id.abbrev$</includeOnlyProperty>
+						<includeOnlyProperty>^git.commit.message.short$</includeOnlyProperty>
+						<includeOnlyProperty>^git.branch$</includeOnlyProperty>
+						<includeOnlyProperty>^git.build.version$</includeOnlyProperty>
+					</includeOnlyProperties>
+					<gitDescribe>
+						<skip>true</skip>
+					</gitDescribe>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

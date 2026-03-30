@@ -1,0 +1,59 @@
+[
+  {
+    "name": "basic-allow-default",
+    "input": {
+      "tier": "basic",
+      "engine": "langgraph",
+      "allowedTools": ["search_hotels", "search_transports", "search_attractions"],
+      "maxAgentSteps": 10,
+      "maxToolCalls": 10
+    },
+    "expected": {
+      "allow": true,
+      "reason": "ok"
+    }
+  },
+  {
+    "name": "basic-deny-events",
+    "input": {
+      "tier": "basic",
+      "engine": "langgraph",
+      "allowedTools": ["search_hotels", "search_events"],
+      "maxAgentSteps": 10,
+      "maxToolCalls": 10
+    },
+    "expected": {
+      "allow": false,
+      "reason": "allowedTools contains unsupported tool"
+    }
+  },
+  {
+    "name": "silver-allow-agentscope-alias",
+    "input": {
+      "tier": "silver",
+      "engine": "agentscope-ai",
+      "allowedTools": ["search_hotels", "search_foods"],
+      "maxAgentSteps": 15,
+      "maxToolCalls": 12
+    },
+    "expected": {
+      "allow": true,
+      "reason": "ok"
+    }
+  },
+  {
+    "name": "gold-deny-step-limit",
+    "input": {
+      "tier": "gold",
+      "engine": "oneagents",
+      "allowedTools": ["search_hotels", "search_events"],
+      "maxAgentSteps": 99,
+      "maxToolCalls": 10
+    },
+    "expected": {
+      "allow": false,
+      "reason": "maxAgentSteps exceeds policy limit"
+    }
+  }
+]
+

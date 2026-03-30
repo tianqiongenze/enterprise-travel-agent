@@ -1,0 +1,9 @@
+<view class="container">
+  <view class="title">Miniapp Analytics Events</view>
+  <view wx:if="{{items.length === 0}}">No events recorded.</view>
+  <view wx:for="{{items}}" wx:key="index" class="item">
+    <view>{{item.timestamp}}</view>
+    <view>{{item.eventName}}</view>
+    <text selectable="true">{{JSON.stringify(item.payload)}}</text>
+  </view>
+</view>

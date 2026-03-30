@@ -1,0 +1,33 @@
+# Capacity & Cost Estimation
+
+## Inputs
+
+| Key | Value |
+|---|---:|
+| peak_connected | 1000000 |
+| active_ratio | 0.1 |
+| gateway_conn_per_pod | 12000 |
+| runtime_active_per_pod | 100 |
+| safety_factor | 1.8 |
+| hours_per_month | 730 |
+| gateway_pod_cost_per_hour | 0.08 |
+| runtime_pod_cost_per_hour | 0.12 |
+| pulsar_cluster_cost_per_month | 3500.0 |
+| vector_cluster_cost_per_month | 4200.0 |
+
+## Output
+
+| Metric | Value |
+|---|---:|
+| peak_active | 100000 |
+| gateway_pods | 150 |
+| runtime_pods | 1800 |
+| gateway_monthly_cost | 8760.0 |
+| runtime_monthly_cost | 157680.0 |
+| platform_monthly_cost | 7700.0 |
+| total_monthly_cost | 174140.0 |
+
+## Notes
+
+- This is planning estimation, not production evidence.
+- Final claim must include distributed benchmark and canary reports.

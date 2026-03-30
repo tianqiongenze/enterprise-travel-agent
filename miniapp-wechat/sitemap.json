@@ -1,0 +1,9 @@
+{
+  "desc": "Enterprise Travel Agent Mini Program Sitemap",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "*"
+    }
+  ]
+}

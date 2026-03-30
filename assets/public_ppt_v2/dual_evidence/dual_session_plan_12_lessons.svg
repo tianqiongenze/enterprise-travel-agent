@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="720">
+<rect width="100%" height="100%" fill="#F8FAFC"/>
+<text x="70" y="58" font-size="34" fill="#0F172A" font-weight="bold">Dual Education Session Plan (12 Lessons)</text>
+<text x="70" y="90" font-size="18" fill="#334155">每次授课执行6步法：导入-澄清-设计-实施-验收-反思</text>
+<rect x="70" y="130" width="1260" height="510" rx="14" fill="#FFFFFF" stroke="#CBD5E1"/>
+<g font-family="Microsoft YaHei" fill="#0F172A">
+<text x="95" y="170" font-size="18" font-weight="bold">课次</text>
+<text x="170" y="170" font-size="18" font-weight="bold">阶段</text>
+<text x="360" y="170" font-size="18" font-weight="bold">企业任务</text>
+<text x="760" y="170" font-size="18" font-weight="bold">代码/文档证据</text>
+<text x="1120" y="170" font-size="18" font-weight="bold">验收产物</text>
+
+<text x="95" y="210" font-size="16">L1</text><text x="170" y="210" font-size="16">导入与分析</text><text x="360" y="210" font-size="16">拆用户故事与边界</text><text x="760" y="210" font-size="16">docs/course-delivery.md</text><text x="1120" y="210" font-size="16">需求卡</text>
+<text x="95" y="245" font-size="16">L2</text><text x="170" y="245" font-size="16">总体设计</text><text x="360" y="245" font-size="16">画系统架构图</text><text x="760" y="245" font-size="16">docs/system-design.md</text><text x="1120" y="245" font-size="16">设计评审</text>
+<text x="95" y="280" font-size="16">L3</text><text x="170" y="280" font-size="16">后端实现1</text><text x="360" y="280" font-size="16">实现网关与runtime契约</text><text x="760" y="280" font-size="16">app.py / Gateway</text><text x="1120" y="280" font-size="16">接口联调</text>
+<text x="95" y="315" font-size="16">L4</text><text x="170" y="315" font-size="16">后端实现2</text><text x="360" y="315" font-size="16">实现A2A与技能加载</text><text x="760" y="315" font-size="16">orchestrator.py</text><text x="1120" y="315" font-size="16">功能验收</text>
+<text x="95" y="350" font-size="16">L5</text><text x="170" y="350" font-size="16">前端实现1</text><text x="360" y="350" font-size="16">Web表单与结果卡片</text><text x="760" y="350" font-size="16">frontend App.jsx</text><text x="1120" y="350" font-size="16">页面演示</text>
+<text x="95" y="385" font-size="16">L6</text><text x="170" y="385" font-size="16">前端实现2</text><text x="360" y="385" font-size="16">MiniApp交互联调</text><text x="760" y="385" font-size="16">miniapp index.js</text><text x="1120" y="385" font-size="16">端到端演示</text>
+<text x="95" y="420" font-size="16">L7</text><text x="170" y="420" font-size="16">测试质量1</text><text x="360" y="420" font-size="16">单测与契约测试</text><text x="760" y="420" font-size="16">tests/*</text><text x="1120" y="420" font-size="16">测试报告</text>
+<text x="95" y="455" font-size="16">L8</text><text x="170" y="455" font-size="16">测试质量2</text><text x="360" y="455" font-size="16">门禁与故障注入</text><text x="760" y="455" font-size="16">canary_gate.py</text><text x="1120" y="455" font-size="16">门禁结论</text>
+<text x="95" y="490" font-size="16">L9</text><text x="170" y="490" font-size="16">压测评估</text><text x="360" y="490" font-size="16">执行压测与容量建模</text><text x="760" y="490" font-size="16">stress/*.json</text><text x="1120" y="490" font-size="16">容量报告</text>
+<text x="95" y="525" font-size="16">L10</text><text x="170" y="525" font-size="16">升级迭代</text><text x="360" y="525" font-size="16">Pulsar/Vector升级</text><text x="760" y="525" font-size="16">events/vector_store</text><text x="1120" y="525" font-size="16">迁移报告</text>
+<text x="95" y="560" font-size="16">L11</text><text x="170" y="560" font-size="16">上线发布</text><text x="360" y="560" font-size="16">最终验收与runbook</text><text x="760" y="560" font-size="16">go_live_final_check.py</text><text x="1120" y="560" font-size="16">go_live_report</text>
+<text x="95" y="595" font-size="16">L12</text><text x="170" y="595" font-size="16">复盘答辩</text><text x="360" y="595" font-size="16">公开分享与路线图</text><text x="760" y="595" font-size="16">PPT + Docs</text><text x="1120" y="595" font-size="16">答辩纪要</text>
+</g>
+</svg>

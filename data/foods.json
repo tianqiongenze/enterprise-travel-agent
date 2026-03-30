@@ -1,0 +1,31 @@
+[
+  {
+    "id": "food-bj-001",
+    "city": "北京",
+    "name": "胡同京味私房菜",
+    "price": 120,
+    "tags": ["family", "local", "comfort"]
+  },
+  {
+    "id": "food-bj-002",
+    "city": "北京",
+    "name": "国贸轻食餐厅",
+    "price": 90,
+    "tags": ["business", "budget", "healthy"]
+  },
+  {
+    "id": "food-sh-001",
+    "city": "上海",
+    "name": "外滩本帮菜馆",
+    "price": 160,
+    "tags": ["comfort", "local", "family"]
+  },
+  {
+    "id": "food-sh-002",
+    "city": "上海",
+    "name": "陆家嘴便捷餐吧",
+    "price": 80,
+    "tags": ["business", "budget", "fast"]
+  }
+]
+

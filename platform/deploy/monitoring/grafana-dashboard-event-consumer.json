@@ -1,0 +1,72 @@
+{
+  "title": "Travel Agent Event Consumer",
+  "uid": "travel-agent-event-consumer",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Processed Total",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 6 },
+      "targets": [
+        { "refId": "A", "expr": "travel_event_consumer_processed_total" }
+      ],
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "DLQ Total",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 6 },
+      "targets": [
+        { "refId": "A", "expr": "travel_event_consumer_dlq_total" }
+      ],
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Current Lag (s)",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 6 },
+      "targets": [
+        { "refId": "A", "expr": "travel_event_consumer_lag_seconds" }
+      ],
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Retries Total",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 6 },
+      "targets": [
+        { "refId": "A", "expr": "travel_event_consumer_retried_total" }
+      ],
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Processed / 5m",
+      "gridPos": { "x": 0, "y": 6, "w": 12, "h": 8 },
+      "targets": [
+        { "refId": "A", "expr": "increase(travel_event_consumer_processed_total[5m])" }
+      ],
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "DLQ / 5m",
+      "gridPos": { "x": 12, "y": 6, "w": 12, "h": 8 },
+      "targets": [
+        { "refId": "A", "expr": "increase(travel_event_consumer_dlq_total[5m])" }
+      ],
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+    }
+  ],
+  "templating": { "list": [] },
+  "annotations": { "list": [] }
+}
+

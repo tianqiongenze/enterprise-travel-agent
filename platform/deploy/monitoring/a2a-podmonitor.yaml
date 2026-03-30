@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: travel-agent-a2a-metrics
+  labels:
+    app: travel-agent
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: travel-agent-a2a-metrics
+  namespaceSelector:
+    any: true
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      path: /a2a_stream_metrics.prom
+

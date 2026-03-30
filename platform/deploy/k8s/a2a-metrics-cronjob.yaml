@@ -1,0 +1,62 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: travel-agent-a2a-metrics-exporter
+  labels:
+    app: travel-agent-a2a-metrics
+    component: metrics-exporter
+spec:
+  schedule: "*/1 * * * *"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: travel-agent-a2a-metrics
+            component: metrics-exporter
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: a2a-metrics-exporter
+              image: your-registry/travel-agent-api:0.1.0
+              imagePullPolicy: IfNotPresent
+              command:
+                - sh
+                - -c
+                - |
+                  python -u platform/deploy/scripts/export_a2a_stream_metrics.py
+                  sleep ${TRAVEL_A2A_METRICS_SCRAPE_GRACE_SEC:-45}
+              env:
+                - name: TRAVEL_A2A_REDIS_URL
+                  value: "redis://redis-cluster.default.svc.cluster.local:7000"
+                - name: TRAVEL_A2A_KEY_PREFIX
+                  value: "a2a:stream"
+                - name: TRAVEL_A2A_STREAM_GROUP
+                  value: "a2a-consumers"
+                - name: TRAVEL_A2A_METRICS_PATH
+                  value: "/metrics/a2a_stream_metrics.prom"
+              volumeMounts:
+                - name: a2a-metrics
+                  mountPath: /metrics
+            - name: a2a-metrics-http
+              image: python:3.12-slim
+              imagePullPolicy: IfNotPresent
+              command:
+                - python
+                - -m
+                - http.server
+                - "9909"
+                - --directory
+                - /metrics
+              ports:
+                - name: metrics
+                  containerPort: 9909
+              volumeMounts:
+                - name: a2a-metrics
+                  mountPath: /metrics
+          volumes:
+            - name: a2a-metrics
+              emptyDir: {}
+

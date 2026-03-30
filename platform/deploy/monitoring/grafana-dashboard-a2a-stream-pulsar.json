@@ -1,0 +1,64 @@
+{
+  "title": "Travel Agent A2A + Pulsar + Queue",
+  "uid": "travel-agent-a2a-pulsar-queue",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "A2A Streams Pending / Lag",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "refId": "A", "expr": "travel_a2a_stream_pending_total" },
+        { "refId": "B", "expr": "travel_a2a_stream_lag_ms" }
+      ],
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Pulsar Audit Throughput (Processed / 5m)",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "refId": "A", "expr": "increase(travel_event_consumer_processed_total[5m])" },
+        { "refId": "B", "expr": "increase(travel_event_consumer_dlq_total[5m])" }
+      ],
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Queue Saturation (Drops / 5m)",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        { "refId": "A", "expr": "increase(travel_event_consumer_queue_full_drop_total[5m])" }
+      ],
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "A2A Metrics Freshness",
+      "gridPos": { "x": 12, "y": 8, "w": 6, "h": 8 },
+      "targets": [
+        { "refId": "A", "expr": "time() - travel_a2a_stream_metrics_timestamp" }
+      ],
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Current Consumer Lag (s)",
+      "gridPos": { "x": 18, "y": 8, "w": 6, "h": 8 },
+      "targets": [
+        { "refId": "A", "expr": "travel_event_consumer_lag_seconds" }
+      ],
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+    }
+  ],
+  "templating": { "list": [] },
+  "annotations": { "list": [] }
+}
+

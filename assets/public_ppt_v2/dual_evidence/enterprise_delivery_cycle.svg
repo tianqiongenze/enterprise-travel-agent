@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="720">
+<rect width="100%" height="100%" fill="#F8FAFC"/>
+<text x="70" y="60" font-size="34" fill="#0F172A" font-weight="bold">Enterprise Delivery Cycle</text>
+<text x="70" y="92" font-size="18" fill="#334155">analysis → design → backend → frontend → test → load test → iteration → release</text>
+<g font-family="Arial" font-size="20" fill="#0F172A" font-weight="bold">
+<rect x="70" y="160" width="160" height="90" rx="14" fill="#DBEAFE" stroke="#60A5FA"/><text x="110" y="214">Analysis</text>
+<rect x="250" y="160" width="160" height="90" rx="14" fill="#E0F2FE" stroke="#38BDF8"/><text x="292" y="214">Design</text>
+<rect x="430" y="160" width="160" height="90" rx="14" fill="#DCFCE7" stroke="#22C55E"/><text x="470" y="214">Backend</text>
+<rect x="610" y="160" width="160" height="90" rx="14" fill="#FEF3C7" stroke="#F59E0B"/><text x="648" y="214">Frontend</text>
+<rect x="790" y="160" width="160" height="90" rx="14" fill="#FCE7F3" stroke="#F472B6"/><text x="848" y="214">Test</text>
+<rect x="970" y="160" width="160" height="90" rx="14" fill="#E9D5FF" stroke="#A855F7"/><text x="1000" y="214">Load Test</text>
+<rect x="1150" y="160" width="160" height="90" rx="14" fill="#FFE4E6" stroke="#FB7185"/><text x="1186" y="214">Release</text>
+</g>
+<g stroke="#94A3B8" stroke-width="4" fill="none" marker-end="url(#arr)">
+<path d="M230 205 L250 205"/><path d="M410 205 L430 205"/><path d="M590 205 L610 205"/><path d="M770 205 L790 205"/><path d="M950 205 L970 205"/><path d="M1130 205 L1150 205"/>
+</g>
+<defs><marker id="arr" markerWidth="12" markerHeight="12" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#94A3B8"/></marker></defs>
+<rect x="90" y="340" width="1220" height="240" rx="18" fill="#FFFFFF" stroke="#CBD5E1"/>
+<text x="120" y="390" font-size="22" fill="#0F172A">Artifacts</text>
+<text x="120" y="430" font-size="18" fill="#334155">docs → code → tests → benchmarks → deployment → runbook → final report</text>
+<text x="120" y="470" font-size="18" fill="#334155">Each phase produces evidence for public sharing and release gating.</text>
+<text x="120" y="510" font-size="18" fill="#334155">This is the exact rhythm used in dual education: learn, apply, verify, reflect.</text>
+</svg>

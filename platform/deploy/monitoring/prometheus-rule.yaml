@@ -1,0 +1,176 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: travel-agent-runtime-alerts
+  labels:
+    app: travel-agent
+spec:
+  groups:
+    - name: groupcache-runtime.rules
+      rules:
+        - alert: GroupcachePeersTooLow
+          expr: groupcache_peers_count < 2
+          for: 5m
+          labels:
+            severity: warning
+            component: go-registry-cache
+          annotations:
+            summary: "groupcache peers below expected floor"
+            description: "groupcache peer count is below 2 for over 5 minutes; peer discovery may be unhealthy."
+
+        - alert: GroupcachePeerRefreshStale
+          expr: time() - groupcache_peer_refresh_timestamp > 120
+          for: 5m
+          labels:
+            severity: critical
+            component: go-registry-cache
+          annotations:
+            summary: "groupcache peer refresh is stale"
+            description: "go-registry-cache has not refreshed endpoint peers in the last 120 seconds."
+
+        - alert: GroupcachePeerRefreshErrorsIncreasing
+          expr: increase(groupcache_peer_refresh_errors_total[10m]) > 0
+          for: 10m
+          labels:
+            severity: warning
+            component: go-registry-cache
+          annotations:
+            summary: "groupcache refresh errors detected"
+            description: "go-registry-cache endpoint refresh errors increased over the last 10 minutes."
+
+    - name: canary-gate.rules
+      rules:
+        - alert: CanaryGateRollbackDecision
+          expr: canary_gate_status == 0
+          for: 2m
+          labels:
+            severity: critical
+            component: canary-gate
+          annotations:
+            summary: "canary gate currently in rollback state"
+            description: "canary gate evaluated rollback. Check canary drift and revert/pause promotion."
+
+        - alert: CanaryGateSuccessGapExceeded
+          expr: canary_gate_success_rate_gap > canary_gate_threshold_success_gap
+          for: 2m
+          labels:
+            severity: critical
+            component: canary-gate
+          annotations:
+            summary: "canary success-rate gap exceeded"
+            description: "success rate gap is above configured threshold for canary gate."
+
+        - alert: CanaryGateP95DriftExceeded
+          expr: canary_gate_p95_drift_ratio > canary_gate_threshold_p95_drift
+          for: 2m
+          labels:
+            severity: warning
+            component: canary-gate
+          annotations:
+            summary: "canary p95 drift exceeded"
+            description: "p95 latency drift ratio is above threshold for canary gate."
+
+        - alert: CanaryGateP99DriftExceeded
+          expr: canary_gate_p99_drift_ratio > canary_gate_threshold_p99_drift
+          for: 2m
+          labels:
+            severity: warning
+            component: canary-gate
+          annotations:
+            summary: "canary p99 drift exceeded"
+            description: "p99 latency drift ratio is above threshold for canary gate."
+
+        - alert: CanaryGateMetricsStale
+          expr: time() - canary_gate_last_eval_timestamp > 900
+          for: 5m
+          labels:
+            severity: warning
+            component: canary-gate
+          annotations:
+            summary: "canary gate metrics are stale"
+            description: "No fresh canary gate evaluation has been published in the last 15 minutes."
+
+    - name: event-consumer.rules
+      rules:
+        - alert: EventConsumerLagHigh
+          expr: travel_event_consumer_lag_seconds > 60
+          for: 5m
+          labels:
+            severity: warning
+            component: event-consumer
+          annotations:
+            summary: "event consumer lag is high"
+            description: "event consumer lag has exceeded 60 seconds for over 5 minutes."
+
+        - alert: EventConsumerDLQIncreasing
+          expr: increase(travel_event_consumer_dlq_total[10m]) > 0
+          for: 10m
+          labels:
+            severity: critical
+            component: event-consumer
+          annotations:
+            summary: "event consumer DLQ traffic detected"
+            description: "DLQ count increased in the last 10 minutes. Check failing handlers or malformed events."
+
+        - alert: EventConsumerNoProgress
+          expr: increase(travel_event_consumer_processed_total[10m]) == 0
+          for: 10m
+          labels:
+            severity: warning
+            component: event-consumer
+          annotations:
+            summary: "event consumer has no processing progress"
+            description: "No processed events recorded in the last 10 minutes."
+
+        - alert: EventConsumerHandlerFailuresIncreasing
+          expr: increase(travel_event_consumer_handler_failures_total[10m]) > 0
+          for: 10m
+          labels:
+            severity: warning
+            component: event-consumer
+          annotations:
+            summary: "event consumer handler failures detected"
+            description: "Handler failures increased in the last 10 minutes. Review retry policy and downstream dependencies."
+
+        - alert: EventConsumerQueueFullDropsIncreasing
+          expr: increase(travel_event_consumer_queue_full_drop_total[10m]) > 0
+          for: 5m
+          labels:
+            severity: warning
+            component: event-consumer
+          annotations:
+            summary: "event consumer queue full drops detected"
+            description: "Worker queue reached capacity and dropped/requeued messages in last 10 minutes."
+
+    - name: a2a-stream.rules
+      rules:
+        - alert: A2AStreamPendingHigh
+          expr: travel_a2a_stream_pending_total > 500
+          for: 5m
+          labels:
+            severity: warning
+            component: a2a-stream
+          annotations:
+            summary: "A2A stream pending backlog is high"
+            description: "Redis Streams pending entries exceed 500 for over 5 minutes. Check consumers and retry throughput."
+
+        - alert: A2AStreamLagHigh
+          expr: travel_a2a_stream_lag_ms > 30000
+          for: 5m
+          labels:
+            severity: warning
+            component: a2a-stream
+          annotations:
+            summary: "A2A stream lag is high"
+            description: "A2A stream lag exceeds 30 seconds. Investigate stream claim/ack latency."
+
+        - alert: A2AStreamMetricsStale
+          expr: time() - travel_a2a_stream_metrics_timestamp > 600
+          for: 5m
+          labels:
+            severity: warning
+            component: a2a-stream
+          annotations:
+            summary: "A2A stream metrics are stale"
+            description: "No fresh A2A stream metrics exported in the last 10 minutes."
+

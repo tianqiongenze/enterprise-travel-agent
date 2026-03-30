@@ -1,0 +1,19 @@
+resources:
+  - ../../base
+
+patchesStrategicMerge:
+  - replica-patch.yaml
+
+configMapGenerator:
+  - name: travel-agent-env
+    literals:
+      - TRAVEL_RANKER_BACKEND=go
+      - TRAVEL_GO_RANKER_URL=http://go-ranker.default.svc.cluster.local
+      - TRAVEL_GO_RANKER_TIMEOUT=0.4
+      - TRAVEL_GO_RANKER_SHADOW=true
+      - TRAVEL_GO_RANKER_DIFF_THRESHOLD=0.08
+      - TRAVEL_POLICY_BACKEND=go
+      - TRAVEL_GO_POLICY_URL=http://go-policy.default.svc.cluster.local
+      - TRAVEL_POLICY_SHADOW=true
+      - TRAVEL_REGISTRY_CACHE_BACKEND=go
+      - TRAVEL_REGISTRY_CACHE_URL=http://go-registry-cache.default.svc.cluster.local

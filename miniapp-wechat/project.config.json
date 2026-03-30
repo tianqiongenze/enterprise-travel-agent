@@ -1,0 +1,17 @@
+{
+  "description": "Enterprise Travel Agent WeChat Mini Program",
+  "packOptions": {
+    "ignore": []
+  },
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "urlCheck": false
+  },
+  "compileType": "miniprogram",
+  "appid": "touristappid",
+  "projectname": "enterprise-travel-agent-miniapp",
+  "miniprogramRoot": "./"
+}

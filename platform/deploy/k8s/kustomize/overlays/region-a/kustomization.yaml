@@ -1,0 +1,25 @@
+resources:
+  - ../../base
+
+patchesStrategicMerge:
+  - replica-patch.yaml
+  - ingress-host-patch.yaml
+
+configMapGenerator:
+  - name: travel-agent-env
+    literals:
+      - REGION_CODE=region-a
+      - TRAVEL_RANKER_BACKEND=go
+      - TRAVEL_GO_RANKER_URL=http://go-ranker.default.svc.cluster.local
+      - TRAVEL_GO_RANKER_TIMEOUT=0.35
+      - TRAVEL_POLICY_BACKEND=go
+      - TRAVEL_GO_POLICY_URL=http://go-policy.default.svc.cluster.local
+      - TRAVEL_POLICY_SHADOW=false
+      - TRAVEL_REGISTRY_CACHE_BACKEND=go
+      - TRAVEL_REGISTRY_CACHE_URL=http://go-registry-cache.default.svc.cluster.local
+      - TRAVEL_EVENT_BUS=pulsar
+      - PULSAR_SERVICE_URL=pulsar://pulsar-broker.region-a.svc.cluster.local:6650
+      - TRAVEL_MEMORY_BACKEND=vector
+      - TRAVEL_VECTOR_BACKEND=qdrant
+      - QDRANT_URL=http://qdrant.region-a.svc.cluster.local:6333
+

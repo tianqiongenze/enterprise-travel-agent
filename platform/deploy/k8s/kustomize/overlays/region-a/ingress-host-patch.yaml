@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: travel-agent-ingress
+spec:
+  tls:
+    - hosts:
+        - travel.region-a.example.com
+      secretName: travel-agent-tls
+  rules:
+    - host: travel.region-a.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: travel-agent-api
+                port:
+                  number: 80
+

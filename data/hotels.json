@@ -1,0 +1,7 @@
+[
+  {"id": "h1", "city": "北京", "name": "北京中心商务酒店", "price": 780, "rating": 4.7, "tags": ["business", "metro", "comfort"]},
+  {"id": "h2", "city": "北京", "name": "北京家庭轻居酒店", "price": 520, "rating": 4.5, "tags": ["family", "kids", "budget"]},
+  {"id": "h3", "city": "上海", "name": "上海外滩景观酒店", "price": 980, "rating": 4.8, "tags": ["view", "comfort", "couple"]},
+  {"id": "h4", "city": "上海", "name": "上海交通枢纽快捷酒店", "price": 430, "rating": 4.3, "tags": ["budget", "metro", "business"]},
+  {"id": "h5", "city": "成都", "name": "成都宽窄巷子文化酒店", "price": 560, "rating": 4.6, "tags": ["culture", "family", "comfort"]}
+]

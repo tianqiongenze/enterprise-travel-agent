@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: travel-agent-api
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: travel-agent-api
+  template:
+    metadata:
+      labels:
+        app: travel-agent-api
+    spec:
+      containers:
+        - name: travel-agent-api
+          image: your-registry/travel-agent-api:0.1.0
+          ports:
+            - containerPort: 8000
+          env:
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: TRAVEL_REGISTRY
+              value: "nacos-real"
+            - name: NACOS_SERVER_ADDR
+              value: "http://nacos.default.svc.cluster.local:8848"
+            - name: ETCD_HOST
+              value: "etcd.default.svc.cluster.local"
+            - name: ETCD_PORT
+              value: "2379"
+            - name: TRAVEL_ETCD_CLIENT_MODE
+              value: "legacy"
+            - name: TRAVEL_RANKER_BACKEND
+              valueFrom:
+                configMapKeyRef:
+                  name: travel-agent-env
+                  key: TRAVEL_RANKER_BACKEND
+            - name: TRAVEL_GO_RANKER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: travel-agent-env
+                  key: TRAVEL_GO_RANKER_URL
+            - name: TRAVEL_GO_RANKER_TIMEOUT
+              valueFrom:
+                configMapKeyRef:
+                  name: travel-agent-env
+                  key: TRAVEL_GO_RANKER_TIMEOUT
+            - name: TRAVEL_GO_RANKER_SHADOW
+              valueFrom:
+                configMapKeyRef:
+                  name: travel-agent-env
+                  key: TRAVEL_GO_RANKER_SHADOW
+                  optional: true
+            - name: TRAVEL_GO_RANKER_DIFF_THRESHOLD
+              valueFrom:
+                configMapKeyRef:
+                  name: travel-agent-env
+                  key: TRAVEL_GO_RANKER_DIFF_THRESHOLD
+                  optional: true
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2000m"
+              memory: "2Gi"

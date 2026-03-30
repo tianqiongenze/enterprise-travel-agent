@@ -1,0 +1,11 @@
+{
+  "name": "family",
+  "description": "家庭出游偏好，优先亲子景点与家庭友好住宿",
+  "tool_whitelist": ["search_hotels", "search_transports", "search_attractions"],
+  "weights": {
+    "family": 1.2,
+    "kids": 1.3,
+    "comfort": 1.05,
+    "budget": 1.0
+  }
+}

@@ -1,0 +1,22 @@
+.container {
+  padding: 20rpx;
+}
+
+.title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.item {
+  border: 1px solid #e5e7eb;
+  border-radius: 10rpx;
+  padding: 10rpx;
+  margin-bottom: 10rpx;
+}
+
+text {
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: 22rpx;
+}

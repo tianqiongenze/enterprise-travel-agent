@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: travel-agent-api
+spec:
+  replicas: 10
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-ranker
+spec:
+  replicas: 8
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-policy
+spec:
+  replicas: 6
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: go-registry-cache
+spec:
+  replicas: 5
+

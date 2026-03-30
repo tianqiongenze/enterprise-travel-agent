@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-fanout
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: go-fanout
+  template:
+    metadata:
+      labels:
+        app: go-fanout
+    spec:
+      containers:
+        - name: go-fanout
+          image: your-registry/go-fanout:0.1.0
+          ports:
+            - containerPort: 8092
+          env:
+            - name: GO_FANOUT_PORT
+              value: "8092"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8092
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8092
+            initialDelaySeconds: 10
+            periodSeconds: 15

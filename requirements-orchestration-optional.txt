@@ -1,0 +1,7 @@
+# Optional orchestration frameworks (enable via TRAVEL_ORCHESTRATION_ENGINE)
+# Install only when you need the adapter runtime in experimentation or production PoC.
+langgraph==0.6.5
+agentscope==0.0.12
+# Note: oneagents package name may vary by distribution channel; keep as documentation marker.
+# oneagents==<choose-compatible-version>
+

@@ -1,0 +1,31 @@
+{
+  "version": "policy-core.v1",
+  "limits": {
+    "maxAgentSteps": 50,
+    "maxToolCalls": 30
+  },
+  "tiers": {
+    "basic": {
+      "tools": ["search_hotels", "search_transports", "search_attractions"],
+      "engines": ["langgraph"]
+    },
+    "silver": {
+      "tools": ["search_hotels", "search_transports", "search_attractions", "search_foods"],
+      "engines": ["langgraph", "agentscope"]
+    },
+    "gold": {
+      "tools": ["search_hotels", "search_transports", "search_attractions", "search_foods", "search_events"],
+      "engines": ["langgraph", "agentscope", "oneagents"]
+    },
+    "platinum": {
+      "tools": ["search_hotels", "search_transports", "search_attractions", "search_foods", "search_events"],
+      "engines": ["langgraph", "agentscope", "oneagents"]
+    }
+  },
+  "engineAliases": {
+    "agentscope-ai": "agentscope",
+    "oneagent": "oneagents",
+    "native": "local"
+  }
+}
+

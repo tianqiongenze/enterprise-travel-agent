@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-policy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: go-policy
+  template:
+    metadata:
+      labels:
+        app: go-policy
+    spec:
+      containers:
+        - name: go-policy
+          image: your-registry/go-policy:0.1.0
+          ports:
+            - containerPort: 8091
+          env:
+            - name: GO_POLICY_PORT
+              value: "8091"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8091
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8091
+            initialDelaySeconds: 10
+            periodSeconds: 15

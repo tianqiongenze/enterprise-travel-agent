@@ -1,0 +1,103 @@
+version: "3.9"
+services:
+  techgroup-enterprise-travel-gateway:
+    image: maven:3.9.9-eclipse-temurin-21
+    working_dir: /app/services/techgroup-enterprise-travel-gateway
+    volumes:
+      - ../../:/app
+    command: >
+      sh -c "mvn -q -DskipTests spring-boot:run"
+    ports:
+      - "8080:8080"
+    environment:
+      - TRAVEL_RUNTIME_BASE_URL=http://travel-agent-api:8000
+    depends_on:
+      - travel-agent-api
+
+  techgroup-enterprise-travel-web:
+    image: node:22-alpine
+    working_dir: /app/apps/techgroup-enterprise-travel-web
+    volumes:
+      - ../../:/app
+    command: >
+      sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_TRAVEL_API_BASE_URL=http://localhost:8080
+    depends_on:
+      - techgroup-enterprise-travel-gateway
+
+  nacos:
+    image: nacos/nacos-server:v2.4.2
+    environment:
+      - MODE=standalone
+      - NACOS_AUTH_ENABLE=true
+      - NACOS_AUTH_IDENTITY_KEY=serverIdentity
+      - NACOS_AUTH_IDENTITY_VALUE=security
+      - NACOS_AUTH_TOKEN=defaultBase64Token
+    ports:
+      - "8848:8848"
+
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.18
+    command: >
+      /usr/local/bin/etcd --name etcd0 --data-dir /etcd-data
+      --listen-client-urls http://0.0.0.0:2379
+      --advertise-client-urls http://etcd:2379
+    ports:
+      - "2379:2379"
+
+  pulsar:
+    image: apachepulsar/pulsar:3.3.2
+    command: ["bin/pulsar", "standalone"]
+    ports:
+      - "6650:6650"
+      - "8088:8080"
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.1
+    ports:
+      - "6333:6333"
+
+  redis-cluster:
+    image: grokzen/redis-cluster:7.2.0
+    environment:
+      - IP=0.0.0.0
+      - STANDALONE=false
+    ports:
+      - "7000-7005:7000-7005"
+
+  travel-agent-api:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ../../:/app
+    command: >
+      sh -c "pip install -r requirements.txt -r requirements-etcd-legacy.txt && uvicorn src.travel_agent.api.app:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app/services/techgroup-enterprise-travel-runtime
+      - TRAVEL_REGISTRY=nacos-real
+      - NACOS_SERVER_ADDR=http://nacos:8848
+      - ETCD_HOST=etcd
+      - ETCD_PORT=2379
+      - TRAVEL_ETCD_CLIENT_MODE=legacy
+      - TRAVEL_INTERNAL_CLIENT_ID=techgroup-enterprise-travel-gateway
+      - TRAVEL_EVENT_BUS=pulsar
+      - PULSAR_SERVICE_URL=pulsar://pulsar:6650
+      - TRAVEL_ORCHESTRATION_ENGINE=langgraph
+      - TRAVEL_ORCHESTRATION_FALLBACK_ENGINE=langgraph
+      - TRAVEL_ORCHESTRATION_STRICT=false
+      - TRAVEL_MEMORY_BACKEND=redis
+      - TRAVEL_REDIS_MODE=cluster
+      - TRAVEL_REDIS_URL=redis://redis-cluster:7000
+      - TRAVEL_VECTOR_BACKEND=qdrant
+      - QDRANT_URL=http://qdrant:6333
+    depends_on:
+      - nacos
+      - etcd
+      - pulsar
+      - qdrant
+      - redis-cluster

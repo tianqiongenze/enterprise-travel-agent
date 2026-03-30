@@ -1,0 +1,27 @@
+[
+  {
+    "id": "event-bj-001",
+    "city": "北京",
+    "name": "夜游长城灯光季",
+    "tags": ["family", "culture", "night"]
+  },
+  {
+    "id": "event-bj-002",
+    "city": "北京",
+    "name": "城市亲子创客展",
+    "tags": ["family", "education", "interactive"]
+  },
+  {
+    "id": "event-sh-001",
+    "city": "上海",
+    "name": "黄浦江音乐夜航",
+    "tags": ["comfort", "night", "romantic"]
+  },
+  {
+    "id": "event-sh-002",
+    "city": "上海",
+    "name": "数字艺术沉浸展",
+    "tags": ["business", "technology", "experience"]
+  }
+]
+

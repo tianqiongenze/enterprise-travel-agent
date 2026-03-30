@@ -1,0 +1,11 @@
+{
+  "name": "comfort",
+  "description": "舒适优先偏好，优先高评分与体验",
+  "tool_whitelist": ["search_hotels", "search_transports", "search_attractions"],
+  "weights": {
+    "comfort": 1.35,
+    "view": 1.2,
+    "business": 1.1,
+    "budget": 0.9
+  }
+}

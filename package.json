@@ -1,0 +1,25 @@
+{
+  "name": "techgroup-enterprise-travel-agent",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "ci:test:python": "python scripts/run_python_tests_ci.py",
+    "ci:test:gateway": "mvn -f services/techgroup-enterprise-travel-gateway/pom.xml -DskipTests=false test",
+    "ci:test:all": "npm run ci:test:python && npm run ci:test:gateway",
+    "build:ppt:teaching": "node scripts/build_public_ppt_100.js",
+    "build:ppt:teaching:notes": "node scripts/build_university_ppt_106_notes.js",
+    "build:ppt:teaching:200:themes": "node scripts/build_university_ppt_200_multi_theme.js",
+    "run:event:consumers": "python scripts/run_event_consumers.py --max-messages 200",
+    "run:capacity:cost": "python stress/capacity_cost_model.py --peak-connected 1000000 --active-ratio 0.1",
+    "run:canary:gate": "python platform/deploy/scripts/canary_gate.py --report stress/etcd_migration_compare.json --event-metrics stress/pulsar_consumer_metrics.prom",
+    "run:autosafemode": "python platform/deploy/scripts/p3_5_autosafemode.py --decision stress/canary_gate_decision.json",
+    "run:go-live:final": "python platform/deploy/scripts/go_live_final_check.py --project-root . --report-out stress/go_live_final_report.json",
+    "run:p3:evidence:assets": "python platform/deploy/scripts/generate_p3_evidence_assets.py",
+    "run:dual-education:ppt": "node scripts/build_public_ppt_dual_education_210.js",
+    "run:dual-education:assets": "python platform/deploy/scripts/generate_dual_education_assets.py",
+    "run:code:evidence:assets": "python platform/deploy/scripts/generate_code_evidence_assets.py"
+  },
+  "dependencies": {
+    "pptxgenjs": "^4.0.1"
+  }
+}

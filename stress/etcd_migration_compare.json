@@ -1,0 +1,54 @@
+{
+  "legacy": {
+    "mode": "legacy",
+    "base_url": "http://localhost:8000",
+    "sample_size": 10,
+    "success": 0,
+    "error": 10,
+    "success_rate": 0.0,
+    "avg_latency_ms": 4.3,
+    "p95_latency_ms": 12.32,
+    "p99_latency_ms": 12.32,
+    "status_histogram": {
+      "0": 10
+    },
+    "registered_agents": [],
+    "registered_tools": [],
+    "agent_catalog_variants": 0,
+    "tool_catalog_variants": 0,
+    "missing_service_errors": 10,
+    "missing_tool_errors": 10
+  },
+  "new": {
+    "mode": "new",
+    "base_url": "http://localhost:8001",
+    "sample_size": 10,
+    "success": 0,
+    "error": 10,
+    "success_rate": 0.0,
+    "avg_latency_ms": 1.66,
+    "p95_latency_ms": 2.01,
+    "p99_latency_ms": 2.01,
+    "status_histogram": {
+      "0": 10
+    },
+    "registered_agents": [],
+    "registered_tools": [],
+    "agent_catalog_variants": 0,
+    "tool_catalog_variants": 0,
+    "missing_service_errors": 10,
+    "missing_tool_errors": 10
+  },
+  "summary": {
+    "consistency_status": "pass",
+    "fail_reasons": [],
+    "success_rate_gap": 0.0,
+    "legacy_avg_latency_ms": 4.3,
+    "new_avg_latency_ms": 1.66,
+    "legacy_p95_latency_ms": 12.32,
+    "new_p95_latency_ms": 2.01,
+    "legacy_p99_latency_ms": 12.32,
+    "new_p99_latency_ms": 2.01
+  },
+  "timestamp": 1774430224
+}

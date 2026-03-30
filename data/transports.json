@@ -1,0 +1,7 @@
+[
+  {"id": "t1", "city": "北京", "name": "高铁二等座", "price": 560, "duration": 5.5, "tags": ["train", "budget", "stable"]},
+  {"id": "t2", "city": "北京", "name": "民航经济舱", "price": 860, "duration": 2.2, "tags": ["flight", "fast"]},
+  {"id": "t3", "city": "上海", "name": "高铁商务座", "price": 1280, "duration": 5.0, "tags": ["train", "comfort"]},
+  {"id": "t4", "city": "上海", "name": "民航经济舱", "price": 780, "duration": 2.4, "tags": ["flight", "fast", "budget"]},
+  {"id": "t5", "city": "成都", "name": "民航经济舱", "price": 680, "duration": 2.8, "tags": ["flight", "budget", "fast"]}
+]

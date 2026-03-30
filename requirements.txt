@@ -1,0 +1,13 @@
+fastapi==0.135.2
+uvicorn==0.42.0
+pydantic==2.12.0
+requests==2.32.5
+aiohttp==3.13.3
+urllib3==2.6.0
+redis==7.4.0
+sqlalchemy==2.0.38
+aiomysql==0.2.0
+cryptography==44.0.1
+pulsar-client==3.5.0
+qdrant-client==1.12.1
+pymilvus==2.5.4

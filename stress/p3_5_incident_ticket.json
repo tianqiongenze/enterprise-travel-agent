@@ -1,0 +1,11 @@
+{
+  "timestamp": 1774576280,
+  "action": "rollback",
+  "reasons": [
+    "event_consumer_metrics_missing"
+  ],
+  "safemode_override": "deploy\\runtime-overrides.env",
+  "owner": "release-manager",
+  "status": "open",
+  "next_step": "Apply override, hold promotion, start incident review"
+}

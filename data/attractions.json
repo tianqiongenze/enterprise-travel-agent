@@ -1,0 +1,9 @@
+[
+  {"id": "a1", "city": "北京", "name": "故宫", "tags": ["culture", "history", "family"]},
+  {"id": "a2", "city": "北京", "name": "颐和园", "tags": ["culture", "nature", "family"]},
+  {"id": "a3", "city": "北京", "name": "环球影城", "tags": ["kids", "family", "entertainment"]},
+  {"id": "a4", "city": "上海", "name": "外滩", "tags": ["view", "culture"]},
+  {"id": "a5", "city": "上海", "name": "迪士尼", "tags": ["kids", "family", "entertainment"]},
+  {"id": "a6", "city": "成都", "name": "宽窄巷子", "tags": ["culture", "food"]},
+  {"id": "a7", "city": "成都", "name": "大熊猫基地", "tags": ["family", "kids", "nature"]}
+]

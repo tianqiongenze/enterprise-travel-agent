@@ -1,0 +1,43 @@
+# HELP canary_gate_status Canary gate status, 1=promote, 0=rollback
+# TYPE canary_gate_status gauge
+canary_gate_status 1
+# HELP canary_gate_action Canary gate action one-hot metric
+# TYPE canary_gate_action gauge
+canary_gate_action{action="promote"} 1
+canary_gate_action{action="rollback"} 0
+# HELP canary_gate_reason_count Number of gate failure reasons
+# TYPE canary_gate_reason_count gauge
+canary_gate_reason_count 0
+# HELP canary_gate_success_rate_gap Observed success rate gap between legacy and new
+# TYPE canary_gate_success_rate_gap gauge
+canary_gate_success_rate_gap 0.0
+# HELP canary_gate_p95_drift_ratio Canary p95 drift ratio against legacy
+# TYPE canary_gate_p95_drift_ratio gauge
+canary_gate_p95_drift_ratio -0.8368506493506493
+# HELP canary_gate_p99_drift_ratio Canary p99 drift ratio against legacy
+# TYPE canary_gate_p99_drift_ratio gauge
+canary_gate_p99_drift_ratio -0.8368506493506493
+# HELP canary_gate_threshold_success_gap Configured success gap threshold
+# TYPE canary_gate_threshold_success_gap gauge
+canary_gate_threshold_success_gap 0.03
+# HELP canary_gate_threshold_p95_drift Configured p95 drift threshold
+# TYPE canary_gate_threshold_p95_drift gauge
+canary_gate_threshold_p95_drift 0.08
+# HELP canary_gate_threshold_p99_drift Configured p99 drift threshold
+# TYPE canary_gate_threshold_p99_drift gauge
+canary_gate_threshold_p99_drift 0.1
+# HELP canary_gate_last_eval_timestamp Last gate evaluation unix timestamp
+# TYPE canary_gate_last_eval_timestamp gauge
+canary_gate_last_eval_timestamp 1774775904.0
+# HELP canary_gate_event_consumer_lag_seconds Event consumer lag seen by gate
+# TYPE canary_gate_event_consumer_lag_seconds gauge
+canary_gate_event_consumer_lag_seconds 0.001002
+# HELP canary_gate_event_consumer_dlq_total Event consumer DLQ count seen by gate
+# TYPE canary_gate_event_consumer_dlq_total gauge
+canary_gate_event_consumer_dlq_total 0.0
+# HELP canary_gate_event_consumer_processed_total Event consumer processed count seen by gate
+# TYPE canary_gate_event_consumer_processed_total gauge
+canary_gate_event_consumer_processed_total 2.0
+# HELP canary_gate_event_consumer_handler_failures_total Event consumer handler failure count seen by gate
+# TYPE canary_gate_event_consumer_handler_failures_total gauge
+canary_gate_event_consumer_handler_failures_total 0.0

@@ -1,0 +1,7 @@
+travel_event_consumer_received_total 2
+travel_event_consumer_processed_total 2
+travel_event_consumer_retried_total 0
+travel_event_consumer_dlq_total 0
+travel_event_consumer_handler_failures_total 0
+travel_event_consumer_lag_seconds 0.001002
+travel_event_consumer_metrics_timestamp 1774577490.1303215
