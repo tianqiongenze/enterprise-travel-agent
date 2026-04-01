@@ -10,6 +10,8 @@
 - Runtime -> Go Ranker
 - Runtime -> Go Policy
 
+当前进度：已完成 `Runtime -> Go Ranker` 双栈落地（HTTP + gRPC 并存，支持失败回退）。
+
 对外接口保持 HTTP/JSON。
 
 ## 2. 目标
@@ -54,6 +56,13 @@
 - gRPC interceptor 注入 trace/audit
 - Prometheus gRPC 指标（latency/errors）
 
+推荐配置（Ranker）：
+
+- `GO_RANKER_GRPC_PORT=9090`
+- `TRAVEL_GO_RANKER_TRANSPORT=auto|grpc|http`
+- `TRAVEL_GO_RANKER_GRPC_TARGET=go-ranker:9090`
+- `TRAVEL_GO_RANKER_GRPC_FALLBACK_HTTP=true`
+
 ## 7. 风险与缓解
 
 | 风险 | 缓解 |
@@ -73,8 +82,6 @@
 
 ```powershell
 python scripts/generate_grpc_stubs.py
-Push-Location services/techgroup-enterprise-travel-gateway
-mvn generate-sources
-Pop-Location
+powershell -ExecutionPolicy Bypass -File scripts/generate_grpc_java_stubs.ps1
 ```
 

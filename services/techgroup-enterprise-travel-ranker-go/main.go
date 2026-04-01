@@ -2,12 +2,17 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"math"
+	"net"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	json "github.com/goccy/go-json"
+	travelgrpcv1 "github.com/techgroup/enterprise-travel-agent/techgroup-enterprise-travel-ranker-go/internal/grpcgen/v1"
+	"google.golang.org/grpc"
 )
 
 type ScoreRequest struct {
@@ -21,6 +26,10 @@ type ScoreRequest struct {
 
 type ScoreResponse struct {
 	Score float64 `json:"score"`
+}
+
+type rankerGRPCServer struct {
+	travelgrpcv1.UnimplementedRankerServiceServer
 }
 
 func main() {
@@ -56,7 +65,41 @@ func main() {
 	if port == "" {
 		port = "8090"
 	}
-	_ = r.Run(":" + port)
+	grpcPort := os.Getenv("GO_RANKER_GRPC_PORT")
+	if grpcPort == "" {
+		grpcPort = "9090"
+	}
+
+	errCh := make(chan error, 2)
+	go func() {
+		errCh <- r.Run(":" + port)
+	}()
+	go func() {
+		errCh <- runGRPC(grpcPort)
+	}()
+	if err := <-errCh; err != nil {
+		panic(err)
+	}
+}
+
+func runGRPC(port string) error {
+	listener, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		return fmt.Errorf("listen grpc :%s failed: %w", port, err)
+	}
+	server := grpc.NewServer()
+	travelgrpcv1.RegisterRankerServiceServer(server, &rankerGRPCServer{})
+	return server.Serve(listener)
+}
+
+func (s *rankerGRPCServer) ScoreHotel(_ context.Context, req *travelgrpcv1.ScoreRequest) (*travelgrpcv1.ScoreResponse, error) {
+	score := hotelScore(req.Price, req.Rating, req.Tags, req.Budget, req.Weights)
+	return &travelgrpcv1.ScoreResponse{Score: round(score, 8)}, nil
+}
+
+func (s *rankerGRPCServer) ScoreTransport(_ context.Context, req *travelgrpcv1.ScoreRequest) (*travelgrpcv1.ScoreResponse, error) {
+	score := transportScore(req.Price, req.Duration, req.Tags, req.Budget, req.Weights)
+	return &travelgrpcv1.ScoreResponse{Score: round(score, 8)}, nil
 }
 
 func bindJSON(c *gin.Context, target interface{}) error {

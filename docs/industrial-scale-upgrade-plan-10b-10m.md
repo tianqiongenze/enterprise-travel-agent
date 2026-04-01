@@ -124,3 +124,13 @@ Result:
 - Deterministic CI test commands in place for Python and gateway paths
 - Architecture, deployment, and capacity docs updated for 10B/10M target
 
+## 10. Implemented in Current Codebase (2026-04-01)
+
+- Runtime anti-overload admission control added via in-flight guard (`TrafficGuard.claim_inflight/release_inflight`).
+- Runtime recommendation path now enforces overload protection before orchestration.
+- Go Ranker transport dual-stack observability added (gRPC/http attempts, success, error, fallback, shadow-diff metrics).
+- Go-live final gate now executes `stress/global_scale_readiness.py` and validates `--min-scale-status`.
+- K8s baseline scale envelope raised (`deployment replicas/resources`, `hpa min/max`) for higher concurrency planning.
+
+These changes improve architecture readiness but do not replace mandatory distributed evidence for formal 10B/10M production claim.
+

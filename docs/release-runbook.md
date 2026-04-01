@@ -70,6 +70,21 @@ Required P3.6 artifacts:
 - `deploy/runtime-overrides.env` (when rollback with event reasons)
 - `stress/p3_5_incident_ticket.json` (when rollback with event reasons)
 
+Release hardening (source protection) commands:
+
+```bash
+export TRAVEL_RELEASE_HARDENING=true
+export TRAVEL_RELEASE_SOURCE_KEY="replace-with-strong-secret"
+bash platform/deploy/scripts/preflight.sh
+bash platform/deploy/scripts/build_release.sh
+python3 platform/deploy/scripts/go_live_final_check.py --require-source-protection
+```
+
+Required hardening artifacts:
+
+- `var/release_hardening/source_protection_manifest.json`
+- `var/release_hardening/encrypted_sources/**.enc`
+
 Expansion verification commands:
 
 ```bash

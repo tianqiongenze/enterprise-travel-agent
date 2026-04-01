@@ -3,12 +3,15 @@
 import importlib
 import inspect
 import os
+import threading
 import time
 
 
 class TrafficGuard:
     def __init__(self) -> None:
         self._client = None
+        self._local_lock = threading.Lock()
+        self._local_inflight = {}
         redis_url = os.getenv("TRAVEL_GUARD_REDIS_URL", os.getenv("TRAVEL_REDIS_URL", "")).strip()
         mode = os.getenv("TRAVEL_REDIS_MODE", "cluster").strip().lower()
         if not redis_url:
@@ -44,6 +47,45 @@ class TrafficGuard:
             return int(value) <= limit
         except Exception:
             return True
+
+    def claim_inflight(self, scope: str) -> bool:
+        limit = int(os.getenv("TRAVEL_INFLIGHT_LIMIT", "2000"))
+        ttl = int(os.getenv("TRAVEL_INFLIGHT_TTL_SEC", "30"))
+        if self._client is None:
+            local_limit = int(os.getenv("TRAVEL_LOCAL_INFLIGHT_LIMIT", str(limit)))
+            with self._local_lock:
+                current = int(self._local_inflight.get(scope, 0))
+                if current >= local_limit:
+                    return False
+                self._local_inflight[scope] = current + 1
+                return True
+        key = f"guard:inflight:{scope}"
+        try:
+            current = int(self._client.incr(key))
+            self._client.expire(key, ttl)
+            if current > limit:
+                self._client.decr(key)
+                return False
+            return True
+        except Exception:
+            return True
+
+    def release_inflight(self, scope: str) -> None:
+        if self._client is None:
+            with self._local_lock:
+                current = int(self._local_inflight.get(scope, 0))
+                if current <= 1:
+                    self._local_inflight.pop(scope, None)
+                else:
+                    self._local_inflight[scope] = current - 1
+            return
+        key = f"guard:inflight:{scope}"
+        try:
+            current = int(self._client.decr(key))
+            if current <= 0:
+                self._client.delete(key)
+        except Exception:
+            return
 
     def claim_idempotency(self, tenant_id: str, idem_key: str) -> bool:
         ttl = int(os.getenv("TRAVEL_IDEMPOTENCY_TTL_SEC", "900"))

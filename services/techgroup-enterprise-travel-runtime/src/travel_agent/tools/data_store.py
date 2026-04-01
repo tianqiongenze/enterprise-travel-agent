@@ -29,3 +29,9 @@ class DataStore:
     def events(self) -> List[Dict[str, Any]]:
         return self._read("events.json")
 
+    def activities(self) -> List[Dict[str, Any]]:
+        return self._read("activities.json")
+
+    def souvenirs(self) -> List[Dict[str, Any]]:
+        return self._read("souvenirs.json")
+

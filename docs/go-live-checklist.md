@@ -84,3 +84,12 @@
 - [ ] Membership distributed store enabled (`TRAVEL_MEMBERSHIP_REDIS_URL`)
 - [ ] Runtime anti-abuse gates enabled (rate-limit/idempotency/circuit)
 
+## 11. 10B / 1M Global Capacity Gates
+
+- [ ] `stress/global_scale_readiness_report.json` generated and archived
+- [ ] Readiness status is at least `ARCHITECTURE_READY_NOT_PROVEN`
+- [ ] Distributed benchmark evidence attached for `>= 1,000,000` concurrent users
+- [ ] Multi-region active-active failover drill evidence attached
+- [ ] Runtime in-flight admission control enabled (`TRAVEL_INFLIGHT_LIMIT`)
+- [ ] Go Ranker gRPC transport and fallback metrics exported (`stress/ranker_transport_metrics.prom`)
+

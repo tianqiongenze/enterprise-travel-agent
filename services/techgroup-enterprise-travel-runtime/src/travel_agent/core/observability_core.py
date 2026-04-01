@@ -12,6 +12,14 @@ class MetricNames:
     event_queue_full_drop_total: str = "travel_event_consumer_queue_full_drop_total"
     a2a_pending_total: str = "travel_a2a_stream_pending_total"
     a2a_lag_ms: str = "travel_a2a_stream_lag_ms"
+    ranker_grpc_attempt_total: str = "travel_ranker_grpc_attempt_total"
+    ranker_grpc_success_total: str = "travel_ranker_grpc_success_total"
+    ranker_grpc_error_total: str = "travel_ranker_grpc_error_total"
+    ranker_http_attempt_total: str = "travel_ranker_http_attempt_total"
+    ranker_http_success_total: str = "travel_ranker_http_success_total"
+    ranker_http_error_total: str = "travel_ranker_http_error_total"
+    ranker_fallback_http_total: str = "travel_ranker_fallback_http_total"
+    ranker_shadow_diff_total: str = "travel_ranker_shadow_diff_total"
 
 
 @dataclass(frozen=True)

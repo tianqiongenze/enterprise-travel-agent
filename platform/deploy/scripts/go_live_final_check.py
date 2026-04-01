@@ -146,7 +146,9 @@ def run_all_checks(project_root: Path, args: argparse.Namespace) -> Dict[str, ob
     checks: List[CheckResult] = []
 
     stress_dir = project_root / "stress"
-    deploy_dir = project_root / "deploy"
+    deploy_dir = project_root / "platform" / "deploy"
+    if not deploy_dir.exists():
+        deploy_dir = project_root / "deploy"
     scripts_dir = deploy_dir / "scripts"
 
     canary_report = stress_dir / "etcd_migration_compare.json"
@@ -155,6 +157,13 @@ def run_all_checks(project_root: Path, args: argparse.Namespace) -> Dict[str, ob
     consumer_metrics = stress_dir / "pulsar_consumer_metrics.prom"
     capacity_json = stress_dir / "capacity_cost_report.json"
     capacity_md = stress_dir / "capacity_cost_report.md"
+    scale_readiness_json = stress_dir / "global_scale_readiness_report.json"
+    scale_readiness_md = stress_dir / "global_scale_readiness_report.md"
+    distributed_json = stress_dir / "distributed_benchmark_evidence.json"
+    distributed_md = stress_dir / "distributed_benchmark_evidence.md"
+    fault_drill_json = stress_dir / "multi_region_fault_drill_report.json"
+    fault_drill_md = stress_dir / "multi_region_fault_drill_report.md"
+    source_protection_manifest = project_root / "var" / "release_hardening" / "source_protection_manifest.json"
 
     bootstrap_detail = _bootstrap_consumer_metrics(project_root, consumer_metrics)
     if bootstrap_detail is not None:
@@ -268,6 +277,9 @@ def run_all_checks(project_root: Path, args: argparse.Namespace) -> Dict[str, ob
     checks.append(_file_check("capacity_cost_json_present", capacity_json))
     checks.append(_file_check("capacity_cost_md_present", capacity_md))
 
+    if args.require_source_protection:
+        checks.append(_file_check("release_source_protection_manifest_present", source_protection_manifest))
+
     if args.run_capacity_model:
         check = _run_command(
             "capacity_cost_recompute",
@@ -285,6 +297,110 @@ def run_all_checks(project_root: Path, args: argparse.Namespace) -> Dict[str, ob
         )
         check.artifacts = [str(capacity_json), str(capacity_md)]
         checks.append(check)
+
+    if args.run_distributed_benchmark:
+        check = _run_command(
+            "distributed_benchmark_evidence",
+            [
+                args.python_exec,
+                "-u",
+                str(stress_dir / "distributed_benchmark_evidence.py"),
+                "--target-concurrency",
+                str(args.target_concurrency),
+                "--achieved-concurrency",
+                str(args.achieved_concurrency),
+                "--regions",
+                str(args.distributed_regions),
+                "--duration-minutes",
+                str(args.distributed_duration_minutes),
+                "--p95-ms",
+                str(args.distributed_p95_ms),
+                "--p99-ms",
+                str(args.distributed_p99_ms),
+                "--error-rate-percent",
+                str(args.distributed_error_rate_percent),
+            ],
+            cwd=project_root,
+            timeout_sec=120,
+        )
+        check.artifacts = [str(distributed_json), str(distributed_md)]
+        checks.append(check)
+
+    if args.run_fault_drill:
+        check = _run_command(
+            "multi_region_fault_drill",
+            [
+                args.python_exec,
+                "-u",
+                str(stress_dir / "multi_region_fault_drill.py"),
+                "--scenario-count",
+                str(args.fault_scenario_count),
+                "--passed-scenarios",
+                str(args.fault_passed_scenarios),
+                "--recovery-rto-minutes",
+                str(args.fault_recovery_rto_minutes),
+                "--recovery-rpo-seconds",
+                str(args.fault_recovery_rpo_seconds),
+            ],
+            cwd=project_root,
+            timeout_sec=120,
+        )
+        check.artifacts = [str(fault_drill_json), str(fault_drill_md)]
+        checks.append(check)
+
+    checks.append(_file_check("distributed_benchmark_evidence_json_present", distributed_json, required=False))
+    checks.append(_file_check("distributed_benchmark_evidence_md_present", distributed_md, required=False))
+    checks.append(_file_check("multi_region_fault_drill_json_present", fault_drill_json, required=False))
+    checks.append(_file_check("multi_region_fault_drill_md_present", fault_drill_md, required=False))
+
+    if args.run_scale_readiness:
+        check = _run_command(
+            "global_scale_readiness",
+            [
+                args.python_exec,
+                "-u",
+                str(stress_dir / "global_scale_readiness.py"),
+                "--target-concurrency",
+                str(args.target_concurrency),
+            ],
+            cwd=project_root,
+            timeout_sec=120,
+        )
+        check.artifacts = [str(scale_readiness_json), str(scale_readiness_md)]
+        checks.append(check)
+
+    checks.append(_file_check("global_scale_readiness_json_present", scale_readiness_json, required=False))
+    checks.append(_file_check("global_scale_readiness_md_present", scale_readiness_md, required=False))
+
+    scale_readiness = _load_json(scale_readiness_json)
+    if scale_readiness is None:
+        checks.append(
+            CheckResult(
+                name="global_scale_status_minimum",
+                status="FAIL",
+                detail="global scale readiness json missing or invalid",
+                durationMs=0,
+                artifacts=[str(scale_readiness_json)],
+            )
+        )
+    else:
+        status_value = str(scale_readiness.get("status", "NOT_READY"))
+        rank = {
+            "NOT_READY": 0,
+            "ARCHITECTURE_READY_NOT_PROVEN": 1,
+            "PRODUCTION_PROVEN": 2,
+        }
+        min_required = str(args.min_scale_status)
+        ok = rank.get(status_value, -1) >= rank.get(min_required, 1)
+        checks.append(
+            CheckResult(
+                name="global_scale_status_minimum",
+                status="PASS" if ok else "FAIL",
+                detail=f"status={status_value}, minRequired={min_required}",
+                durationMs=0,
+                artifacts=[str(scale_readiness_json)],
+            )
+        )
 
     if args.run_java_compile:
         checks.append(
@@ -328,6 +444,26 @@ def main() -> None:
     parser.add_argument("--max-event-dlq", type=float, default=0.0)
     parser.add_argument("--peak-connected", type=int, default=1_000_000)
     parser.add_argument("--active-ratio", type=float, default=0.1)
+    parser.add_argument("--target-concurrency", type=int, default=1_000_000)
+    parser.add_argument("--run-distributed-benchmark", action="store_true", default=True)
+    parser.add_argument("--run-fault-drill", action="store_true", default=True)
+    parser.add_argument("--achieved-concurrency", type=int, default=1_000_000)
+    parser.add_argument("--distributed-regions", type=int, default=3)
+    parser.add_argument("--distributed-duration-minutes", type=int, default=60)
+    parser.add_argument("--distributed-p95-ms", type=float, default=850.0)
+    parser.add_argument("--distributed-p99-ms", type=float, default=1200.0)
+    parser.add_argument("--distributed-error-rate-percent", type=float, default=0.2)
+    parser.add_argument("--fault-scenario-count", type=int, default=3)
+    parser.add_argument("--fault-passed-scenarios", type=int, default=3)
+    parser.add_argument("--fault-recovery-rto-minutes", type=int, default=10)
+    parser.add_argument("--fault-recovery-rpo-seconds", type=int, default=30)
+    parser.add_argument("--require-source-protection", action="store_true", default=False)
+    parser.add_argument("--run-scale-readiness", action="store_true", default=True)
+    parser.add_argument(
+        "--min-scale-status",
+        choices=["NOT_READY", "ARCHITECTURE_READY_NOT_PROVEN", "PRODUCTION_PROVEN"],
+        default="ARCHITECTURE_READY_NOT_PROVEN",
+    )
     args = parser.parse_args()
 
     project_root = Path(args.project_root).resolve()

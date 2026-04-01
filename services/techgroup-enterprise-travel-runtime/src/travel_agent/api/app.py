@@ -1,7 +1,6 @@
 """Module defines API handlers."""
 
 import os
-import importlib
 import importlib.util
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -79,6 +78,9 @@ def runtime_recommend(payload: Dict[str, Any], headers: Optional[Dict[str, Any]]
         raise ValueError("duplicate submission")
     if not traffic_guard.allow_circuit("runtime_recommend"):
         raise ValueError("service temporarily unavailable")
+    inflight_scope = f"{tenant_id}:{str(payload.get('city', 'na')).strip() or 'na'}"
+    if not traffic_guard.claim_inflight(inflight_scope):
+        raise ValueError("service overloaded, please retry")
 
     memory_key = "%s:%s:%s" % (tenant_id, user_id, conversation_id)
     memory_before = orchestrator.read_memory(memory_key)
@@ -118,6 +120,8 @@ def runtime_recommend(payload: Dict[str, Any], headers: Optional[Dict[str, Any]]
     except Exception:
         traffic_guard.record_failure("runtime_recommend")
         raise
+    finally:
+        traffic_guard.release_inflight(inflight_scope)
     memory_after = orchestrator.read_memory(memory_key)
     memory_hits = orchestrator.query_memory(memory_key, request.city, limit=3)
     return {

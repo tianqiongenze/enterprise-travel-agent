@@ -10,15 +10,15 @@
       "engines": ["langgraph"]
     },
     "silver": {
-      "tools": ["search_hotels", "search_transports", "search_attractions", "search_foods"],
+      "tools": ["search_hotels", "search_transports", "search_attractions", "search_foods", "search_activities"],
       "engines": ["langgraph", "agentscope"]
     },
     "gold": {
-      "tools": ["search_hotels", "search_transports", "search_attractions", "search_foods", "search_events"],
+      "tools": ["search_hotels", "search_transports", "search_attractions", "search_foods", "search_events", "search_activities", "search_souvenirs"],
       "engines": ["langgraph", "agentscope", "oneagents"]
     },
     "platinum": {
-      "tools": ["search_hotels", "search_transports", "search_attractions", "search_foods", "search_events"],
+      "tools": ["search_hotels", "search_transports", "search_attractions", "search_foods", "search_events", "search_activities", "search_souvenirs"],
       "engines": ["langgraph", "agentscope", "oneagents"]
     }
   },

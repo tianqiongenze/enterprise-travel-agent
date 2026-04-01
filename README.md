@@ -20,6 +20,14 @@ npm run ci:test:all
 
 10B 用户 / 10M 并发工业级升级方案见：`docs/industrial-scale-upgrade-plan-10b-10m.md`。
 
+10B 用户 / 100万并发 readiness 评估（本地证据聚合）：
+
+```bash
+python stress/global_scale_readiness.py --target-concurrency 1000000
+```
+
+输出：`stress/global_scale_readiness_report.json` 与 `stress/global_scale_readiness_report.md`。
+
 ## 1. Architecture Choice
 
 本项目按“生产建议架构”实现 MVP：
@@ -279,6 +287,52 @@ python scripts/generate_grpc_stubs.py
 cd services/techgroup-enterprise-travel-gateway
 mvn generate-sources
 ```
+
+Windows（仓库路径包含中文）建议使用脚本，自动做 `subst` 映射避免 `protobuf-maven-plugin` 路径编码问题：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/generate_grpc_java_stubs.ps1
+```
+
+gRPC 合约漂移检查（CI 同步执行）：
+
+```bash
+python scripts/check_grpc_stub_drift.py
+```
+
+Go Ranker 双栈端口：
+
+- HTTP: `GO_RANKER_PORT`（默认 `8090`）
+- gRPC: `GO_RANKER_GRPC_PORT`（默认 `9090`）
+
+Runtime 到 Go Ranker 传输配置：
+
+- `TRAVEL_GO_RANKER_TRANSPORT=auto|grpc|http`（默认 `auto`）
+- `TRAVEL_GO_RANKER_GRPC_TARGET=host:port`（默认 `localhost:9090`）
+- `TRAVEL_GO_RANKER_GRPC_FALLBACK_HTTP=true|false`（默认 `true`）
+
+`auto` 与 `grpc` 模式会优先走 gRPC；若失败则按 fallback 策略回退 HTTP。
+
+Ranker 传输可观测指标（Prometheus 文本文件）默认输出到：
+
+- `stress/ranker_transport_metrics.prom`
+
+关键指标：
+
+- `travel_ranker_grpc_attempt_total` / `travel_ranker_grpc_success_total` / `travel_ranker_grpc_error_total`
+- `travel_ranker_http_attempt_total` / `travel_ranker_http_success_total` / `travel_ranker_http_error_total`
+- `travel_ranker_fallback_http_total`
+- `travel_ranker_shadow_diff_total`
+
+发布上线源码加密/混淆（Release Hardening）：
+
+```bash
+export TRAVEL_RELEASE_HARDENING=true
+export TRAVEL_RELEASE_SOURCE_KEY="replace-with-strong-secret"
+bash platform/deploy/scripts/build_release.sh
+```
+
+生成产物：`var/release_hardening/source_protection_manifest.json` 与 `var/release_hardening/encrypted_sources/**.enc`。
 
 配置模型 Key（可选）：
 

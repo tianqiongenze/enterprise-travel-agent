@@ -23,9 +23,9 @@ _DEFAULT_LIMITS = {"maxAgentSteps": 50, "maxToolCalls": 30}
 _DEFAULT_ALIASES = {"agentscope-ai": "agentscope", "oneagent": "oneagents", "native": "local"}
 _DEFAULT_TIER_POLICIES: Dict[str, TierPolicy] = {
     "basic": TierPolicy("basic", {"search_hotels", "search_transports", "search_attractions"}, {"langgraph"}),
-    "silver": TierPolicy("silver", {"search_hotels", "search_transports", "search_attractions", "search_foods"}, {"langgraph", "agentscope"}),
-    "gold": TierPolicy("gold", {"search_hotels", "search_transports", "search_attractions", "search_foods", "search_events"}, {"langgraph", "agentscope", "oneagents"}),
-    "platinum": TierPolicy("platinum", {"search_hotels", "search_transports", "search_attractions", "search_foods", "search_events"}, {"langgraph", "agentscope", "oneagents"}),
+    "silver": TierPolicy("silver", {"search_hotels", "search_transports", "search_attractions", "search_foods", "search_activities"}, {"langgraph", "agentscope"}),
+    "gold": TierPolicy("gold", {"search_hotels", "search_transports", "search_attractions", "search_foods", "search_events", "search_activities", "search_souvenirs"}, {"langgraph", "agentscope", "oneagents"}),
+    "platinum": TierPolicy("platinum", {"search_hotels", "search_transports", "search_attractions", "search_foods", "search_events", "search_activities", "search_souvenirs"}, {"langgraph", "agentscope", "oneagents"}),
 }
 
 

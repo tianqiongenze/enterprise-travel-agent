@@ -1,0 +1,35 @@
+[
+  {
+    "id": "activity-bj-798-art",
+    "city": "北京",
+    "name": "798艺术区沉浸式文化漫游",
+    "tags": ["art", "culture", "photo", "trendy"],
+    "price": 120,
+    "reason": "适合半日深度体验，艺术展和咖啡街区集中"
+  },
+  {
+    "id": "activity-bj-hutong-bike",
+    "city": "北京",
+    "name": "胡同骑行与老城生活体验",
+    "tags": ["local-life", "history", "family"],
+    "price": 80,
+    "reason": "结合本地生活与历史街区，适合亲子与文化偏好"
+  },
+  {
+    "id": "activity-sh-bund-night",
+    "city": "上海",
+    "name": "外滩夜景与城市建筑导览",
+    "tags": ["citywalk", "photo", "night"],
+    "price": 60,
+    "reason": "高性价比夜游项目，城市地标密度高"
+  },
+  {
+    "id": "activity-sh-lane-foodwalk",
+    "city": "上海",
+    "name": "里弄美食CityWalk",
+    "tags": ["food", "local-life", "citywalk"],
+    "price": 95,
+    "reason": "将美食和本地街区文化结合，体验感强"
+  }
+]
+

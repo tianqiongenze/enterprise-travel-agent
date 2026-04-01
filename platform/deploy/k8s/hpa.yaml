@@ -7,8 +7,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: travel-agent-api
-  minReplicas: 6
-  maxReplicas: 120
+  minReplicas: 24
+  maxReplicas: 600
   metrics:
     - type: Resource
       resource:

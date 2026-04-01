@@ -10,6 +10,8 @@ Internal hot paths only:
 - Runtime -> Go Ranker
 - Runtime -> Go Policy
 
+Status: `Runtime -> Go Ranker` dual-stack is now implemented (HTTP + gRPC with fallback).
+
 Public endpoints remain HTTP/JSON.
 
 ## 2. Goals
@@ -54,6 +56,13 @@ Implemented contracts (v1):
 - gRPC server interceptors for trace/audit
 - Prometheus gRPC metrics (latency, errors)
 
+Recommended Ranker config:
+
+- `GO_RANKER_GRPC_PORT=9090`
+- `TRAVEL_GO_RANKER_TRANSPORT=auto|grpc|http`
+- `TRAVEL_GO_RANKER_GRPC_TARGET=go-ranker:9090`
+- `TRAVEL_GO_RANKER_GRPC_FALLBACK_HTTP=true`
+
 ## 7. Risks & Mitigations
 
 | Risk | Mitigation |
@@ -73,8 +82,6 @@ Generation commands:
 
 ```powershell
 python scripts/generate_grpc_stubs.py
-Push-Location services/techgroup-enterprise-travel-gateway
-mvn generate-sources
-Pop-Location
+powershell -ExecutionPolicy Bypass -File scripts/generate_grpc_java_stubs.ps1
 ```
 

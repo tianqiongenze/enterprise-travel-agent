@@ -20,6 +20,7 @@ class ManagerAgent:
         ancillary_agent: "AncillaryRevenueAgent",
         visa_agent: "VisaComplianceAgent",
         concierge_agent: "ConciergeAgent",
+        local_lifestyle_agent: "LocalLifestyleAgent",
     ) -> None:
         self.route_agent = route_agent
         self.trip_agent = trip_agent
@@ -30,6 +31,7 @@ class ManagerAgent:
         self.ancillary_agent = ancillary_agent
         self.visa_agent = visa_agent
         self.concierge_agent = concierge_agent
+        self.local_lifestyle_agent = local_lifestyle_agent
 
     def execute(self, request: TravelRequest, weights: Dict[str, float]) -> TravelRecommendation:
         hotel_options, transport_options = self.route_agent.plan_routes(request, weights)
@@ -41,7 +43,8 @@ class ManagerAgent:
         ancillary_pack = self.ancillary_agent.build_upsell_actions(request)
         visa_pack = self.visa_agent.build_visa_guidance(request)
         concierge_pack = self.concierge_agent.build_concierge_actions(request)
-        engagement_recommendations = food_pack + event_pack + growth_pack + weather_pack + ancillary_pack + visa_pack + concierge_pack
+        lifestyle_pack = self.local_lifestyle_agent.recommend_local_lifestyle(request)
+        engagement_recommendations = food_pack + event_pack + lifestyle_pack + growth_pack + weather_pack + ancillary_pack + visa_pack + concierge_pack
         return TravelRecommendation(
             hotel_options=hotel_options,
             transport_options=transport_options,
@@ -95,6 +98,28 @@ class LocalEventAgent:
             {"type": "event", "title": str(row.get("name", "活动推荐")), "reason": "旅程时段与城市活动匹配"}
             for row in rows
         ]
+
+
+class LocalLifestyleAgent:
+    def __init__(self, recommender: "TravelRecommender") -> None:
+        self.recommender = recommender
+        self._providers = [
+            ("activity", self.recommender.recommend_activities, "本地玩法与偏好匹配，适合城市深度体验"),
+            ("souvenir", self.recommender.recommend_souvenirs, "本地特色伴手礼，兼顾文化辨识度与复购价值"),
+        ]
+
+    def recommend_local_lifestyle(self, request: TravelRequest) -> List[Dict[str, str]]:
+        rows: List[Dict[str, str]] = []
+        for item_type, fetcher, default_reason in self._providers:
+            for entry in fetcher(request):
+                rows.append(
+                    {
+                        "type": item_type,
+                        "title": str(entry.get("name", "本地生活推荐")),
+                        "reason": str(entry.get("reason", default_reason)),
+                    }
+                )
+        return rows
 
 
 class LoyaltyGrowthAgent:

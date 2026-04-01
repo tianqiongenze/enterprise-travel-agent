@@ -2,6 +2,7 @@
 
 import os
 import unittest
+from unittest.mock import patch
 
 from src.travel_agent.recommendation.go_ranker_client import GoRankerClient
 
@@ -33,6 +34,54 @@ class GoRankerFallbackTestCase(unittest.TestCase):
             del os.environ["TRAVEL_GO_RANKER_URL"]
         else:
             os.environ["TRAVEL_GO_RANKER_URL"] = previous_url
+
+    def test_grpc_transport_uses_grpc_path(self) -> None:
+        previous_backend = os.environ.get("TRAVEL_RANKER_BACKEND")
+        previous_transport = os.environ.get("TRAVEL_GO_RANKER_TRANSPORT")
+        os.environ["TRAVEL_RANKER_BACKEND"] = "go"
+        os.environ["TRAVEL_GO_RANKER_TRANSPORT"] = "grpc"
+        client = GoRankerClient()
+        with patch.object(client, "_request_score_grpc", return_value=0.91) as grpc_call:
+            with patch.object(client, "_request_score_http", return_value=0.55) as http_call:
+                result = client.score_hotel(800, 4.5, ["comfort"], 3000, {"comfort": 1.2})
+                self.assertEqual(result, 0.91)
+                self.assertTrue(grpc_call.called)
+                self.assertFalse(http_call.called)
+        if previous_backend is None:
+            del os.environ["TRAVEL_RANKER_BACKEND"]
+        else:
+            os.environ["TRAVEL_RANKER_BACKEND"] = previous_backend
+        if previous_transport is None:
+            del os.environ["TRAVEL_GO_RANKER_TRANSPORT"]
+        else:
+            os.environ["TRAVEL_GO_RANKER_TRANSPORT"] = previous_transport
+
+    def test_grpc_transport_falls_back_to_http(self) -> None:
+        previous_backend = os.environ.get("TRAVEL_RANKER_BACKEND")
+        previous_transport = os.environ.get("TRAVEL_GO_RANKER_TRANSPORT")
+        previous_fallback = os.environ.get("TRAVEL_GO_RANKER_GRPC_FALLBACK_HTTP")
+        os.environ["TRAVEL_RANKER_BACKEND"] = "go"
+        os.environ["TRAVEL_GO_RANKER_TRANSPORT"] = "grpc"
+        os.environ["TRAVEL_GO_RANKER_GRPC_FALLBACK_HTTP"] = "true"
+        client = GoRankerClient()
+        with patch.object(client, "_request_score_grpc", return_value=None) as grpc_call:
+            with patch.object(client, "_request_score_http", return_value=0.62) as http_call:
+                result = client.score_transport(600, 2.0, ["fast"], 1000, {"fast": 1.0})
+                self.assertEqual(result, 0.62)
+                self.assertTrue(grpc_call.called)
+                self.assertTrue(http_call.called)
+        if previous_backend is None:
+            del os.environ["TRAVEL_RANKER_BACKEND"]
+        else:
+            os.environ["TRAVEL_RANKER_BACKEND"] = previous_backend
+        if previous_transport is None:
+            del os.environ["TRAVEL_GO_RANKER_TRANSPORT"]
+        else:
+            os.environ["TRAVEL_GO_RANKER_TRANSPORT"] = previous_transport
+        if previous_fallback is None:
+            del os.environ["TRAVEL_GO_RANKER_GRPC_FALLBACK_HTTP"]
+        else:
+            os.environ["TRAVEL_GO_RANKER_GRPC_FALLBACK_HTTP"] = previous_fallback
 
 
 if __name__ == "__main__":

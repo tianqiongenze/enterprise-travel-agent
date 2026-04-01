@@ -28,7 +28,7 @@ canary_gate_threshold_p95_drift 0.08
 canary_gate_threshold_p99_drift 0.1
 # HELP canary_gate_last_eval_timestamp Last gate evaluation unix timestamp
 # TYPE canary_gate_last_eval_timestamp gauge
-canary_gate_last_eval_timestamp 1774775904.0
+canary_gate_last_eval_timestamp 1775039328.0
 # HELP canary_gate_event_consumer_lag_seconds Event consumer lag seen by gate
 # TYPE canary_gate_event_consumer_lag_seconds gauge
 canary_gate_event_consumer_lag_seconds 0.001002

@@ -6,9 +6,44 @@ on:
   pull_request:
 
 jobs:
+  grpc-contract-drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.26.1"
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.9
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
+
+      - name: Check grpc contract drift
+        run: python scripts/check_grpc_stub_drift.py
+
   python-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    needs: [grpc-contract-drift]
     env:
       TRAVEL_EVENT_BUS: local
       TRAVEL_EVENT_BUS_STRICT: "false"
@@ -33,6 +68,7 @@ jobs:
   gateway-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    needs: [grpc-contract-drift]
     steps:
       - name: Checkout
         uses: actions/checkout@v4

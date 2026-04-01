@@ -128,6 +128,20 @@ class TravelRecommender:
         ranked = sorted(dict_rows, key=lambda item: self._preference_hit(item.get("tags", []), request.preferences), reverse=True)
         return [dict(row) for row in ranked[:3]]
 
+    def recommend_activities(self, request: TravelRequest) -> List[Dict[str, object]]:
+        return self._recommend_local_items(request, "search_activities")
+
+    def recommend_souvenirs(self, request: TravelRequest) -> List[Dict[str, object]]:
+        return self._recommend_local_items(request, "search_souvenirs")
+
+    def _recommend_local_items(self, request: TravelRequest, tool_name: str) -> List[Dict[str, object]]:
+        if tool_name not in self.tool_registry.list_tools():
+            return []
+        rows = self.tool_registry.call(tool_name, city=request.city)
+        dict_rows = [row for row in rows if isinstance(row, dict)]
+        ranked = sorted(dict_rows, key=lambda item: self._preference_hit(item.get("tags", []), request.preferences), reverse=True)
+        return [dict(row) for row in ranked[:3]]
+
     def _preference_hit(self, tags: List[str], preferences: List[str]) -> int:
         if not preferences:
             return 0

@@ -53,11 +53,21 @@ class OrchestratorTestCase(unittest.TestCase):
         self.assertIn("trip-planner-agent", services)
         self.assertIn("visa-compliance-agent", services)
         self.assertIn("concierge-agent", services)
+        self.assertIn("local-lifestyle-agent", services)
         self.assertEqual(len(self.orchestrator.a2a_logs), 2)
         tools = self.orchestrator.registry_center.list_tools()
         self.assertIn("search_hotels", tools)
         self.assertIn("search_transports", tools)
         self.assertIn("search_attractions", tools)
+        self.assertIn("search_activities", tools)
+        self.assertIn("search_souvenirs", tools)
+
+    def test_local_lifestyle_agent_outputs_activity_and_souvenir(self) -> None:
+        request = TravelRequest(city="北京", days=2, budget=3600, travelers=1, preferences=["local-life", "culture"])
+        result = self.orchestrator.recommend(request)
+        engagement_types = {str(item.get("type", "")) for item in result.engagement_recommendations if isinstance(item, dict)}
+        self.assertIn("activity", engagement_types)
+        self.assertIn("souvenir", engagement_types)
 
     def test_memory_records_requests(self) -> None:
         request = TravelRequest(city="北京", days=2, budget=2600, travelers=1, preferences=["budget"])

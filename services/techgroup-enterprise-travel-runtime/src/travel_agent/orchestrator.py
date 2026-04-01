@@ -10,6 +10,7 @@ from .agents.manager_agent import (
     ConciergeAgent,
     FoodRecommendationAgent,
     LocalEventAgent,
+    LocalLifestyleAgent,
     LoyaltyGrowthAgent,
     ManagerAgent,
     RouteMakingAgent,
@@ -64,6 +65,7 @@ class TravelOrchestrator:
             AncillaryRevenueAgent(),
             VisaComplianceAgent(),
             ConciergeAgent(),
+            LocalLifestyleAgent(self.recommender),
         )
         self.engine = build_engine_from_env(self.manager)
         self.shadow_engine_mode = os.getenv("TRAVEL_ORCHESTRATION_SHADOW_ENGINE", "").strip().lower()
@@ -89,6 +91,7 @@ class TravelOrchestrator:
         self.registry_center.register("trip-planner-agent", self.runtime_endpoint + "/agent/trip")
         self.registry_center.register("food-recommendation-agent", self.runtime_endpoint + "/agent/food")
         self.registry_center.register("local-event-agent", self.runtime_endpoint + "/agent/event")
+        self.registry_center.register("local-lifestyle-agent", self.runtime_endpoint + "/agent/lifestyle")
         self.registry_center.register("loyalty-growth-agent", self.runtime_endpoint + "/agent/growth")
         self.registry_center.register("weather-risk-agent", self.runtime_endpoint + "/agent/weather")
         self.registry_center.register("ancillary-revenue-agent", self.runtime_endpoint + "/agent/ancillary")
@@ -101,6 +104,8 @@ class TravelOrchestrator:
         self.registry.register("search_attractions", self._search_attractions)
         self.registry.register("search_foods", self._search_foods)
         self.registry.register("search_events", self._search_events)
+        self.registry.register("search_activities", self._search_activities)
+        self.registry.register("search_souvenirs", self._search_souvenirs)
 
     def _search_hotels(self, city: str) -> List[Dict[str, object]]:
         return [row for row in self.data_store.hotels() if row.get("city") == city]
@@ -116,6 +121,12 @@ class TravelOrchestrator:
 
     def _search_events(self, city: str) -> List[Dict[str, object]]:
         return [row for row in self.data_store.events() if row.get("city") == city]
+
+    def _search_activities(self, city: str) -> List[Dict[str, object]]:
+        return [row for row in self.data_store.activities() if row.get("city") == city]
+
+    def _search_souvenirs(self, city: str) -> List[Dict[str, object]]:
+        return [row for row in self.data_store.souvenirs() if row.get("city") == city]
 
     def recommend(self, request: TravelRequest) -> TravelRecommendation:
         return self._run_recommendation(request)

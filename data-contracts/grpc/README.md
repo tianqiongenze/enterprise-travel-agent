@@ -22,11 +22,15 @@ This folder contains shared internal RPC contracts for hot paths.
 python scripts/generate_grpc_stubs.py
 ```
 
+Drift check (used by CI):
+
+```powershell
+python scripts/check_grpc_stub_drift.py
+```
+
 For Java stubs:
 
 ```powershell
-Push-Location services/techgroup-enterprise-travel-gateway
-mvn generate-sources
-Pop-Location
+powershell -ExecutionPolicy Bypass -File scripts/generate_grpc_java_stubs.ps1
 ```
 

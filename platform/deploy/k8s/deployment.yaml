@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: travel-agent-api
 spec:
-  replicas: 6
+  replicas: 24
   selector:
     matchLabels:
       app: travel-agent-api
@@ -40,6 +40,18 @@ spec:
                 configMapKeyRef:
                   name: travel-agent-env
                   key: TRAVEL_GO_RANKER_URL
+            - name: TRAVEL_GO_RANKER_TRANSPORT
+              valueFrom:
+                configMapKeyRef:
+                  name: travel-agent-env
+                  key: TRAVEL_GO_RANKER_TRANSPORT
+                  optional: true
+            - name: TRAVEL_GO_RANKER_GRPC_TARGET
+              valueFrom:
+                configMapKeyRef:
+                  name: travel-agent-env
+                  key: TRAVEL_GO_RANKER_GRPC_TARGET
+                  optional: true
             - name: TRAVEL_GO_RANKER_TIMEOUT
               valueFrom:
                 configMapKeyRef:
@@ -57,10 +69,22 @@ spec:
                   name: travel-agent-env
                   key: TRAVEL_GO_RANKER_DIFF_THRESHOLD
                   optional: true
+            - name: TRAVEL_INFLIGHT_LIMIT
+              valueFrom:
+                configMapKeyRef:
+                  name: travel-agent-env
+                  key: TRAVEL_INFLIGHT_LIMIT
+                  optional: true
+            - name: TRAVEL_LOCAL_INFLIGHT_LIMIT
+              valueFrom:
+                configMapKeyRef:
+                  name: travel-agent-env
+                  key: TRAVEL_LOCAL_INFLIGHT_LIMIT
+                  optional: true
           resources:
             requests:
-              cpu: "500m"
-              memory: "512Mi"
+              cpu: "1000m"
+              memory: "1Gi"
             limits:
-              cpu: "2000m"
-              memory: "2Gi"
+              cpu: "4000m"
+              memory: "4Gi"

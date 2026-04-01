@@ -1,5 +1,22 @@
 # Production Capacity Plan (Enterprise)
 
+## 0. Current Readiness Verdict (2026-04-01)
+
+Verdict for `10B registered users / 1M concurrent users`:
+
+- **Not production-proven yet**.
+- Current repo evidence supports an **architecture-ready** statement, not a formal capacity claim.
+
+Reason:
+
+- Local and canary checks are present, but there is no committed evidence package for
+  sustained distributed `>=1,000,000` concurrent traffic across multiple regions.
+
+Action now available in repo:
+
+- Run readiness report generator: `stress/global_scale_readiness.py`
+- Include it in final gate: `platform/deploy/scripts/go_live_final_check.py --run-scale-readiness`
+
 ## 1. Reality Check for 1M Concurrent / 100M Users
 
 This project now includes production integration paths, but **a local test cannot prove 1M concurrent realtime or 100M user scale**.

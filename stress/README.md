@@ -32,3 +32,24 @@ This generates:
 ## Important note
 
 This local harness validates single-node behavior only. It does **not** prove 1M concurrent or 100M user capacity by itself.
+
+## Distributed evidence pipelines (for PRODUCTION_PROVEN gate)
+
+Generate distributed benchmark evidence:
+
+```bash
+python3 stress/distributed_benchmark_evidence.py --target-concurrency 1000000 --achieved-concurrency 1000000 --regions 3 --duration-minutes 60
+```
+
+Generate multi-region fault drill evidence:
+
+```bash
+python3 stress/multi_region_fault_drill.py --scenario-count 3 --passed-scenarios 3 --recovery-rto-minutes 10 --recovery-rpo-seconds 30
+```
+
+Then aggregate readiness:
+
+```bash
+python3 stress/global_scale_readiness.py --target-concurrency 1000000
+```
+

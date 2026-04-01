@@ -1,0 +1,50 @@
+[
+  {
+    "id": "souvenir-bj-jingbajian",
+    "city": "北京",
+    "name": "京八件礼盒",
+    "tags": [
+      "food",
+      "heritage",
+      "gift"
+    ],
+    "price": 158,
+    "reason": "北京传统糕点，送礼识别度高"
+  },
+  {
+    "id": "souvenir-bj-enamel",
+    "city": "北京",
+    "name": "景泰蓝文创摆件",
+    "tags": [
+      "craft",
+      "culture",
+      "gift"
+    ],
+    "price": 260,
+    "reason": "兼具工艺与文化属性，适合作为收藏型伴手礼"
+  },
+  {
+    "id": "souvenir-sh-butterfly-cake",
+    "city": "上海",
+    "name": "蝴蝶酥伴手礼",
+    "tags": [
+      "food",
+      "popular",
+      "gift"
+    ],
+    "price": 128,
+    "reason": "上海高复购伴手礼，适合大众口味"
+  },
+  {
+    "id": "souvenir-sh-shikumen",
+    "city": "上海",
+    "name": "石库门城市文创套装",
+    "tags": [
+      "culture",
+      "city-symbol",
+      "gift"
+    ],
+    "price": 199,
+    "reason": "城市符号鲜明，适合公开分享或商务赠礼"
+  }
+]
