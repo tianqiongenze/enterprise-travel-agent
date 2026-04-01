@@ -8,6 +8,7 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/spring-gateway/pom.xml" />
+        <option value="$PROJECT_DIR$/services/techgroup-enterprise-travel-gateway/pom.xml" />
       </list>
     </option>
   </component>

@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package techgroup.travel.grpc.v1;
+
+import "google/protobuf/struct.proto";
+import "common.proto";
+
+option java_package = "com.techgroup.travel.contracts.grpc.v1";
+option java_multiple_files = true;
+option go_package = "github.com/techgroup/enterprise-travel-agent/data-contracts/grpc/v1;travelgrpcv1";
+
+service RuntimeService {
+  rpc Recommend(RuntimeRecommendRequest) returns (RuntimeRecommendResponse);
+}
+
+message RuntimeRecommendRequest {
+  ContextHeaders context = 1;
+  string policy_id = 2;
+  string city = 3;
+  int32 days = 4;
+  double budget = 5;
+  int32 travelers = 6;
+  string membership_tier = 7;
+  repeated string preferences = 8;
+  int32 max_agent_steps = 9;
+  int32 max_tool_calls = 10;
+  repeated string allowed_tools = 11;
+}
+
+message RuntimeRecommendResponse {
+  string trace_id = 1;
+  repeated RecommendationItem hotel_options = 2;
+  repeated RecommendationItem transport_options = 3;
+  repeated google.protobuf.Struct itinerary = 4;
+  repeated google.protobuf.Struct engagement_recommendations = 5;
+  repeated google.protobuf.Struct memory_before = 6;
+  repeated google.protobuf.Struct memory_after = 7;
+  repeated google.protobuf.Struct memory_hits = 8;
+  repeated google.protobuf.Struct audit_logs = 9;
+  repeated google.protobuf.Struct a2a_logs = 10;
+  repeated string registered_agents = 11;
+  repeated string registered_tools = 12;
+}
+

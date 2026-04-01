@@ -37,6 +37,13 @@
 - `travel.ranker.ScoreRequest`
 - `travel.ranker.ScoreResponse`
 
+已落地的 v1 合约：
+
+- `data-contracts/grpc/v1/common.proto`
+- `data-contracts/grpc/v1/runtime.proto`
+- `data-contracts/grpc/v1/policy.proto`
+- `data-contracts/grpc/v1/ranker.proto`
+
 ## 5. 兼容性映射
 
 - 字段名与 JSON key 保持一致
@@ -59,5 +66,15 @@
 
 - Python: `grpcio-tools`
 - Go: `protoc-gen-go`, `protoc-gen-go-grpc`
+- Java: `protobuf-maven-plugin` + `protoc-gen-grpc-java`（gateway）
 - 可选：gRPC 反射
+
+生成命令：
+
+```powershell
+python scripts/generate_grpc_stubs.py
+Push-Location services/techgroup-enterprise-travel-gateway
+mvn generate-sources
+Pop-Location
+```
 

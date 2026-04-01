@@ -5,6 +5,7 @@ go 1.26
 require (
 	github.com/gin-gonic/gin v1.11.0
 	github.com/goccy/go-json v0.10.5
+	google.golang.org/grpc v1.75.1
 )
 
 require (

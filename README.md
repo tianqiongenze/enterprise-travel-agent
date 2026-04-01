@@ -258,6 +258,28 @@ mvn spring-boot:run
 - `spring-ai-alibaba-starter-dashscope`
 - 通过 `ChatClient.Builder` 生成推荐解释（AI rationale）
 
+## gRPC 合约与代码生成
+
+内部高频链路已补齐 v1 proto 合约：
+
+- `data-contracts/grpc/v1/runtime.proto`
+- `data-contracts/grpc/v1/policy.proto`
+- `data-contracts/grpc/v1/ranker.proto`
+- `data-contracts/grpc/v1/common.proto`
+
+一键生成 Python/Go stubs：
+
+```bash
+python scripts/generate_grpc_stubs.py
+```
+
+生成 Gateway Java stubs：
+
+```bash
+cd services/techgroup-enterprise-travel-gateway
+mvn generate-sources
+```
+
 配置模型 Key（可选）：
 
 ```bash

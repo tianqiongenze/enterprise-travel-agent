@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package techgroup.travel.grpc.v1;
+
+option java_package = "com.techgroup.travel.contracts.grpc.v1";
+option java_multiple_files = true;
+option go_package = "github.com/techgroup/enterprise-travel-agent/data-contracts/grpc/v1;travelgrpcv1";
+
+message ContextHeaders {
+  string trace_id = 1;
+  string internal_client_id = 2;
+  string internal_signature = 3;
+  string tenant_id = 4;
+  string user_id = 5;
+  string conversation_id = 6;
+  string idempotency_key = 7;
+}
+
+message RecommendationItem {
+  string id = 1;
+  string name = 2;
+  double score = 3;
+  double price = 4;
+  repeated string tags = 5;
+  string reason = 6;
+}
+
+message KeyValue {
+  string key = 1;
+  string value = 2;
+}
+

@@ -1,0 +1,48 @@
+# IDE 配置文件
+.idea/
+.vscode/
+*.iml
+*.sublime-workspace
+# 编译生成文件
+out/
+target/
+build/
+dist/
+# 依赖包目录
+node_modules/
+vendor/
+
+# 本地配置文件
+.env
+*.env.local
+application-*.yml
+application-*.properties
+config/local.*
+# 日志文件
+*.log
+logs/
+
+# 二进制文件
+*.class
+*.exe
+*.dll
+*.so
+*.a
+
+# 测试文件
+*.test.*
+test-results/
+coverage/
+
+# 容器相关
+Dockerfile
+docker-compose.yml
+*.dockerignore
+
+# 临时文件
+*.tmp
+*.swp
+.DS_Store
+
+# 操作系统文件
+Thumbs.db

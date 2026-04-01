@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package techgroup.travel.grpc.v1;
+
+option java_package = "com.techgroup.travel.contracts.grpc.v1";
+option java_multiple_files = true;
+option go_package = "github.com/techgroup/enterprise-travel-agent/data-contracts/grpc/v1;travelgrpcv1";
+
+service RankerService {
+  rpc ScoreHotel(ScoreRequest) returns (ScoreResponse);
+  rpc ScoreTransport(ScoreRequest) returns (ScoreResponse);
+}
+
+message ScoreRequest {
+  double price = 1;
+  double rating = 2;
+  double duration = 3;
+  repeated string tags = 4;
+  double budget = 5;
+  map<string, double> weights = 6;
+}
+
+message ScoreResponse {
+  double score = 1;
+}
+

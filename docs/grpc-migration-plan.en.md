@@ -37,6 +37,13 @@ Public endpoints remain HTTP/JSON.
 - `travel.ranker.ScoreRequest`
 - `travel.ranker.ScoreResponse`
 
+Implemented contracts (v1):
+
+- `data-contracts/grpc/v1/common.proto`
+- `data-contracts/grpc/v1/runtime.proto`
+- `data-contracts/grpc/v1/policy.proto`
+- `data-contracts/grpc/v1/ranker.proto`
+
 ## 5. Interop Mapping
 
 - Keep field names aligned with existing JSON keys
@@ -59,5 +66,15 @@ Public endpoints remain HTTP/JSON.
 
 - `grpcio-tools` for Python proto generation
 - `protoc-gen-go` and `protoc-gen-go-grpc` for Go
+- `protobuf-maven-plugin` + `protoc-gen-grpc-java` for Java (gateway)
 - Optional: gRPC reflection for debugging
+
+Generation commands:
+
+```powershell
+python scripts/generate_grpc_stubs.py
+Push-Location services/techgroup-enterprise-travel-gateway
+mvn generate-sources
+Pop-Location
+```
 
