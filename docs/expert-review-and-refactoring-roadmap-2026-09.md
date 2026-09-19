@@ -219,3 +219,33 @@
 ---
 
 *本报告由 5 路代码级探查 + 关键结论人工复核 + 2026-09 联网业界对标生成；所有引证均含 文件:行号，可复核。*
+
+
+---
+
+## 八、重构后复盘评分（2026-09-19 四阶段执行完毕）
+
+执行摘要：Phase 0/1/2/3 资产全部落地，Python 104 测试 / Java 13 测试 / Go 11 测试 / Web Vitest 3 测试全绿，ruff 零告警，覆盖率门禁 50%（实测 59%），gRPC 契约三端落地率 1/3→3/3，git 历史已重写清除全部构建产物（.git 151M→19M）。
+
+| # | 维度 | 重构前 | 重构后 | 变化依据 |
+|---|------|-------|-------|---------|
+| 1 | 需求分析与规格 | 35 | 45 | 容量口径与证据链对齐；SRS 条目化仍未做 |
+| 2 | 架构设计文档（TOGAF） | 55 | 68 | ADR 0001-0005 治理决策链；幽灵路径清零 |
+| 3 | DDD 落地 | 22 | 55 | domain/application/infrastructure 三层 + TripPlan 聚合根 + 仓储端口；限界上下文仍待事件风暴深化 |
+| 4 | 后端实现真实度 | 38 | 65 | 真 StateGraph（显式降级标记）、预算执行期强制、A2A 真闭环、gRPC 服务端落地、Keycloak/OIDC 端到端；业务 Agent 的 LLM 化未完成 |
+| 5 | 前端多端 | 45 | 60 | design-tokens 双端单一事实源、暗色/骨架屏/a11y/语义卡、小程序 bug 修复；TS 迁移未完成 |
+| 6 | 测试体系（TDD） | 30 | 58 | 四语言 131 测试、覆盖率门禁、契约/预算/熔断回归；E2E 缺位 |
+| 7 | 部署与运维 | 45 | 70 | K8s 安全基线、GitOps、OTel/Loki/Tempo 资产、kind 证据脚本；集群实测待 Docker 环境 |
+| 8 | 安全 | 20 | 65 | OIDC、HMAC 全量签名、fail-closed、路径穿越/注入修复、securityContext/NetworkPolicy；A2A 内部模式仍开放 |
+| 9 | 文档治理 | 38 | 60 | SSOT 口径、ADR、runbook；追溯矩阵未建 |
+| 10 | UI/UX | 30 | 52 | 设计系统起步、产品化渲染；完整视觉规范待出 |
+| — | **加权总分** | **39.5** | **61.5** | **教学级 → 准生产雏形（C）** |
+
+### 剩余到 ≥75（大厂准生产）的清单
+
+1. SRS 需求条目化（FR/NFR/验收标准）与需求-测试追溯矩阵（1 周）。
+2. Web TypeScript 迁移 + Playwright E2E 两条主链路（1-2 周）。
+3. Docker Desktop 就绪后执行 `run_kind_loadtest.sh` 产出首个真实集群证据；再上 staging 集群重复（1 天 + 排队）。
+4. 业务 Agent（Loyalty/Weather/Ancillary 等）接 LLM（Spring AI Alibaba 下沉或 DashScope 直连）+ 真 embedding 模型安装验证（1 周）。
+5. OTel 三端接线完成度提升（Go/Java SDK 注入），trace 从 Gateway 串到 Ranker 的端到端断言进 CI（1 周）。
+6. 推送远端：本机网络无法直连 GitHub，需在代理环境执行 `git push --force -u origin main`（含 `--tags` 如有）。
