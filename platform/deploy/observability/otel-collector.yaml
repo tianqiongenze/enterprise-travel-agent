@@ -1,0 +1,103 @@
+# OpenTelemetry Collector (agent mode) + Loki + Tempo single-node observability
+# stack for staging/prod. Apply with:
+#   kubectl apply -f platform/deploy/observability/
+# or add this directory to a kustomize overlay. Designed for the dev/staging
+# profile; scale replicas and storage per production sizing.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      batch: {}
+      memory_limiter:
+        check_interval: 2s
+        limit_percentage: 75
+        spike_limit_percentage: 15
+    exporters:
+      otlp/tempo:
+        endpoint: tempo.observability.svc.cluster.local:4317
+        tls:
+          insecure: true
+      loki:
+        endpoint: http://loki.observability.svc.cluster.local:3100/loki/api/v1/push
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [otlp/tempo]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [loki]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: observability
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.132.0
+          args: ["--config=/conf/config.yaml"]
+          volumeMounts:
+            - name: config
+              mountPath: /conf
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: config
+          configMap:
+            name: otel-collector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: observability
+spec:
+  selector:
+    app: otel-collector
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318

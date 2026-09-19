@@ -1,0 +1,52 @@
+# ArgoCD GitOps applications. Repo-driven deploy replaces imperative CI deploys:
+# CI builds and pushes images with the commit SHA tag; ArgoCD syncs the
+# kustomize overlays from this repository. Image tags are injected by CI via
+# `kustomize edit set image` on a dedicated overlay (see runbook).
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: travel-agent-staging
+  namespace: argocd
+  annotations:
+    # Keep drift visible instead of silently reverted.
+    argocd.argoproj.io/compare-options: ServerSideDiff
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/tianqiongenze/enterprise-travel-agent.git
+    targetRevision: main
+    path: platform/deploy/k8s/kustomize/overlays/staging
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: travel-staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 30s
+        factor: 2
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: travel-agent-prod
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/tianqiongenze/enterprise-travel-agent.git
+    targetRevision: main
+    path: platform/deploy/k8s/kustomize/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: travel-prod
+  # Prod requires a manual sync (change window + approval), not auto-sync.
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true

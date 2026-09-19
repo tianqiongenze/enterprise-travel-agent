@@ -1,11 +1,15 @@
-// Package main provides the service entrypoint.
+// Package main provides the fanout service entrypoint.
 package main
 
 import (
 	"bytes"
 	"context"
+	"errors"
 	"net/http"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -39,7 +43,37 @@ type FanoutResult struct {
 	Error   string `json:"error"`
 }
 
-var sf singleflight.Group
+var (
+	sf              singleflight.Group
+	breakerRegistry sync.Map // key string -> *gobreaker.CircuitBreaker[any]
+	outboundClient  = &http.Client{
+		// Outbound calls also inherit the per-request context timeout; these
+		// are hard transport ceilings so a slow target can never pin a worker.
+		Timeout: 5 * time.Second,
+		Transport: &http.Transport{
+			MaxIdleConns:        200,
+			MaxIdleConnsPerHost: 50,
+			IdleConnTimeout:     60 * time.Second,
+		},
+	}
+)
+
+// breakerFor returns the persistent circuit breaker for a target. Creating the
+// breaker per request was a defect: breaker state (failure counts, open state)
+// never accumulated, so the protection was a no-op.
+func breakerFor(name string) *gobreaker.CircuitBreaker[any] {
+	if cached, ok := breakerRegistry.Load(name); ok {
+		return cached.(*gobreaker.CircuitBreaker[any])
+	}
+	created := gobreaker.NewCircuitBreaker[any](gobreaker.Settings{
+		Name:        name,
+		MaxRequests: 2,                // half-open probes after cooldown
+		Interval:    30 * time.Second, // failure window
+		Timeout:     20 * time.Second, // open cooldown
+	})
+	actual, _ := breakerRegistry.LoadOrStore(name, created)
+	return actual.(*gobreaker.CircuitBreaker[any])
+}
 
 func main() {
 	gin.SetMode(gin.ReleaseMode)
@@ -64,7 +98,29 @@ func main() {
 	if port == "" {
 		port = "8092"
 	}
-	_ = r.Run(":" + port)
+
+	server := &http.Server{
+		Addr:              ":" + port,
+		Handler:           r,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		<-ctx.Done()
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		_ = server.Shutdown(shutdownCtx)
+	}()
+
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		os.Exit(1)
+	}
 }
 
 func bindJSON(c *gin.Context, target interface{}) error {
@@ -81,7 +137,6 @@ func dispatch(req FanoutRequest) []FanoutResult {
 	defer cancel()
 
 	results := make([]FanoutResult, len(req.Targets))
-	client := &http.Client{}
 	g, ctx := errgroup.WithContext(ctx)
 
 	for i, target := range req.Targets {
@@ -89,7 +144,7 @@ func dispatch(req FanoutRequest) []FanoutResult {
 		target := target
 		g.Go(func() error {
 			start := time.Now()
-			status, errMsg := callTarget(ctx, client, target, req.Payload)
+			status, errMsg := callTarget(ctx, outboundClient, target, req.Payload)
 			results[i] = FanoutResult{
 				Target:  target.Name,
 				Status:  status,
@@ -109,12 +164,7 @@ func callTarget(ctx context.Context, client *http.Client, target FanoutTarget, p
 	if method == "" {
 		method = http.MethodPost
 	}
-	cb := gobreaker.NewCircuitBreaker[any](gobreaker.Settings{
-		Name:        "fanout-" + target.Name,
-		MaxRequests: 1,
-		Interval:    30 * time.Second,
-		Timeout:     20 * time.Second,
-	})
+	cb := breakerFor("fanout-" + target.Name + "-" + target.URL)
 
 	key := target.Name + "::" + target.URL + "::" + string(body)
 	v, err, _ := sf.Do(key, func() (any, error) {

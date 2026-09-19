@@ -1,4 +1,4 @@
-const { BASE_URL, REQUEST_TIMEOUT, RETRY_COUNT } = require('./config');
+const { getBaseUrl, REQUEST_TIMEOUT, RETRY_COUNT } = require('./config');
 
 function createTraceId() {
   return `mini-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
@@ -57,6 +57,30 @@ function postRecommend(data) {
   return doRequest(data, RETRY_COUNT);
 }
 
+
+function buildHeaders() {
+  const headers = { 'content-type': 'application/json' };
+  try {
+    const token = wx.getStorageSync('travel_auth_token');
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (storageError) {
+    // no token available; gateway will reject with 401
+  }
+  return headers;
+}
+
+function saveToken(token) {
+  try {
+    wx.setStorageSync('travel_auth_token', token || '');
+  } catch (storageError) {
+    // ignore storage failures
+  }
+}
+
 module.exports = {
+  saveToken,
+  buildHeaders,
   postRecommend,
 };

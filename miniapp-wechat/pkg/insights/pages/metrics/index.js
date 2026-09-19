@@ -5,6 +5,14 @@ Page({
 
   onShow() {
     const data = wx.getStorageSync('miniapp_analytics_events') || [];
-    this.setData({ items: data.reverse() });
-  }
+    // WXML cannot call global functions like JSON.stringify; precompute the
+    // display text per row before setData.
+    const items = [...data]
+      .reverse()
+      .map((item) => ({
+        ...item,
+        payloadText: JSON.stringify(item.payload || {}),
+      }));
+    this.setData({ items });
+  },
 });

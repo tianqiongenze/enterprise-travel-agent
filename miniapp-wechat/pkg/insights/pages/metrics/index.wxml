@@ -4,6 +4,6 @@
   <view wx:for="{{items}}" wx:key="index" class="item">
     <view>{{item.timestamp}}</view>
     <view>{{item.eventName}}</view>
-    <text selectable="true">{{JSON.stringify(item.payload)}}</text>
+    <text selectable="true">{{item.payloadText}}</text>
   </view>
 </view>

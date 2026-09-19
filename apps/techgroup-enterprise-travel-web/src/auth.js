@@ -1,4 +1,4 @@
-const TOKEN_KEY = 'travel_web_auth_token';
+export const TOKEN_KEY = 'travel_web_auth_token';
 
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY) || '';

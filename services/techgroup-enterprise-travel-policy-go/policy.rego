@@ -1,13 +1,57 @@
 package authz
 
+# Policy rules matching data-contracts/policy-core/policy-core.v1.json.
+# Verified by scripts/check_policy_consistency.py and main_test.go.
+
 default allow = false
 default reason = "policy denied"
+
+max_agent_steps = 50
+max_tool_calls = 30
+
+tier_tools = {
+  "basic": {"search_hotels", "search_transports", "search_attractions"},
+  "silver": {"search_hotels", "search_transports", "search_attractions", "search_foods", "search_activities"},
+  "gold": {"search_hotels", "search_transports", "search_attractions", "search_foods", "search_events", "search_activities", "search_souvenirs"},
+  "platinum": {"search_hotels", "search_transports", "search_attractions", "search_foods", "search_events", "search_activities", "search_souvenirs"},
+}
+
+tier_engines = {
+  "basic": {"langgraph"},
+  "silver": {"langgraph", "agentscope"},
+  "gold": {"langgraph", "agentscope", "oneagents"},
+  "platinum": {"langgraph", "agentscope", "oneagents"},
+}
+
+engine_aliases = {
+  "agentscope-ai": "agentscope",
+  "oneagent": "oneagents",
+  "native": "local",
+}
+
+valid_tier {
+  tier_tools[lower(input.membershipTier)]
+}
+
+normalized_tier = t {
+  valid_tier
+  t := lower(input.membershipTier)
+}
+
+normalized_tier = "basic" {
+  not valid_tier
+}
+
+normalized_engine = e {
+  raw := lower(input.orchestrationEngine)
+  e := object.get(engine_aliases, raw, raw)
+}
 
 allow {
   input.maxAgentSteps <= 50
   input.maxToolCalls <= 30
-  valid_tools
-  valid_engine
+  tools_within_tier
+  engine_valid_for_tier
 }
 
 reason = "ok" {
@@ -23,96 +67,20 @@ reason = "maxToolCalls exceeds policy limit" {
 }
 
 reason = "allowedTools contains unsupported tool" {
-  not valid_tools
+  not tools_within_tier
 }
 
 reason = "membershipTier cannot use current orchestration engine" {
-  not valid_engine
+  not engine_valid_for_tier
 }
 
-valid_tools {
-  tier := normalized_tier
-  every t in input.allowedTools {
-    tool_allowed_for_tier(tier, t)
-  }
+# Every requested tool must be present in the tier's tool set.
+tools_within_tier {
+  requested := {t | t := input.allowedTools[_]}
+  allowed := tier_tools[normalized_tier]
+  count(requested - allowed) == 0
 }
 
-valid_engine {
-  engine_allowed_for_tier(normalized_tier, input.orchestrationEngine)
-}
-
-normalized_tier := tier {
-  lower(input.membershipTier) == "silver"
-  tier := "silver"
-}
-
-normalized_tier := tier {
-  lower(input.membershipTier) == "gold"
-  tier := "gold"
-}
-
-normalized_tier := tier {
-  lower(input.membershipTier) == "platinum"
-  tier := "platinum"
-}
-
-normalized_tier := "basic" {
-  not lower(input.membershipTier) == "silver"
-  not lower(input.membershipTier) == "gold"
-  not lower(input.membershipTier) == "platinum"
-}
-
-tool_allowed_for_tier("basic", t) {
-  t == "search_hotels" or t == "search_transports" or t == "search_attractions"
-}
-
-tool_allowed_for_tier("silver", t) {
-  tool_allowed_for_tier("basic", t)
-} {
-  t == "search_foods"
-}
-
-tool_allowed_for_tier("gold", t) {
-  tool_allowed_for_tier("silver", t)
-} {
-  t == "search_events"
-}
-
-tool_allowed_for_tier("platinum", t) {
-  tool_allowed_for_tier("gold", t)
-}
-
-normalized_engine := "agentscope" {
-  lower(input.orchestrationEngine) == "agentscope-ai"
-}
-
-normalized_engine := "oneagents" {
-  lower(input.orchestrationEngine) == "oneagent"
-}
-
-normalized_engine := lower(input.orchestrationEngine) {
-  not lower(input.orchestrationEngine) == "agentscope-ai"
-  not lower(input.orchestrationEngine) == "oneagent"
-}
-
-engine_allowed_for_tier("basic", e) {
-  normalized := normalized_engine
-  e == normalized
-  e == "langgraph"
-}
-
-engine_allowed_for_tier("silver", e) {
-  normalized := normalized_engine
-  e == normalized
-  e == "langgraph" or e == "agentscope"
-}
-
-engine_allowed_for_tier("gold", e) {
-  normalized := normalized_engine
-  e == normalized
-  e == "langgraph" or e == "agentscope" or e == "oneagents"
-}
-
-engine_allowed_for_tier("platinum", e) {
-  engine_allowed_for_tier("gold", e)
+engine_valid_for_tier {
+  tier_engines[normalized_tier][normalized_engine]
 }

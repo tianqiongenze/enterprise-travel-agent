@@ -3,12 +3,15 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -119,7 +122,29 @@ func main() {
 	if port == "" {
 		port = "8093"
 	}
-	_ = r.Run(":" + port)
+
+	server := &http.Server{
+		Addr:              ":" + port,
+		Handler:           r,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		<-ctx.Done()
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		_ = server.Shutdown(shutdownCtx)
+	}()
+
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		os.Exit(1)
+	}
 }
 
 func startPeerWatcher() {

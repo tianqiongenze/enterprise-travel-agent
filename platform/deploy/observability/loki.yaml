@@ -1,0 +1,107 @@
+# Grafana Loki (single binary, filesystem storage) for log aggregation.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: observability
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loki-config
+  namespace: observability
+data:
+  loki.yaml: |
+    auth_enabled: false
+    server:
+      http_listen_port: 3100
+    common:
+      path_prefix: /loki
+      storage:
+        filesystem:
+          chunks_directory: /loki/chunks
+          rules_directory: /loki/rules
+      replication_factor: 1
+      ring:
+        kvstore:
+          store: inmemory
+    schema_config:
+      configs:
+        - from: 2024-01-01
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: index_
+            period: 24h
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: loki
+  namespace: observability
+spec:
+  serviceName: loki
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: loki
+          image: grafana/loki:3.5.2
+          args: ["-config.file=/etc/loki/loki.yaml"]
+          ports:
+            - containerPort: 3100
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/loki
+            - name: data
+              mountPath: /loki
+      volumes:
+        - name: config
+          configMap:
+            name: loki-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 50Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki
+  namespace: observability
+spec:
+  selector:
+    app: loki
+  ports:
+    - name: http
+      port: 3100
+      targetPort: 3100

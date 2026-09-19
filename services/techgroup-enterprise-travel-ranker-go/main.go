@@ -3,16 +3,21 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	json "github.com/goccy/go-json"
 	travelgrpcv1 "github.com/techgroup/enterprise-travel-agent/techgroup-enterprise-travel-ranker-go/internal/grpcgen/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 )
 
 type ScoreRequest struct {
@@ -106,26 +111,59 @@ func main() {
 		grpcPort = "9090"
 	}
 
-	errCh := make(chan error, 2)
+	httpServer := &http.Server{
+		Addr:              ":" + port,
+		Handler:           r,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	grpcDone := make(chan error, 1)
 	go func() {
-		errCh <- r.Run(":" + port)
+		grpcDone <- runGRPC(grpcPort)
 	}()
+	httpDone := make(chan error, 1)
 	go func() {
-		errCh <- runGRPC(grpcPort)
+		httpDone <- httpServer.ListenAndServe()
 	}()
-	if err := <-errCh; err != nil {
-		panic(err)
+
+	select {
+	case <-ctx.Done():
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		_ = httpServer.Shutdown(shutdownCtx)
+		grpcServer.GracefulStop()
+	case err := <-httpDone:
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			os.Exit(1)
+		}
+	case err := <-grpcDone:
+		if err != nil {
+			os.Exit(1)
+		}
 	}
 }
+
+var grpcServer *grpc.Server
 
 func runGRPC(port string) error {
 	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		return fmt.Errorf("listen grpc :%s failed: %w", port, err)
 	}
-	server := grpc.NewServer()
-	travelgrpcv1.RegisterRankerServiceServer(server, &rankerGRPCServer{})
-	return server.Serve(listener)
+	grpcServer = grpc.NewServer(
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			Time:    30 * time.Second,
+			Timeout: 10 * time.Second,
+		}),
+	)
+	travelgrpcv1.RegisterRankerServiceServer(grpcServer, &rankerGRPCServer{})
+	return grpcServer.Serve(listener)
 }
 
 func (s *rankerGRPCServer) ScoreHotel(_ context.Context, req *travelgrpcv1.ScoreRequest) (*travelgrpcv1.ScoreResponse, error) {

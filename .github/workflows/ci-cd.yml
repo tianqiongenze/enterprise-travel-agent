@@ -79,9 +79,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install and build web client
+      - name: Install, test and build web client
         run: |
           npm ci
+          npm test
           npm run build
 
   miniapp-structure-check:

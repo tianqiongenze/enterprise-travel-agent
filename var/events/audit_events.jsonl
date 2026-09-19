@@ -120,3 +120,5 @@
 {"ts": "2026-09-19T03:52:58.520755+00:00", "topic": "recommend.completed", "payload": {"city": "上海", "hotel_count": 3, "transport_count": 2, "itinerary_days": 3}}
 {"ts": "2026-09-19T03:53:21.026104+00:00", "topic": "recommend.requested", "payload": {"city": "上海", "days": 3, "budget": 3200}}
 {"ts": "2026-09-19T03:53:21.026104+00:00", "topic": "recommend.completed", "payload": {"city": "上海", "hotel_count": 3, "transport_count": 2, "itinerary_days": 3}}
+{"ts": "2026-09-19T04:18:36.065393+00:00", "topic": "recommend.requested", "payload": {"city": "上海", "days": 3, "budget": 3200}}
+{"ts": "2026-09-19T04:18:36.065393+00:00", "topic": "recommend.completed", "payload": {"city": "上海", "hotel_count": 3, "transport_count": 2, "itinerary_days": 3}}
