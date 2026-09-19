@@ -2,7 +2,7 @@
 
 ## Release Script Bundle
 
-Location: `deploy/scripts/`
+Location: `platform/deploy/scripts/`
 
 - `preflight.sh` — dependency and required-file checks
 - `build_release.sh` — backend tests + gateway tests + web production build
@@ -14,34 +14,34 @@ Location: `deploy/scripts/`
 
 ## Monitoring Assets
 
-Location: `deploy/monitoring/`
+Location: `platform/deploy/monitoring/`
 
 - `prometheus-rule.yaml` — PrometheusRule alerts for groupcache peer health and canary gate thresholds
 - `grafana-dashboard-go-runtime.json` — Grafana dashboard for groupcache runtime and canary gate status/drift
 
 K8s integration:
 
-- `deploy/k8s/kustomize/base/kustomization.yaml` includes `../../monitoring/prometheus-rule.yaml`
+- `platform/deploy/k8s/kustomize/base/kustomization.yaml` includes `../../monitoring/prometheus-rule.yaml`
 
 ## Recommended Execution Order
 
 ```bash
-./deploy/scripts/preflight.sh
-./deploy/scripts/build_release.sh
-./deploy/scripts/deploy_release.sh
-./deploy/scripts/healthcheck_release.sh
+./platform/deploy/scripts/preflight.sh
+./platform/deploy/scripts/build_release.sh
+./platform/deploy/scripts/deploy_release.sh
+./platform/deploy/scripts/healthcheck_release.sh
 ```
 
 Rollback command:
 
 ```bash
-./deploy/scripts/rollback_release.sh
+./platform/deploy/scripts/rollback_release.sh
 ```
 
 Canary gate:
 
 ```bash
-./deploy/scripts/canary_promote_or_rollback.sh stress/etcd_migration_compare.json
+./platform/deploy/scripts/canary_promote_or_rollback.sh stress/etcd_migration_compare.json
 ```
 
 Canary metrics export options:
@@ -52,7 +52,7 @@ Canary metrics export options:
 ```bash
 export CANARY_GATE_PUSHGATEWAY_URL=http://pushgateway.monitoring.svc:9091
 export CANARY_GATE_PUSHGATEWAY_JOB=canary_gate
-./deploy/scripts/canary_promote_or_rollback.sh stress/etcd_migration_compare.json
+./platform/deploy/scripts/canary_promote_or_rollback.sh stress/etcd_migration_compare.json
 ```
 
 CI Gate Behavior:
@@ -70,7 +70,7 @@ CI Gate Behavior:
 
 ## Security and Ingress
 
-- Production nginx template: `deploy/nginx/nginx.conf`
+- Production nginx template: `platform/deploy/nginx/nginx.conf`
 - Includes HTTPS redirect, TLS, HSTS, CSP, and API/runtime rate limits
 
 ## Final Gates

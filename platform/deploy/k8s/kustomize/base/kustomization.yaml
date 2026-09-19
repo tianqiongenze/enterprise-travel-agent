@@ -5,6 +5,8 @@ resources:
   - ../../ingress.yaml
   - ../../tls-secret.yaml
   - ../../pdb.yaml
+  - ../../serviceaccount.yaml
+  - ../../networkpolicy.yaml
   - ../../go-ranker-deployment.yaml
   - ../../go-ranker-service.yaml
   - ../../go-ranker-hpa.yaml

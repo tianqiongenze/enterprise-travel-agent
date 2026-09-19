@@ -47,9 +47,7 @@ def evaluate(summary, max_success_gap: float, max_p95_drift: float, max_p99_drif
         reasons.append("success_gap_exceeds_threshold")
 
     legacy_p95 = float(summary.get("legacy_p95_latency_ms", 0.0))
-    new_p95 = float(summary.get("new_p95_latency_ms", 0.0))
     legacy_p99 = float(summary.get("legacy_p99_latency_ms", 0.0))
-    new_p99 = float(summary.get("new_p99_latency_ms", 0.0))
 
     p95_drift = compute_drift(summary, "legacy_p95_latency_ms", "new_p95_latency_ms")
     p99_drift = compute_drift(summary, "legacy_p99_latency_ms", "new_p99_latency_ms")

@@ -43,7 +43,7 @@ func loadPolicyCoreSpec() policyCoreSpec {
 func defaultPolicyCoreSpec() policyCoreSpec {
 	return policyCoreSpec{
 		Version: "policy-core.v1",
-		Limits: map[string]int{"maxAgentSteps": 50, "maxToolCalls": 30},
+		Limits:  map[string]int{"maxAgentSteps": 50, "maxToolCalls": 30},
 		Tiers: map[string]policyCoreTier{
 			"basic":    {Tools: []string{"search_hotels", "search_transports", "search_attractions"}, Engines: []string{"langgraph"}},
 			"silver":   {Tools: []string{"search_hotels", "search_transports", "search_attractions", "search_foods"}, Engines: []string{"langgraph", "agentscope"}},
@@ -60,4 +60,3 @@ func policyCoreNormalizeEngine(engine string) string {
 	}
 	return engine
 }
-

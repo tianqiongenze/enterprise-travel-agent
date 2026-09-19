@@ -20,6 +20,20 @@ jobs:
           REPO_PREFIX="${IMAGE_REPO_PREFIX:-ghcr.io/${GITHUB_REPOSITORY}}"
           echo "image_repo_prefix=${REPO_PREFIX}" >> "$GITHUB_OUTPUT"
 
+  python-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install ruff
+        run: pip install ruff
+      - name: Lint (correctness rules)
+        run: |
+          ruff check services/techgroup-enterprise-travel-runtime/src tests scripts stress platform/deploy/scripts \
+            --select E9,F63,F7,F82,F401,F841 --exclude "*/gen/*,*/generated/*"
+
   python-tests:
     runs-on: ubuntu-latest
     steps:
@@ -31,9 +45,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Run tests
+          pip install aiosqlite coverage
+      - name: Run tests with coverage
         run: |
-          python scripts/run_python_tests_ci.py
+          TRAVEL_EVENT_BUS=local TRAVEL_EVENT_BUS_STRICT=false TRAVEL_A2A_AUDIT_MIRROR_PULSAR=false \
+          PYTHONPATH="$PWD/services/techgroup-enterprise-travel-runtime" \
+          coverage run --source=services/techgroup-enterprise-travel-runtime/src \
+            -m unittest discover -s tests -p "test_*.py"
+          coverage report --fail-under=50
+          coverage xml -o coverage-python.xml
 
   java-tests:
     runs-on: ubuntu-latest
@@ -61,7 +81,7 @@ jobs:
           node-version: '22'
       - name: Install and build web client
         run: |
-          npm install
+          npm ci
           npm run build
 
   miniapp-structure-check:
@@ -85,9 +105,11 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.1'
-      - name: Build go-ranker binary
+      - name: gofmt / vet / test / build
         run: |
-          go mod tidy
+          test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+          go vet ./...
+          go test ./...
           go build -v ./...
       - name: Build go-ranker container
         run: |
@@ -103,9 +125,11 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.1'
-      - name: Build go-policy binary
+      - name: gofmt / vet / test / build
         run: |
-          go mod tidy
+          test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+          go vet ./...
+          go test ./...
           go build -v ./...
       - name: Build go-policy container
         run: |
@@ -121,9 +145,11 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.1'
-      - name: Build go-fanout binary
+      - name: gofmt / vet / test / build
         run: |
-          go mod tidy
+          test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+          go vet ./...
+          go test ./...
           go build -v ./...
       - name: Build go-fanout container
         run: |
@@ -139,16 +165,32 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.1'
-      - name: Build go-registry-cache binary
+      - name: gofmt / vet / test / build
         run: |
-          go mod tidy
+          test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+          go vet ./...
+          go test ./...
           go build -v ./...
       - name: Build go-registry-cache container
         run: |
           docker build -t go-registry-cache:ci .
 
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy filesystem scan (vuln + IaC, gate on CRITICAL)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scanners: vuln,config,secret
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
+          trivyignores: .trivyignore
+
   build-image:
-    needs: [setup-image-meta, python-tests, java-tests, web-build, miniapp-structure-check, go-ranker-build, go-policy-build, go-fanout-build, go-registry-cache-build]
+    needs: [setup-image-meta, python-lint, python-tests, java-tests, web-build, miniapp-structure-check, go-ranker-build, go-policy-build, go-fanout-build, go-registry-cache-build, security-scan]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -209,9 +251,14 @@ jobs:
           test -f platform/deploy/k8s/kustomize/overlays/region-c/kustomization.yaml
 
   canary-deploy:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    # Deploy jobs never run silently: they require the repository variable
+    # TRAVEL_DEPLOY_ENABLED=true AND an environment-scoped kube context.
+    if: >-
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      && vars.TRAVEL_DEPLOY_ENABLED == 'true'
     needs: [setup-image-meta, build-image, kustomize-check]
     runs-on: ubuntu-latest
+    environment: production-deploy
     env:
       IMAGE_REPO_PREFIX: ${{ needs.setup-image-meta.outputs.image_repo_prefix }}
       IMAGE_TAG: ${{ needs.setup-image-meta.outputs.image_tag }}
@@ -230,7 +277,8 @@ jobs:
               if command -v kubectl >/dev/null 2>&1 && kubectl config current-context >/dev/null 2>&1; then
                 KUSTOMIZE_OVERLAY=${{ matrix.overlay }} bash platform/deploy/scripts/deploy_release.sh
               else
-                echo "no kube context found, skip deploy for overlay=${{ matrix.overlay }}"
+                echo "::error::kube context missing - cannot deploy overlay=${{ matrix.overlay }}"
+                exit 1
               fi
             else
               echo "canary rollback for overlay=${{ matrix.overlay }}"

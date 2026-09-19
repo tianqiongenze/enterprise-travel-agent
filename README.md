@@ -18,9 +18,9 @@ npm run ci:test:all
 
 命名规范与企业级约束见：`docs/technology-group-naming-convention.md`。
 
-10B 用户 / 10M 并发工业级升级方案见：`docs/industrial-scale-upgrade-plan-10b-10m.md`。
+10B 用户 / 10M 并发为**容量规划目标**（非实测结论），规划方案见：`docs/industrial-scale-upgrade-plan-10b-10m.md`。
 
-10B 用户 / 100万并发 readiness 评估（本地证据聚合）：
+100万并发 readiness 评估（本地证据聚合；当前实测状态为 ARCHITECTURE_READY_NOT_PROVEN）：
 
 ```bash
 python stress/global_scale_readiness.py --target-concurrency 1000000
@@ -308,6 +308,14 @@ cd techgroup-enterprise-travel-gateway
 mvn spring-boot:run
 ```
 
+### Keycloak OIDC 鉴权（已接入）
+
+- 部署 Keycloak（Compose 已含服务，控制台 `http://localhost:8081`，realm 导入：`platform/deploy/keycloak/realm-travel.json`）
+- 预置演示账号：`demo-basic` / `demo-silver` / `demo-gold`（密码 `demo-pass-123`，分别绑定会员等级角色）
+- Gateway 作为 OAuth2 资源服务器校验用户 JWT（`TRAVEL_SECURITY_MODE=oauth2`，本地 off 时门禁会告警）
+- Gateway→Runtime 内部调用使用 HMAC-SHA256 全量签名（绑定 clientId，密钥 `TRAVEL_INTERNAL_SHARED_SECRET`，禁止沿用 demo 值上 staging/prod）
+- Runtime JWT 验签模块：`services/techgroup-enterprise-travel-runtime/src/travel_agent/api/auth.py`（JWKS 缓存 + RS256 + iss/aud/exp 校验）
+
 ### Spring AI Alibaba（已接入）
 
 - `spring-ai-alibaba-agent-framework`
@@ -478,13 +486,13 @@ python3 video/microcourse/tools/render_microcourse_html.py
 
 当前仓库已补齐：
 
-- Web 前端：`frontend-web/`（React 19 + Vite + TanStack Query + Axios）
+- Web 前端：`apps/techgroup-enterprise-travel-web/`（React 19 + Vite + TanStack Query + Axios）
 - 微信小程序：`miniapp-wechat/`（原生小程序结构，可直接在微信开发者工具导入）
 
 ### Web 端启动
 
 ```bash
-cd frontend-web
+cd apps/techgroup-enterprise-travel-web
 npm install --include=dev
 npm run dev
 ```

@@ -158,11 +158,11 @@ Without these, the correct statement is: "architecture supports scale-out and pa
 
 ## 7. Monitoring and dashboard assets for this repo
 
-- Alert rules: `deploy/monitoring/prometheus-rule.yaml`
-- Dashboard JSON: `deploy/monitoring/grafana-dashboard-go-runtime.json`
+- Alert rules: `platform/deploy/monitoring/prometheus-rule.yaml`
+- Dashboard JSON: `platform/deploy/monitoring/grafana-dashboard-go-runtime.json`
 - Canary metric emission:
-  - Script: `deploy/scripts/canary_gate.py`
-  - Wrapper: `deploy/scripts/canary_promote_or_rollback.sh`
+  - Script: `platform/deploy/scripts/canary_gate.py`
+  - Wrapper: `platform/deploy/scripts/canary_promote_or_rollback.sh`
   - Output file: `stress/canary_gate_metrics.prom`
 
 Recommended operational pattern:

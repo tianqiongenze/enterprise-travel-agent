@@ -1,10 +1,10 @@
 """Module defines API handlers."""
 
+import logging
 import os
 import importlib.util
 from pathlib import Path
 from typing import Any, Dict, Optional
-import hashlib
 
 fastapi_module = importlib.util.find_spec("fastapi")
 FastAPI: Any = None
@@ -19,20 +19,42 @@ from ..membership_store import MembershipStore
 from ..models import TravelRequest
 from ..orchestrator import build_orchestrator
 from ..traffic_guard import TrafficGuard
+from .auth import AuthError, auth_mode, build_authenticator_from_env
+
+logger = logging.getLogger("travel_agent.api")
 
 project_root = str(Path(__file__).resolve().parents[5])
 orchestrator = build_orchestrator(project_root)
-shared_secret = os.getenv("TRAVEL_INTERNAL_SHARED_SECRET", "demo-internal-secret")
+shared_secret = os.getenv("TRAVEL_INTERNAL_SHARED_SECRET", "")
+if not shared_secret:
+    shared_secret = "demo-internal-secret"
+    logger.warning(
+        "TRAVEL_INTERNAL_SHARED_SECRET is not set - falling back to the public "
+        "demo secret; this is acceptable for local dev only and is enforced by "
+        "the go-live gate in staging/prod"
+    )
 trusted_client_id = os.getenv("TRAVEL_INTERNAL_CLIENT_ID", "techgroup-enterprise-travel-gateway")
 membership_store = MembershipStore()
 traffic_guard = TrafficGuard()
 max_runtime_log_payload = int(os.getenv("TRAVEL_RUNTIME_RESPONSE_LOG_LIMIT", "50"))
+oidc_authenticator = build_authenticator_from_env()
 
 
-def _verify_signature(idempotency_key: str, signature: str) -> bool:
-    seed = idempotency_key + "." + shared_secret
-    digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
-    return signature.startswith(digest[:16]) or signature == digest
+def require_bearer_identity(authorization_header: str) -> Dict[str, str]:
+    """Validate the caller in ``oidc`` auth mode and map claims to identity."""
+    if auth_mode() != "oidc":
+        return {}
+    if oidc_authenticator is None:
+        raise AuthError("TRAVEL_AUTH_MODE=oidc but TRAVEL_OIDC_ISSUER is not configured")
+    return oidc_authenticator.identity_from_claims(
+        oidc_authenticator.authenticate(authorization_header)
+    )
+
+
+def _verify_signature(idempotency_key: str, client_id: str, signature: str) -> bool:
+    from ..security import verify_internal_signature
+
+    return verify_internal_signature(idempotency_key, shared_secret, client_id, signature)
 
 
 def recommend(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -59,12 +81,17 @@ def runtime_recommend(payload: Dict[str, Any], headers: Optional[Dict[str, Any]]
     trace_id = runtime_headers.get("X-Trace-Id", "")
     internal_client = runtime_headers.get("X-Internal-Client-Id", "")
     internal_sig = runtime_headers.get("X-Internal-Signature", "")
+    # In oidc mode the gateway forwards the end-user bearer token; service trust
+    # (internal HMAC) stays mandatory on top of it.
+    if auth_mode() == "oidc":
+        identity = require_bearer_identity(runtime_headers.get("Authorization", ""))
+        payload = {**payload, "_identity": identity}
     if not trace_id:
         raise ValueError("missing X-Trace-Id")
     if internal_client != trusted_client_id:
         raise ValueError("untrusted internal client")
     idempotency_key = str(payload.get("idempotencyKey", ""))
-    if not idempotency_key or not _verify_signature(idempotency_key, internal_sig):
+    if not idempotency_key or not _verify_signature(idempotency_key, internal_client, internal_sig):
         raise ValueError("invalid internal signature")
     tenant_id = str(payload.get("tenantId", "")).strip()
     user_id = str(payload.get("userId", "")).strip()
@@ -182,13 +209,18 @@ else:
             "X-Trace-Id": request.headers.get("X-Trace-Id", ""),
             "X-Internal-Client-Id": request.headers.get("X-Internal-Client-Id", ""),
             "X-Internal-Signature": request.headers.get("X-Internal-Signature", ""),
+            "Authorization": request.headers.get("Authorization", ""),
         }
         return runtime_recommend(payload, runtime_headers)
 
     @app.post("/a2a/send")
-    def a2a_send_endpoint(payload: Dict[str, Any]) -> Dict[str, Any]:
+    def a2a_send_endpoint(payload: Dict[str, Any], request: Any = None) -> Dict[str, Any]:
+        if request is not None and auth_mode() == "oidc":
+            require_bearer_identity(request.headers.get("Authorization", ""))
         return a2a_send(payload)
 
     @app.get("/a2a/inbox/{receiver}")
-    def a2a_inbox_endpoint(receiver: str) -> Dict[str, Any]:
+    def a2a_inbox_endpoint(receiver: str, request: Any = None) -> Dict[str, Any]:
+        if request is not None and auth_mode() == "oidc":
+            require_bearer_identity(request.headers.get("Authorization", ""))
         return a2a_inbox(receiver)

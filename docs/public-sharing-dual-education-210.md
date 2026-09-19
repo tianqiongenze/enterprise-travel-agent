@@ -13,7 +13,7 @@ Generate a 200+ page public-sharing PPT in a light gradient theme, aligned with 
 ```powershell
 npm run run:dual-education:assets
 npm run run:p3:evidence:assets
-python deploy/scripts/generate_code_evidence_assets.py
+python platform/deploy/scripts/generate_code_evidence_assets.py
 npm run run:dual-education:ppt
 ```
 

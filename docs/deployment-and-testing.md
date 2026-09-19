@@ -21,7 +21,7 @@ python3 -m src.travel_agent.run_demo
 
 ## 2. Docker Compose（开发环境）
 
-使用 `deploy/docker-compose.yml` 启动 API 服务。
+使用 `platform/deploy/docker-compose.yml` 启动 API 服务。
 
 新增：`redis-cluster` 服务用于本地集群模式联调。
 
@@ -228,7 +228,7 @@ curl http://localhost:8000/a2a/inbox/trip-planner-agent
 - 压测方案：`stress/distributed-plan.md`
 - 100万记录人工测试运行手册：`docs/manual-1m-record-testing.md`
 - CI/CD 流水线：`.github/workflows/ci-cd.yml`
-- 灰度发布：`deploy/k8s/canary-rollout.md`
+- 灰度发布：`platform/deploy/k8s/canary-rollout.md`
 
 可插拔编排引擎（A2A/MCP/Skills/Harness增强）：
 
@@ -248,10 +248,10 @@ A2A 分布式传输：
 
 A2A 运维核验：
 
-- `python deploy/scripts/export_a2a_stream_metrics.py`
+- `python platform/deploy/scripts/export_a2a_stream_metrics.py`
 - `python stress/a2a_audit_replay_check.py --file var/events/a2a_audit_events.jsonl`
-- `deploy/k8s/a2a-metrics-cronjob.yaml`
-- `deploy/monitoring/grafana-dashboard-a2a-stream-pulsar.json`
+- `platform/deploy/k8s/a2a-metrics-cronjob.yaml`
+- `platform/deploy/monitoring/grafana-dashboard-a2a-stream-pulsar.json`
 
 跨语言高性能实践（Redis/Pulsar）：
 

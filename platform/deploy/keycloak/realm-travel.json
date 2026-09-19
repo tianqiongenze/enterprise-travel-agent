@@ -1,0 +1,93 @@
+{
+  "realm": "travel",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "sslRequired": "external",
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "attributes": {
+    "frontendUrl": "http://localhost:8081"
+  },
+  "roles": {
+    "realm": [
+      { "name": "basic", "description": "Basic membership tier" },
+      { "name": "silver", "description": "Silver membership tier" },
+      { "name": "gold", "description": "Gold membership tier" },
+      { "name": "platinum", "description": "Platinum membership tier" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "travel-web",
+      "name": "Travel Web (SPA)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "rootUrl": "http://localhost:5173",
+      "redirectUris": ["http://localhost:5173/*", "http://localhost:8080/*"],
+      "webOrigins": ["http://localhost:5173", "http://localhost:8080"],
+      "attributes": { "pkce.code.challenge.method": "S256" },
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "travel-miniapp",
+      "name": "Travel WeChat Mini Program",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "travel-api",
+      "name": "Travel API (service audience)",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "${TRAVEL_OIDC_CLIENT_SECRET:change-me-travel-api-secret}",
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect"
+    }
+  ],
+  "users": [
+    {
+      "username": "demo-basic",
+      "enabled": true,
+      "email": "demo-basic@example.com",
+      "firstName": "Demo",
+      "lastName": "Basic",
+      "credentials": [{ "type": "password", "value": "demo-pass-123", "temporary": false }],
+      "realmRoles": ["basic"],
+      "attributes": { "tenant_id": ["tenant-1"] }
+    },
+    {
+      "username": "demo-silver",
+      "enabled": true,
+      "email": "demo-silver@example.com",
+      "firstName": "Demo",
+      "lastName": "Silver",
+      "credentials": [{ "type": "password", "value": "demo-pass-123", "temporary": false }],
+      "realmRoles": ["silver"],
+      "attributes": { "tenant_id": ["tenant-1"] }
+    },
+    {
+      "username": "demo-gold",
+      "enabled": true,
+      "email": "demo-gold@example.com",
+      "firstName": "Demo",
+      "lastName": "Gold",
+      "credentials": [{ "type": "password", "value": "demo-pass-123", "temporary": false }],
+      "realmRoles": ["gold"],
+      "attributes": { "tenant_id": ["tenant-1"] }
+    }
+  ],
+  "scopeMappings": [
+    {
+      "clientScope": "profile",
+      "roles": ["basic", "silver", "gold", "platinum"]
+    }
+  ]
+}

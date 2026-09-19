@@ -1,0 +1,105 @@
+# Default-deny for the travel namespace: no ingress, no egress.
+# Follow-up allow policies below open only the required flows.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress", "Egress"]
+---
+# Allow ingress to the API from the ingress controller / gateway only.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-travel-api
+spec:
+  podSelector:
+    matchLabels:
+      app: travel-agent-api
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - podSelector:
+            matchLabels:
+              app: travel-gateway
+      ports:
+        - protocol: TCP
+          port: 8000
+---
+# Allow egress from the API to in-cluster dependencies and DNS.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-travel-api
+spec:
+  podSelector:
+    matchLabels:
+      app: travel-agent-api
+  policyTypes: ["Egress"]
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: travel-gateway
+        - podSelector:
+            matchLabels:
+              app: go-ranker
+        - podSelector:
+            matchLabels:
+              app: go-policy
+      ports:
+        - protocol: TCP
+          port: 8090
+        - protocol: TCP
+          port: 9090
+        - protocol: TCP
+          port: 8091
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# Gateway: accept from ingress controller, reply egress to API/Keycloak.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-travel-gateway
+spec:
+  podSelector:
+    matchLabels:
+      app: travel-gateway
+  policyTypes: ["Ingress", "Egress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: travel-agent-api
+      ports:
+        - protocol: TCP
+          port: 8000
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

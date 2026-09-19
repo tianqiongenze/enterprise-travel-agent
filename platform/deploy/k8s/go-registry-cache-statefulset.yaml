@@ -15,39 +15,52 @@ spec:
     spec:
       serviceAccountName: go-registry-cache-sa
       containers:
-        - name: go-registry-cache
-          image: your-registry/go-registry-cache:0.1.0
-          ports:
-            - containerPort: 8093
-          env:
-            - name: GO_REGISTRY_CACHE_PORT
-              value: "8093"
-            - name: POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: GROUPCACHE_HEADLESS_SERVICE
-              value: "go-registry-cache-headless"
-            - name: GROUPCACHE_SELF
-              value: "http://go-registry-cache-0.go-registry-cache-headless.default.svc.cluster.local:8093"
-            - name: GROUPCACHE_PEERS
-              value: "http://go-registry-cache-0.go-registry-cache-headless.default.svc.cluster.local:8093,http://go-registry-cache-1.go-registry-cache-headless.default.svc.cluster.local:8093"
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
-            limits:
-              cpu: "500m"
-              memory: "512Mi"
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8093
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8093
-            initialDelaySeconds: 10
-            periodSeconds: 15
+      - name: go-registry-cache
+        image: your-registry/go-registry-cache:0.1.0
+        ports:
+        - containerPort: 8093
+        env:
+        - name: GO_REGISTRY_CACHE_PORT
+          value: '8093'
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: GROUPCACHE_HEADLESS_SERVICE
+          value: go-registry-cache-headless
+        - name: GROUPCACHE_SELF
+          value: http://go-registry-cache-0.go-registry-cache-headless.default.svc.cluster.local:8093
+        - name: GROUPCACHE_PEERS
+          value: http://go-registry-cache-0.go-registry-cache-headless.default.svc.cluster.local:8093,http://go-registry-cache-1.go-registry-cache-headless.default.svc.cluster.local:8093
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8093
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8093
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      automountServiceAccountToken: true
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault

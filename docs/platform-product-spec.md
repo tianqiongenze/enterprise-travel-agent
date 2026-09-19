@@ -43,7 +43,7 @@ It combines gateway policy control, runtime orchestration, and optional Go accel
 
 - policy cache stats API
 - consumer metrics export (`.prom`)
-- dashboard and alert rules under `deploy/monitoring/`
+- dashboard and alert rules under `platform/deploy/monitoring/`
 - trace propagation via `X-Trace-Id` and `traceparent`
 
 ## 5. Non-Functional Requirements
@@ -71,10 +71,10 @@ Mandatory request fields:
 
 ## 7. Deployment Scope
 
-- Local integration via `deploy/docker-compose.yml`
-- K8s manifests under `deploy/k8s/`
+- Local integration via `platform/deploy/docker-compose.yml`
+- K8s manifests under `platform/deploy/k8s/`
 - Kustomize overlays (`dev`, `staging`, `prod`)
-- Release scripts under `deploy/scripts/`
+- Release scripts under `platform/deploy/scripts/`
 
 ## 8. Risks and Mitigation
 
@@ -90,7 +90,12 @@ Mandatory request fields:
 - API docs available for developers/users
 - Product spec published and linked from project docs
 
-## 10. Industrial Scale Target (10B Users / 10M Concurrent)
+## 10. Industrial Scale Target (Capacity Planning Goal - Not Yet Proven)
+
+> NOTE: 10B registered users / 10M concurrent is a long-term capacity PLANNING goal used for
+> architecture sizing. It is NOT a measured or achieved state. Current measured evidence is
+> tracked in `stress/` (e.g. achievedConcurrency=300 in the local evidence set) and the
+> readiness status is `ARCHITECTURE_READY_NOT_PROVEN`.
 
 ### 10.1 Capacity decomposition
 

@@ -26,7 +26,7 @@ class ApiContractTestCase(unittest.TestCase):
 
     def test_runtime_recommend_accepts_valid_internal_headers(self) -> None:
         idem = "idem-1"
-        sig = make_internal_signature(idem, "demo-internal-secret")
+        sig = make_internal_signature(idem, "demo-internal-secret", "techgroup-enterprise-travel-gateway")
         result = runtime_recommend(
             payload={
                 "tenantId": "tenant-1",
@@ -52,7 +52,7 @@ class ApiContractTestCase(unittest.TestCase):
 
     def test_runtime_recommend_requires_conversation_scope(self) -> None:
         idem = "idem-scope"
-        sig = make_internal_signature(idem, "demo-internal-secret")
+        sig = make_internal_signature(idem, "demo-internal-secret", "techgroup-enterprise-travel-gateway")
         with self.assertRaises(ValueError):
             runtime_recommend(
                 payload={
@@ -79,7 +79,7 @@ class ApiContractTestCase(unittest.TestCase):
         previous = os.environ.get("TRAVEL_MEMORY_BACKEND")
         os.environ["TRAVEL_MEMORY_BACKEND"] = "vector"
         idem = "idem-memory-1"
-        sig = make_internal_signature(idem, "demo-internal-secret")
+        sig = make_internal_signature(idem, "demo-internal-secret", "techgroup-enterprise-travel-gateway")
         result = runtime_recommend(
             payload={
                 "tenantId": "tenant-1",
@@ -105,7 +105,7 @@ class ApiContractTestCase(unittest.TestCase):
         self.assertTrue(len(result.get("memory_after", [])) >= 2)
 
         idem_2 = "idem-memory-2"
-        sig_2 = make_internal_signature(idem_2, "demo-internal-secret")
+        sig_2 = make_internal_signature(idem_2, "demo-internal-secret", "techgroup-enterprise-travel-gateway")
         result_2 = runtime_recommend(
             payload={
                 "tenantId": "tenant-1",
@@ -152,7 +152,7 @@ class ApiContractTestCase(unittest.TestCase):
         previous_engine = api_module.orchestrator.engine
         api_module.orchestrator.engine = build_engine_by_name("oneagents", api_module.orchestrator.manager)
         idem = "idem-tier-1"
-        sig = make_internal_signature(idem, "demo-internal-secret")
+        sig = make_internal_signature(idem, "demo-internal-secret", "techgroup-enterprise-travel-gateway")
         with self.assertRaises(ValueError):
             runtime_recommend(
                 payload={
@@ -180,7 +180,7 @@ class ApiContractTestCase(unittest.TestCase):
 
     def test_runtime_recommend_rejects_duplicate_submission(self) -> None:
         idem = "idem-dup-1"
-        sig = make_internal_signature(idem, "demo-internal-secret")
+        sig = make_internal_signature(idem, "demo-internal-secret", "techgroup-enterprise-travel-gateway")
         with patch("src.travel_agent.api.app.traffic_guard.claim_idempotency", return_value=False):
             with self.assertRaises(ValueError):
                 runtime_recommend(

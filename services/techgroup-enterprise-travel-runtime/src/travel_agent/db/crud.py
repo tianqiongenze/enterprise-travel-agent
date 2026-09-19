@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from .models import TripPlan, User
 from typing import Optional, List
-import json
 
 class TripPlanRepo:
     """

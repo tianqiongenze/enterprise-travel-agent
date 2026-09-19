@@ -10,7 +10,7 @@ import time
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 grpc = importlib.import_module("grpc")
 requests = importlib.import_module("requests")

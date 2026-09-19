@@ -208,6 +208,57 @@ def _bootstrap_consumer_metrics(project_root: Path, metrics_path: Path) -> Optio
         return f"bootstrap metrics failed: {error}"
 
 
+def _security_env_gate(profile: str) -> CheckResult:
+    """Reject demo authentication settings outside the local profile.
+
+    ``profile`` is one of ``local`` | ``staging`` | ``prod``. Staging and prod
+    require: a real internal shared secret, an authentication mode other than
+    ``none``, and a semantic embedding provider (not the hash fallback).
+    """
+    secret = os.getenv("TRAVEL_INTERNAL_SHARED_SECRET", "").strip()
+    auth_mode = os.getenv("TRAVEL_AUTH_MODE", "internal").strip().lower()
+    security_mode = os.getenv("TRAVEL_SECURITY_MODE", "off").strip().lower()
+    embedding_backend = os.getenv("TRAVEL_EMBEDDING_BACKEND", "auto").strip().lower()
+    has_remote_key = bool(
+        os.getenv("AI_DASHSCOPE_API_KEY", os.getenv("DASHSCOPE_API_KEY", "")).strip()
+    )
+
+    problems: List[str] = []
+    if profile != "local" and (not secret or secret == "demo-internal-secret"):
+        problems.append("TRAVEL_INTERNAL_SHARED_SECRET missing or still the public demo value")
+    if auth_mode == "none":
+        problems.append("TRAVEL_AUTH_MODE=none is not permitted in " + profile)
+    if profile == "prod" and auth_mode != "oidc":
+        problems.append("TRAVEL_AUTH_MODE must be 'oidc' in prod")
+    if profile == "prod" and security_mode != "oauth2":
+        problems.append("TRAVEL_SECURITY_MODE must be 'oauth2' in prod")
+    if embedding_backend == "hash":
+        problems.append("TRAVEL_EMBEDDING_BACKEND=hash provides no semantic retrieval")
+    if embedding_backend == "auto" and profile == "prod" and not has_remote_key:
+        problems.append(
+            "TRAVEL_EMBEDDING_BACKEND=auto in prod requires a local model install or AI_DASHSCOPE_API_KEY"
+        )
+
+    detail = f"auth={auth_mode} security={security_mode} embedding={embedding_backend}"
+    if problems:
+        return CheckResult(
+            name="security_env_gate",
+            status="FAIL",
+            detail="; ".join(problems),
+            durationMs=0,
+            artifacts=[],
+        )
+    if profile == "local" and (not secret or secret == "demo-internal-secret"):
+        detail += "; WARNING: demo internal secret in local profile"
+    return CheckResult(
+        name="security_env_gate",
+        status="PASS",
+        detail=detail,
+        durationMs=0,
+        artifacts=[],
+    )
+
+
 def run_all_checks(project_root: Path, args: argparse.Namespace) -> Dict[str, object]:
     checks: List[CheckResult] = []
 
@@ -582,6 +633,8 @@ def run_all_checks(project_root: Path, args: argparse.Namespace) -> Dict[str, ob
     checks.append(_file_check("global_scale_readiness_json_present", scale_readiness_json, required=False))
     checks.append(_file_check("global_scale_readiness_md_present", scale_readiness_md, required=False))
 
+    checks.append(_security_env_gate(getattr(args, "security_env_profile", "local")))
+
     if args.require_slo_enforcement:
         checks.append(
             _run_command(
@@ -720,6 +773,12 @@ def main() -> None:
     parser.add_argument("--allowed-evidence-environments", default="staging,prod")
     parser.add_argument("--require-evidence-signature", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--require-source-protection", action="store_true", default=False)
+    parser.add_argument(
+        "--security-env-profile",
+        choices=["local", "staging", "prod"],
+        default=os.getenv("TRAVEL_SECURITY_ENV_PROFILE", "local"),
+        help="Profile for the security environment gate (staging/prod enforce OIDC, real secrets, semantic embeddings)",
+    )
     parser.add_argument("--run-scale-readiness", action="store_true", default=True)
     parser.add_argument("--require-slo-enforcement", action="store_true", default=True)
     parser.add_argument("--slo-max-success-gap", type=float, default=0.03)

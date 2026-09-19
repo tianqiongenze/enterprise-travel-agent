@@ -105,7 +105,7 @@
 
 部署入口：
 
-- `deploy/docker-compose.yml` 已加入 `redis-cluster` 服务
+- `platform/deploy/docker-compose.yml` 已加入 `redis-cluster` 服务
 
 场景脚本：
 

@@ -14,7 +14,7 @@ This runbook covers release flow for:
 ```bash
 python3 -m unittest discover -s tests -p "test_*.py" -v
 cd techgroup-enterprise-travel-gateway && mvn -B test
-cd ../frontend-web && npm install --include=dev && npm run build
+cd ../apps/techgroup-enterprise-travel-web && npm install --include=dev && npm run build
 cd ..
 python3 stress/etcd_migration_drill.py --legacy-base-url http://localhost:8000 --new-base-url http://localhost:8001 --requests 200 --concurrency 20
 ```
@@ -29,9 +29,9 @@ P2 additional commands:
 ```bash
 python3 scripts/run_event_consumers.py --max-messages 100
 python3 stress/capacity_cost_model.py --peak-connected 1000000 --active-ratio 0.1
-kustomize build --load-restrictor=LoadRestrictionsNone deploy/k8s/kustomize/overlays/region-a > /tmp/region-a.yaml
-kustomize build --load-restrictor=LoadRestrictionsNone deploy/k8s/kustomize/overlays/region-b > /tmp/region-b.yaml
-kustomize build --load-restrictor=LoadRestrictionsNone deploy/k8s/kustomize/overlays/region-c > /tmp/region-c.yaml
+kustomize build --load-restrictor=LoadRestrictionsNone platform/deploy/k8s/kustomize/overlays/region-a > /tmp/region-a.yaml
+kustomize build --load-restrictor=LoadRestrictionsNone platform/deploy/k8s/kustomize/overlays/region-b > /tmp/region-b.yaml
+kustomize build --load-restrictor=LoadRestrictionsNone platform/deploy/k8s/kustomize/overlays/region-c > /tmp/region-c.yaml
 ```
 
 Required P2 artifacts:
@@ -45,7 +45,7 @@ P3 resilience checks:
 ```bash
 python3 scripts/run_event_consumers.py --max-messages 200 --max-retries 3 --retry-backoff-ms 200
 cat stress/pulsar_consumer_metrics.prom
-python3 deploy/scripts/canary_gate.py \
+python3 platform/deploy/scripts/canary_gate.py \
   --report stress/etcd_migration_compare.json \
   --event-metrics stress/pulsar_consumer_metrics.prom \
   --max-event-lag-seconds 60 \
@@ -61,7 +61,7 @@ Required P3 artifacts:
 P3.6 final checks:
 
 ```bash
-python3 deploy/scripts/p3_5_autosafemode.py --decision stress/canary_gate_decision.json
+python3 platform/deploy/scripts/p3_5_autosafemode.py --decision stress/canary_gate_decision.json
 curl -s http://localhost:8080/api/v1/travel/policy/cache/stats
 ```
 
@@ -102,12 +102,12 @@ export TRAVEL_A2A_AUDIT_MIRROR_PULSAR=true
 export TRAVEL_A2A_AUDIT_TOPIC=persistent://public/default/travel-agent.a2a.audit
 python3 -m unittest tests.test_orchestration_engine_modes -v
 python3 -m unittest tests.test_agent_expansion tests.test_cache_manager -v
-python3 deploy/scripts/export_a2a_stream_metrics.py
+python3 platform/deploy/scripts/export_a2a_stream_metrics.py
 python3 stress/a2a_audit_replay_check.py --file var/events/a2a_audit_events.jsonl --window-minutes 60 --max-duplicates 0
 
 # assets
-# deploy/k8s/a2a-metrics-cronjob.yaml
-# deploy/monitoring/grafana-dashboard-a2a-stream-pulsar.json
+# platform/deploy/k8s/a2a-metrics-cronjob.yaml
+# platform/deploy/monitoring/grafana-dashboard-a2a-stream-pulsar.json
 
 export TRAVEL_REDIS_MODE=cluster
 export TRAVEL_REDIS_URL=redis://localhost:7000

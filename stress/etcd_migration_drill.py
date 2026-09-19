@@ -8,7 +8,7 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from statistics import mean
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import requests
 

@@ -11,9 +11,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/golang/groupcache"
-	json "github.com/goccy/go-json"
 	"github.com/gin-gonic/gin"
+	json "github.com/goccy/go-json"
+	"github.com/golang/groupcache"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"

@@ -7,6 +7,12 @@ spring:
   ai:
     dashscope:
       api-key: ${AI_DASHSCOPE_API_KEY:}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Keycloak realm issuer; consumed only when travel.security.mode=oauth2.
+          issuer-uri: ${TRAVEL_OIDC_ISSUER:http://localhost:8081/realms/travel}
 
 management:
   endpoints:
@@ -17,6 +23,11 @@ management:
 travel:
   runtime:
     base-url: ${TRAVEL_RUNTIME_BASE_URL:http://localhost:8000}
+  security:
+    # oauth2 = validate end-user Keycloak tokens (dev/staging/prod templates);
+    # off   = local dev fallback, rejected by the go-live gate in staging/prod.
+    mode: ${TRAVEL_SECURITY_MODE:off}
   internal:
-    shared-secret: demo-internal-secret
-    mtls-client-id: techgroup-enterprise-travel-gateway
+    # Required outside local dev; the go-live gate rejects the demo value.
+    shared-secret: ${TRAVEL_INTERNAL_SHARED_SECRET:demo-internal-secret}
+    mtls-client-id: ${TRAVEL_INTERNAL_CLIENT_ID:techgroup-enterprise-travel-gateway}

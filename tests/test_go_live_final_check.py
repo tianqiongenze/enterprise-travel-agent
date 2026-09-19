@@ -26,6 +26,61 @@ class GoLiveFinalCheckTestCase(unittest.TestCase):
             self.assertEqual(data["foo"], 1.0)
             self.assertEqual(data["bar"], 2.5)
 
+    def test_security_env_gate_local_demo_secret_warns_but_passes(self) -> None:
+        import os
+        from unittest.mock import patch
+
+        mod = _load_module()
+        env = {"TRAVEL_INTERNAL_SHARED_SECRET": "demo-internal-secret", "TRAVEL_AUTH_MODE": "internal"}
+        with patch.dict(os.environ, env, clear=False):
+            result = mod._security_env_gate("local")
+        self.assertEqual(result.status, "PASS")
+        self.assertIn("WARNING", result.detail)
+
+    def test_security_env_gate_staging_rejects_demo_secret(self) -> None:
+        import os
+        from unittest.mock import patch
+
+        mod = _load_module()
+        env = {"TRAVEL_INTERNAL_SHARED_SECRET": "demo-internal-secret", "TRAVEL_AUTH_MODE": "internal"}
+        with patch.dict(os.environ, env, clear=False):
+            result = mod._security_env_gate("staging")
+        self.assertEqual(result.status, "FAIL")
+        self.assertIn("demo value", result.detail)
+
+    def test_security_env_gate_prod_requires_oidc_and_semantic_embeddings(self) -> None:
+        import os
+        from unittest.mock import patch
+
+        mod = _load_module()
+        env = {
+            "TRAVEL_INTERNAL_SHARED_SECRET": "real-secret",
+            "TRAVEL_AUTH_MODE": "internal",
+            "TRAVEL_SECURITY_MODE": "off",
+            "TRAVEL_EMBEDDING_BACKEND": "hash",
+        }
+        with patch.dict(os.environ, env, clear=False):
+            result = mod._security_env_gate("prod")
+        self.assertEqual(result.status, "FAIL")
+        self.assertIn("oidc", result.detail)
+        self.assertIn("oauth2", result.detail)
+        self.assertIn("hash", result.detail)
+
+    def test_security_env_gate_prod_passes_with_oidc(self) -> None:
+        import os
+        from unittest.mock import patch
+
+        mod = _load_module()
+        env = {
+            "TRAVEL_INTERNAL_SHARED_SECRET": "real-secret",
+            "TRAVEL_AUTH_MODE": "oidc",
+            "TRAVEL_SECURITY_MODE": "oauth2",
+            "TRAVEL_EMBEDDING_BACKEND": "local-model",
+        }
+        with patch.dict(os.environ, env, clear=False):
+            result = mod._security_env_gate("prod")
+        self.assertEqual(result.status, "PASS")
+
     def test_run_all_checks_generates_summary(self) -> None:
         mod = _load_module()
         with tempfile.TemporaryDirectory() as temp_dir:

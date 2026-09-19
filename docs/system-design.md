@@ -19,7 +19,7 @@
 ```mermaid
 graph TB
     subgraph 接入终端
-        Web(Vue3 Vite PC端)
+        Web(React 19 Vite PC端)
         MiniApp(微信小程序)
     end
 
@@ -73,7 +73,7 @@ graph TB
 
 ### 2.1 表现层与接入层
 - **多端触达**：
-  - `frontend-web/`：基于 Vue3/Vite 构建的 SPA 应用，提供在 Web 端直观的交互与基于卡片的推荐结果展示。
+  - `apps/techgroup-enterprise-travel-web/`：基于 React 19/Vite 构建的 SPA 应用，提供在 Web 端直观的交互与基于卡片的推荐结果展示。
   - `miniapp-wechat/`：微信小程序原生实现，基于事件绑定与页面栈控制，触达更多移动用户。
 - **API 网关 (`techgroup-enterprise-travel-gateway/`)**：
   - **技术科普：Spring Cloud Gateway (Java)**：底层基于 Project Reactor 实现的非阻塞式 (Non-blocking) WebFlux 响应式框架，天生适合处理高并发和长连接，并能在网关层面做限流、熔断。在 `PythonRuntimeClient.java` 的实现中，通过构建 `X-Trace-Id`、`traceparent` 透传 OpenTelemetry 兼容的全链路 ID，并采用 `X-Internal-Signature` 进行基于 mTLS （IdempotencyKey签名）的防串改校验。
@@ -211,14 +211,14 @@ graph TD
 ```
 
 - **部署细节知识科普**：
-  - 在 `deploy/docker-compose.yml` 中，`travel-agent-api` 并行支持安装了 `requirements-etcd-legacy.txt` 和 `requirements.txt` 以验证平滑替换实验的正确性。
+  - 在 `platform/deploy/docker-compose.yml` 中，`travel-agent-api` 并行支持安装了 `requirements-etcd-legacy.txt` 和 `requirements.txt` 以验证平滑替换实验的正确性。
   - 网关 `techgroup-enterprise-travel-gateway` （运行于 `temurin-21`，Java 21具备强劲的虚拟线程特性，能巨幅提升IO吞吐）利用 `depends_on` 控制了容器拓扑的启动顺序。
 
 ## 6. 系统性能评估与可观测性保障
 
 - **系统性能评估**：通过 `stress/` 目录下的压测脚本以及 Locust / Pytest 进行大规模并发打流测试（支持 `report_5k.json` 并发级别性能观测验证）。
 - **分布式配置与迁移灰度**：支持 Canary 部署，并在 `docs/canary-etcd-migration-report-template.md` 与上线 Checklist 中记录了高危切换方案的核心步骤。
-- **持续集成与容器编排**：各组件均包含优化过的 `Dockerfile`，并拥有配套的 `deploy/docker-compose.yml` 与 `k8s/` Kubernetes YAML 资源文件，形成标准的企业级部署闭环。
+- **持续集成与容器编排**：各组件均包含优化过的 `Dockerfile`，并拥有配套的 `platform/deploy/docker-compose.yml` 与 `k8s/` Kubernetes YAML 资源文件，形成标准的企业级部署闭环。
 
 ## 7. 架构扩展与演进方向
 
@@ -229,7 +229,7 @@ graph TD
 
 ## 8. 万级并发与亿级用户数据架构设计 (高并发/高可用演进核心)
 
-随着企业用户量攀升至 1 亿、平台长连接或瞬时并发流量（如节假日旅游抢票、路线密集规划）突破百万级别 (100W CCU)，现有主要以文件、内存及单节点依赖的系统必须朝着**核心分布式、重度分库分表、计算/存储隔离**的架构跃迁。这套高可用架构同样也达到了可以上市投入到真实 C 端/B 端生产使用标准。
+随着企业用户量攀升至 1 亿、平台长连接或瞬时并发流量（如节假日旅游抢票、路线密集规划）突破百万级别 (100W CCU)，现有主要以文件、内存及单节点依赖的系统必须朝着**核心分布式、重度分库分表、计算/存储隔离**的架构跃迁。上述架构为容量规划目标（目标口径，非实测结论）；是否达到上市生产标准须以真实分布式压测与故障演练证据为准（见 stress/ 目录证据链与 global_scale_readiness 报告）。
 
 ### 8.1 核心数据存储矩阵架构 (Storage Architecture)
 
@@ -237,13 +237,13 @@ graph TD
 
 ```mermaid
 graph TD
-    subgraph 接入层与计算层 (Stateless)
+    subgraph SL["接入层与计算层 (Stateless)"]
         GW[Spring API Gateway]
         PYCore[Python Agent Runtime]
         GOSvc[Go 并发聚合服务]
     end
 
-    subgraph RDBMS(联机事务存储 - 用户资产与核心订单)
+    subgraph RDBMS["联机事务存储 - 用户资产与核心订单"]
         Proxy([ShardingSphere-Proxy 分布式数据库中间件])
         DB1[(MySQL 节点1 - Hash / 分库)]
         DB2[(MySQL 节点2 - Hash / 分库)]
@@ -251,7 +251,7 @@ graph TD
         Proxy --> DB1 & DB2 & DB3
     end
 
-    subgraph NoSQL/Cache层 (热数据/会话状态/百万并发承载)
+    subgraph CACHE["NoSQL/Cache层 (热数据/会话状态/高并发承载)"]
         Redis[(Redis Cluster <br> 16分片/主从复制)]
         RocksDB[(全闪存 NVMe Local RocksDB <br> 节点级本地高速缓存)]
     end
@@ -321,7 +321,7 @@ sequenceDiagram
 
 ### 8.4 上线部署架构规划 (大运版本支撑 1 亿数据盘)
 
-为达到百万并发并稳妥上市，在 `deploy/` 下可按需增加 Terraform 资源编排方案。其物理架构规划如下：
+为达到百万并发并稳妥上市，在 `platform/deploy/` 下可按需增加 Terraform 资源编排方案。其物理架构规划如下：
 
 1. **外网与安全**：启用商用 WAF 防火墙过滤僵尸网络和恶意 Prompt 攻击，之后到达企业级 CLB（云负载均衡引擎）。
 2. **多活 / 异地容灾调度 (Multi-Region / Multi-Zone)**：系统采用 Kubernetes 进行底座支撑，部署至“两地三中心”。当某一机房（同城双活）网关崩溃（比如 A 区 `Spring Gateway` 拥堵），通过 Nacos 流量路由能瞬间倾斜至 B 区算力池。

@@ -1,6 +1,6 @@
 """Module provides service components and helpers."""
 
-from sqlalchemy import Column, Integer, BigInteger, String, Text, DateTime, Date, DECIMAL, JSON, SmallInteger
+from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Date, DECIMAL, JSON, SmallInteger
 from sqlalchemy.sql import func
 from .database import Base
 

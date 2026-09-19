@@ -24,7 +24,7 @@ P3 adds production hardening for the event pipeline:
 
 ### Canary gate integration (P3.5)
 
-- File: `deploy/scripts/canary_gate.py`
+- File: `platform/deploy/scripts/canary_gate.py`
 - New checks:
   - event metrics file exists (`stress/pulsar_consumer_metrics.prom`)
   - `travel_event_consumer_lag_seconds`
@@ -58,13 +58,13 @@ python scripts/run_event_consumers.py --max-messages 200 --max-retries 3 --retry
 
 ### Alerts & dashboards
 
-- Alert rules: `deploy/monitoring/prometheus-rule.yaml`
+- Alert rules: `platform/deploy/monitoring/prometheus-rule.yaml`
   - `EventConsumerLagHigh`
   - `EventConsumerDLQIncreasing`
   - `EventConsumerNoProgress`
   - `EventConsumerHandlerFailuresIncreasing`
 - Dashboard:
-  - `deploy/monitoring/grafana-dashboard-event-consumer.json`
+  - `platform/deploy/monitoring/grafana-dashboard-event-consumer.json`
 
 ## Validation
 
@@ -86,7 +86,7 @@ python -m unittest tests.test_event_bus tests.test_event_consumers tests.test_ve
 ## Go-live gate (P3.6 Final)
 
 - Auto-safemode must execute on rollback with event-related reasons:
-  - `deploy/scripts/p3_5_autosafemode.py`
+  - `platform/deploy/scripts/p3_5_autosafemode.py`
   - output: `deploy/runtime-overrides.env`
   - incident ticket: `stress/p3_5_incident_ticket.json`
 - Java policy cache stats endpoint should be available:

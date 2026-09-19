@@ -2,7 +2,7 @@
 
 ## Overview
 
-`deploy/scripts/go_live_final_check.py` runs a one-shot pre-release acceptance suite and emits:
+`platform/deploy/scripts/go_live_final_check.py` runs a one-shot pre-release acceptance suite and emits:
 
 - `stress/go_live_final_report.json`
 
@@ -11,7 +11,7 @@ It validates canary decision artifacts, event-consumer thresholds, Python test s
 ## Quick Run
 
 ```bash
-python deploy/scripts/go_live_final_check.py --project-root . --report-out stress/go_live_final_report.json
+python platform/deploy/scripts/go_live_final_check.py --project-root . --report-out stress/go_live_final_report.json
 ```
 
 ## Output

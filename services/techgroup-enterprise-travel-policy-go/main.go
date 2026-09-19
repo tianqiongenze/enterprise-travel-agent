@@ -19,21 +19,21 @@ import (
 )
 
 type PolicyRequest struct {
-	TenantID       string   `json:"tenantId"`
-	UserID         string   `json:"userId"`
-	PolicyID       string   `json:"policyId"`
-	ConversationID string   `json:"conversationId"`
-	IdempotencyKey string   `json:"idempotencyKey"`
-	City           string   `json:"city"`
-	Days           int      `json:"days"`
-	Budget         float64  `json:"budget"`
-	Travelers      int      `json:"travelers"`
-	MembershipTier string   `json:"membershipTier"`
-	OrchestrationEngine string `json:"orchestrationEngine"`
-	Preferences    []string `json:"preferences"`
-	MaxAgentSteps  int      `json:"maxAgentSteps"`
-	MaxToolCalls   int      `json:"maxToolCalls"`
-	AllowedTools   []string `json:"allowedTools"`
+	TenantID            string   `json:"tenantId"`
+	UserID              string   `json:"userId"`
+	PolicyID            string   `json:"policyId"`
+	ConversationID      string   `json:"conversationId"`
+	IdempotencyKey      string   `json:"idempotencyKey"`
+	City                string   `json:"city"`
+	Days                int      `json:"days"`
+	Budget              float64  `json:"budget"`
+	Travelers           int      `json:"travelers"`
+	MembershipTier      string   `json:"membershipTier"`
+	OrchestrationEngine string   `json:"orchestrationEngine"`
+	Preferences         []string `json:"preferences"`
+	MaxAgentSteps       int      `json:"maxAgentSteps"`
+	MaxToolCalls        int      `json:"maxToolCalls"`
+	AllowedTools        []string `json:"allowedTools"`
 }
 
 type PolicyResponse struct {
@@ -42,13 +42,13 @@ type PolicyResponse struct {
 }
 
 type DecisionLog struct {
-	DecisionID  string                 `json:"decision_id"`
-	Timestamp   string                 `json:"timestamp"`
-	Input       map[string]any         `json:"input"`
-	Decision    string                 `json:"decision"`
-	Reason      string                 `json:"reason"`
-	PolicyPath  string                 `json:"policy_path"`
-	Signature   string                 `json:"signature"`
+	DecisionID string         `json:"decision_id"`
+	Timestamp  string         `json:"timestamp"`
+	Input      map[string]any `json:"input"`
+	Decision   string         `json:"decision"`
+	Reason     string         `json:"reason"`
+	PolicyPath string         `json:"policy_path"`
+	Signature  string         `json:"signature"`
 }
 
 var preparedAllow rego.PreparedEvalQuery
@@ -132,21 +132,21 @@ func evaluate(req PolicyRequest) (string, string, map[string]any) {
 		return cached.decision, cached.reason, input
 	}
 	input := map[string]any{
-		"tenantId":       req.TenantID,
-		"userId":         req.UserID,
-		"policyId":       req.PolicyID,
-		"conversationId": req.ConversationID,
-		"idempotencyKey": req.IdempotencyKey,
-		"city":           req.City,
-		"days":           req.Days,
-		"budget":         req.Budget,
-		"travelers":      req.Travelers,
-		"membershipTier": req.MembershipTier,
+		"tenantId":            req.TenantID,
+		"userId":              req.UserID,
+		"policyId":            req.PolicyID,
+		"conversationId":      req.ConversationID,
+		"idempotencyKey":      req.IdempotencyKey,
+		"city":                req.City,
+		"days":                req.Days,
+		"budget":              req.Budget,
+		"travelers":           req.Travelers,
+		"membershipTier":      req.MembershipTier,
 		"orchestrationEngine": policyCoreNormalizeEngine(req.OrchestrationEngine),
-		"preferences":    req.Preferences,
-		"maxAgentSteps":  req.MaxAgentSteps,
-		"maxToolCalls":   req.MaxToolCalls,
-		"allowedTools":   req.AllowedTools,
+		"preferences":         req.Preferences,
+		"maxAgentSteps":       req.MaxAgentSteps,
+		"maxToolCalls":        req.MaxToolCalls,
+		"allowedTools":        req.AllowedTools,
 	}
 	allowResults, err := preparedAllow.Eval(ctx, rego.EvalInput(input))
 	if err != nil || len(allowResults) == 0 || len(allowResults[0].Expressions) == 0 {

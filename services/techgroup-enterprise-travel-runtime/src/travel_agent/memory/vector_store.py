@@ -1,11 +1,28 @@
-"""Module provides memory backends and access helpers."""
+"""Vector memory backends backed by pluggable embedding providers."""
+
+from __future__ import annotations
 
 import hashlib
 import importlib
+import logging
 import os
+import re
 from typing import Dict, List, Tuple
 
 from .base import MemoryStore
+from .embeddings import HashEmbeddingProvider, create_embedding_provider
+
+logger = logging.getLogger("travel_agent.memory.vector_store")
+
+# memory_key flows into Milvus boolean expressions; restrict it to a safe
+# identifier set so no expression metacharacters can be injected.
+_MEMORY_KEY_PATTERN = re.compile(r"^[A-Za-z0-9_:.\-]{1,256}$")
+
+
+def _validate_memory_key(key: str) -> str:
+    if not isinstance(key, str) or not _MEMORY_KEY_PATTERN.match(key):
+        raise ValueError(f"invalid memory key: {key!r}")
+    return key
 
 
 def _tokenize(text: str) -> List[str]:
@@ -21,19 +38,9 @@ def _similarity_score(tokens: List[str], query_tokens: List[str]) -> int:
     return len(token_set.intersection(query_set))
 
 
-def _hash_vector(text: str, dim: int = 64) -> List[float]:
-    vec = [0.0] * dim
-    for token in _tokenize(text):
-        digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
-        idx = int(digest[:8], 16) % dim
-        vec[idx] += 1.0
-    norm = sum(v * v for v in vec) ** 0.5
-    if norm == 0:
-        return vec
-    return [v / norm for v in vec]
-
-
 class _LocalVectorBackend:
+    """In-process lexical fallback (no vectors); for tests and last-resort mode."""
+
     def __init__(self) -> None:
         self._rows: Dict[str, List[str]] = {}
 
@@ -58,13 +65,14 @@ class _LocalVectorBackend:
 
 
 class _QdrantVectorBackend:
-    def __init__(self) -> None:
+    def __init__(self, embedder) -> None:
         import requests
 
         self.requests = requests
+        self.embedder = embedder
         self.url = os.getenv("QDRANT_URL", "http://127.0.0.1:6333").rstrip("/")
         self.collection = os.getenv("TRAVEL_VECTOR_COLLECTION", "travel_agent_memory")
-        self.dim = int(os.getenv("TRAVEL_VECTOR_DIM", "64"))
+        self.dim = embedder.dim()
         self.timeout = float(os.getenv("TRAVEL_VECTOR_TIMEOUT_SEC", "2.0"))
         self._ensure_collection()
 
@@ -81,7 +89,7 @@ class _QdrantVectorBackend:
             raise RuntimeError(f"qdrant collection init failed: {response.status_code} {response.text}")
 
     def append(self, key: str, message: str) -> None:
-        vector = _hash_vector(message, self.dim)
+        vector = self.embedder.embed(message)
         point_id = int(hashlib.sha256(f"{key}:{message}".encode("utf-8")).hexdigest()[:16], 16)
         endpoint = f"{self.url}/collections/{self.collection}/points"
         payload = {
@@ -123,7 +131,7 @@ class _QdrantVectorBackend:
     def query(self, key: str, query: str, limit: int) -> List[str]:
         endpoint = f"{self.url}/collections/{self.collection}/points/search"
         payload = {
-            "vector": _hash_vector(query, self.dim),
+            "vector": self.embedder.embed(query),
             "limit": limit,
             "with_payload": True,
             "filter": {
@@ -143,7 +151,7 @@ class _QdrantVectorBackend:
 
 
 class _MilvusVectorBackend:
-    def __init__(self) -> None:
+    def __init__(self, embedder) -> None:
         pymilvus = importlib.import_module("pymilvus")
         Collection = getattr(pymilvus, "Collection")
         CollectionSchema = getattr(pymilvus, "CollectionSchema")
@@ -152,7 +160,8 @@ class _MilvusVectorBackend:
         connections = getattr(pymilvus, "connections")
         utility = getattr(pymilvus, "utility")
 
-        self.dim = int(os.getenv("TRAVEL_VECTOR_DIM", "64"))
+        self.embedder = embedder
+        self.dim = embedder.dim()
         self.collection_name = os.getenv("TRAVEL_VECTOR_COLLECTION", "travel_agent_memory")
         host = os.getenv("MILVUS_HOST", "127.0.0.1")
         port = os.getenv("MILVUS_PORT", "19530")
@@ -176,27 +185,30 @@ class _MilvusVectorBackend:
         self.collection.load()
 
     def append(self, key: str, message: str) -> None:
+        _validate_memory_key(key)
         point_id = int(hashlib.sha256(f"{key}:{message}".encode("utf-8")).hexdigest()[:16], 16)
-        data = [[point_id], [key], [message], [_hash_vector(message, self.dim)]]
+        data = [[point_id], [key], [message], [self.embedder.embed(message)]]
         self.collection.insert(data)
         self.collection.flush()
 
     def read(self, key: str, limit: int) -> List[str]:
+        safe_key = _validate_memory_key(key)
         rows = self.collection.query(
-            expr=f'memory_key == "{key}"',
+            expr=f'memory_key == "{safe_key}"',
             output_fields=["text"],
             limit=limit,
         )
         return [row.get("text", "") for row in rows if row.get("text")]
 
     def query(self, key: str, query: str, limit: int) -> List[str]:
+        safe_key = _validate_memory_key(key)
         params = {"metric_type": "COSINE", "params": {"nprobe": 16}}
         rows = self.collection.search(
-            data=[_hash_vector(query, self.dim)],
+            data=[self.embedder.embed(query)],
             anns_field="vector",
             param=params,
             limit=limit,
-            expr=f'memory_key == "{key}"',
+            expr=f'memory_key == "{safe_key}"',
             output_fields=["text"],
         )
         if not rows:
@@ -205,14 +217,15 @@ class _MilvusVectorBackend:
 
 
 class _FaissVectorBackend:
-    def __init__(self) -> None:
+    def __init__(self, embedder) -> None:
         self.faiss = importlib.import_module("faiss")
-        self.dim = int(os.getenv("TRAVEL_VECTOR_DIM", "64"))
+        self.embedder = embedder
+        self.dim = embedder.dim()
         self.index = self.faiss.IndexFlatIP(self.dim)
         self._meta: List[Tuple[str, str]] = []
 
     def append(self, key: str, message: str) -> None:
-        vector = _hash_vector(message, self.dim)
+        vector = self.embedder.embed(message)
         np = importlib.import_module("numpy")
         matrix = np.array([vector], dtype="float32")
         self.index.add(matrix)
@@ -226,7 +239,7 @@ class _FaissVectorBackend:
         if self.index.ntotal == 0:
             return []
         np = importlib.import_module("numpy")
-        vector = np.array([_hash_vector(query, self.dim)], dtype="float32")
+        vector = np.array([self.embedder.embed(query)], dtype="float32")
         distances, indices = self.index.search(vector, max(1, limit * 4))
         _ = distances
         rows: List[str] = []
@@ -246,28 +259,39 @@ class VectorMemoryStore(MemoryStore):
     def __init__(self) -> None:
         backend = os.getenv("TRAVEL_VECTOR_BACKEND", "faiss").strip().lower()
         strict = os.getenv("TRAVEL_VECTOR_STRICT", "true").strip().lower() == "true"
+        self.embedder = None
         if backend in {"", "local"}:
             self.backend = _LocalVectorBackend()
             self.backend_name = "local"
             return
+        # Real vector indexes need an embedding provider; the hash provider is
+        # only used for the lexical-fallback local backend, never for indexes.
+        self.embedder = create_embedding_provider()
+        if isinstance(self.embedder, HashEmbeddingProvider):
+            logger.warning(
+                "vector backend '%s' selected while embedding provider is the hash "
+                "fallback; vectors will carry no semantics - configure "
+                "TRAVEL_EMBEDDING_BACKEND/local model or DashScope API key",
+                backend,
+            )
         try:
             if backend == "qdrant":
-                self.backend = _QdrantVectorBackend()
+                self.backend = _QdrantVectorBackend(self.embedder)
                 self.backend_name = "qdrant"
                 return
             if backend == "milvus":
-                self.backend = _MilvusVectorBackend()
+                self.backend = _MilvusVectorBackend(self.embedder)
                 self.backend_name = "milvus"
                 return
             if backend == "faiss":
-                self.backend = _FaissVectorBackend()
+                self.backend = _FaissVectorBackend(self.embedder)
                 self.backend_name = "faiss"
                 return
             raise RuntimeError(f"Unsupported TRAVEL_VECTOR_BACKEND: {backend}")
         except Exception as error:
             if strict:
                 raise RuntimeError(f"TRAVEL_VECTOR_BACKEND={backend} init failed: {error}") from error
-            print(f"[vector-store] {backend} unavailable, fallback to local: {error}")
+            logger.warning("%s vector backend unavailable, falling back to local: %s", backend, error)
             self.backend = _LocalVectorBackend()
             self.backend_name = "local"
 

@@ -6,7 +6,7 @@ Generate ready-to-use visual evidence assets for optimization, load test, deploy
 
 ## Generator
 
-- Script: `deploy/scripts/generate_p3_evidence_assets.py`
+- Script: `platform/deploy/scripts/generate_p3_evidence_assets.py`
 
 ## Output Directory
 
@@ -23,7 +23,7 @@ Generate ready-to-use visual evidence assets for optimization, load test, deploy
 ## Run
 
 ```bash
-python deploy/scripts/generate_p3_evidence_assets.py
+python platform/deploy/scripts/generate_p3_evidence_assets.py
 ```
 
 These files are intended for direct use in future PPT generation scripts.

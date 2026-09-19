@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	json "github.com/goccy/go-json"
 	"github.com/gin-gonic/gin"
+	json "github.com/goccy/go-json"
 	"github.com/sony/gobreaker/v2"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/singleflight"

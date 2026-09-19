@@ -24,7 +24,7 @@
 
 - Purpose: unify metric names, trace tags, and SLO gates
 - Python skeleton: `src/travel_agent/core/observability_core.py`
-- Runtime usage: prometheus rules and dashboards under `deploy/monitoring/`
+- Runtime usage: prometheus rules and dashboards under `platform/deploy/monitoring/`
 
 ## Scale-Oriented Conventions
 

@@ -14,34 +14,52 @@ spec:
         app: travel-agent-api-local
     spec:
       containers:
-        - name: travel-agent-api
-          image: enterprise-travel-agent-api:local
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8000
-          env:
-            - name: TRAVEL_REGISTRY
-              value: nacos-real
-            - name: NACOS_SERVER_ADDR
-              value: http://nacos:8848
-            - name: ETCD_HOST
-              value: etcd
-            - name: ETCD_PORT
-              value: "2379"
-            - name: TRAVEL_ETCD_CLIENT_MODE
-              value: legacy
-            - name: TRAVEL_EVENT_BUS
-              value: pulsar
-            - name: PULSAR_SERVICE_URL
-              value: pulsar://pulsar:6650
-            - name: TRAVEL_MEMORY_BACKEND
-              value: redis
-            - name: TRAVEL_REDIS_MODE
-              value: cluster
-            - name: TRAVEL_REDIS_URL
-              value: redis://redis-cluster:7000
-            - name: TRAVEL_VECTOR_BACKEND
-              value: qdrant
-            - name: QDRANT_URL
-              value: http://qdrant:6333
-
+      - name: travel-agent-api
+        image: enterprise-travel-agent-api:local
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        env:
+        - name: TRAVEL_REGISTRY
+          value: nacos-real
+        - name: NACOS_SERVER_ADDR
+          value: http://nacos:8848
+        - name: ETCD_HOST
+          value: etcd
+        - name: ETCD_PORT
+          value: '2379'
+        - name: TRAVEL_ETCD_CLIENT_MODE
+          value: legacy
+        - name: TRAVEL_EVENT_BUS
+          value: pulsar
+        - name: PULSAR_SERVICE_URL
+          value: pulsar://pulsar:6650
+        - name: TRAVEL_MEMORY_BACKEND
+          value: redis
+        - name: TRAVEL_REDIS_MODE
+          value: cluster
+        - name: TRAVEL_REDIS_URL
+          value: redis://redis-cluster:7000
+        - name: TRAVEL_VECTOR_BACKEND
+          value: qdrant
+        - name: QDRANT_URL
+          value: http://qdrant:6333
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: tmp
+        emptyDir: {}

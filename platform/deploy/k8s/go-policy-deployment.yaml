@@ -13,29 +13,48 @@ spec:
         app: go-policy
     spec:
       containers:
-        - name: go-policy
-          image: your-registry/go-policy:0.1.0
-          ports:
-            - containerPort: 8091
-          env:
-            - name: GO_POLICY_PORT
-              value: "8091"
-          resources:
-            requests:
-              cpu: "200m"
-              memory: "256Mi"
-            limits:
-              cpu: "1000m"
-              memory: "1Gi"
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8091
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8091
-            initialDelaySeconds: 10
-            periodSeconds: 15
+      - name: go-policy
+        image: your-registry/go-policy:0.1.0
+        ports:
+        - containerPort: 8091
+        env:
+        - name: GO_POLICY_PORT
+          value: '8091'
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8091
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8091
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: tmp
+        emptyDir: {}

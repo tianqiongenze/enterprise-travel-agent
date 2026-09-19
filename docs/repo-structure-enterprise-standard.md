@@ -29,7 +29,7 @@ enterprise-travel-agent/
 | `go-ranker/` | `services/techgroup-enterprise-travel-ranker-go/` | Phase-3 completed |
 | `go-fanout/` | `services/techgroup-enterprise-travel-fanout-go/` | Phase-3 completed |
 | `go-registry-cache/` | `services/techgroup-enterprise-travel-registry-cache-go/` | Phase-3 completed |
-| `frontend-web/` | `apps/techgroup-enterprise-travel-web/` | Phase-2 planned |
+| `apps/techgroup-enterprise-travel-web/` | `apps/techgroup-enterprise-travel-web/` | Phase-2 planned |
 | `miniapp-wechat/` | `apps/techgroup-enterprise-travel-miniapp-wechat/` | Phase-4 planned |
 | `deploy/` | `platform/deploy/` | Phase-2 planned |
 | `policy-core/` | `data-contracts/policy-core/` | Phase-2 planned |

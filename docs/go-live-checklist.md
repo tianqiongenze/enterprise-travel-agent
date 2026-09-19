@@ -62,7 +62,7 @@
 
 ## 9. P3.6 Final Gates
 
-- [ ] Auto-safemode script validated (`deploy/scripts/p3_5_autosafemode.py`)
+- [ ] Auto-safemode script validated (`platform/deploy/scripts/p3_5_autosafemode.py`)
 - [ ] Runtime override artifact path validated (`deploy/runtime-overrides.env`)
 - [ ] Incident ticket artifact generated on rollback (`stress/p3_5_incident_ticket.json`)
 - [ ] Java policy cache stats endpoint validated (`/api/v1/travel/policy/cache/stats`)
@@ -79,8 +79,8 @@
 - [ ] Redis scenarios verified (rate limit, idempotency, lock, profile, itinerary, popularity, recent-search)
 - [ ] A2A distributed transport validated (`TRAVEL_A2A_TRANSPORT=redis`) with stream pending retry checks
 - [ ] A2A Pulsar audit mirror validated (`TRAVEL_A2A_AUDIT_MIRROR_PULSAR=true`)
-- [ ] A2A metrics CronJob deployed (`deploy/k8s/a2a-metrics-cronjob.yaml`)
-- [ ] Grafana tri-view imported (`deploy/monitoring/grafana-dashboard-a2a-stream-pulsar.json`)
+- [ ] A2A metrics CronJob deployed (`platform/deploy/k8s/a2a-metrics-cronjob.yaml`)
+- [ ] Grafana tri-view imported (`platform/deploy/monitoring/grafana-dashboard-a2a-stream-pulsar.json`)
 - [ ] Membership distributed store enabled (`TRAVEL_MEMBERSHIP_REDIS_URL`)
 - [ ] Runtime anti-abuse gates enabled (rate-limit/idempotency/circuit)
 

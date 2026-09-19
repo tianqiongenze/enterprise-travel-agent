@@ -13,29 +13,48 @@ spec:
         app: go-fanout
     spec:
       containers:
-        - name: go-fanout
-          image: your-registry/go-fanout:0.1.0
-          ports:
-            - containerPort: 8092
-          env:
-            - name: GO_FANOUT_PORT
-              value: "8092"
-          resources:
-            requests:
-              cpu: "200m"
-              memory: "256Mi"
-            limits:
-              cpu: "1000m"
-              memory: "1Gi"
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8092
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8092
-            initialDelaySeconds: 10
-            periodSeconds: 15
+      - name: go-fanout
+        image: your-registry/go-fanout:0.1.0
+        ports:
+        - containerPort: 8092
+        env:
+        - name: GO_FANOUT_PORT
+          value: '8092'
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8092
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8092
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: tmp
+        emptyDir: {}
