@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { setToken } from './auth';
 
@@ -6,7 +7,7 @@ export default function LoginPage() {
   const [token, setTokenInput] = useState('');
   const navigate = useNavigate();
 
-  const onSubmit = (event) => {
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!token.trim()) {
       return;

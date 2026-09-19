@@ -1,10 +1,10 @@
 export const TOKEN_KEY = 'travel_web_auth_token';
 
-export function getToken() {
+export function getToken(): string {
   return localStorage.getItem(TOKEN_KEY) || '';
 }
 
-export function setToken(token) {
+export function setToken(token: string): void {
   if (!token) {
     localStorage.removeItem(TOKEN_KEY);
     return;
@@ -12,6 +12,6 @@ export function setToken(token) {
   localStorage.setItem(TOKEN_KEY, token);
 }
 
-export function isAuthenticated() {
+export function isAuthenticated(): boolean {
   return Boolean(getToken());
 }

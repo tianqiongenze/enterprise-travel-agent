@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   readSessionDefaults,
@@ -7,16 +8,51 @@ import {
   saveAuthToken,
   saveSessionDefaults,
 } from './api';
+import type { RecommendItem, RecommendRequest, RecommendResponse } from './api';
 import { setToken } from './auth';
 
 const allTools = ['search_hotels', 'search_transports', 'search_attractions'];
 
-function newConversationId() {
+type TextFieldKey =
+  | 'tenantId'
+  | 'userId'
+  | 'policyId'
+  | 'conversationId'
+  | 'idempotencyKey'
+  | 'city';
+
+interface FormState {
+  tenantId: string;
+  userId: string;
+  policyId: string;
+  conversationId: string;
+  idempotencyKey: string;
+  city: string;
+  days: number | string;
+  budget: number | string;
+  travelers: number | string;
+  preferences: string;
+  maxAgentSteps: number | string;
+  maxToolCalls: number | string;
+  allowedTools: string[];
+  authToken: string;
+}
+
+const textFields: Array<[TextFieldKey, string]> = [
+  ['tenantId', 'Tenant ID'],
+  ['userId', 'User ID'],
+  ['policyId', 'Policy ID'],
+  ['conversationId', 'Conversation ID'],
+  ['idempotencyKey', 'Idempotency Key'],
+  ['city', 'City'],
+];
+
+function newConversationId(): string {
   return `conv-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 }
 
-function initialForm() {
-  const stored = readSessionDefaults();
+function initialForm(): FormState {
+  const stored = readSessionDefaults<FormState>();
   if (stored) {
     return {
       ...stored,
@@ -41,7 +77,7 @@ function initialForm() {
   };
 }
 
-function ItemCard({ item }) {
+function ItemCard({ item }: { item: RecommendItem }) {
   const name = String(item?.name ?? item?.day ?? '');
   const price = item?.price;
   const score = item?.score ?? item?.rating;
@@ -64,7 +100,7 @@ function ItemCard({ item }) {
   );
 }
 
-function renderListCard(title, items) {
+function renderListCard(title: string, items: RecommendItem[]) {
   return (
     <div className="result-card">
       <h3>{title}</h3>
@@ -89,7 +125,7 @@ function ResultSkeleton() {
 
 export default function App() {
   const navigate = useNavigate();
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState<FormState>(initialForm);
   const [jsonMode, setJsonMode] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem('travel-theme') || 'light');
 
@@ -98,11 +134,11 @@ export default function App() {
     localStorage.setItem('travel-theme', theme);
   }, [theme]);
 
-  const mutation = useMutation({
+  const mutation = useMutation<RecommendResponse, Error, RecommendRequest>({
     mutationFn: recommendTravel,
   });
 
-  const payload = useMemo(() => {
+  const payload = useMemo<RecommendRequest>(() => {
     const preferences = form.preferences
       .split(',')
       .map((item) => item.trim())
@@ -119,14 +155,14 @@ export default function App() {
     };
   }, [form]);
 
-  const onSubmit = (event) => {
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     saveAuthToken(form.authToken);
     saveSessionDefaults({ ...form, authToken: '' });
     mutation.mutate(payload);
   };
 
-  const onToolToggle = (tool) => {
+  const onToolToggle = (tool: string) => {
     setForm((prev) => {
       const exists = prev.allowedTools.includes(tool);
       return {
@@ -138,10 +174,11 @@ export default function App() {
     });
   };
 
-  const hasData = mutation.isSuccess && mutation.data;
-  const hotels = hasData ? mutation.data.hotelOptions || [] : [];
-  const transports = hasData ? mutation.data.transportOptions || [] : [];
-  const itinerary = hasData ? mutation.data.itinerary || [] : [];
+  const data = mutation.data;
+  const hasData = mutation.isSuccess && data !== undefined;
+  const hotels = data?.hotelOptions || [];
+  const transports = data?.transportOptions || [];
+  const itinerary = data?.itinerary || [];
 
   return (
     <div className="page">
@@ -174,14 +211,7 @@ export default function App() {
         <section className="panel">
           <h2>Request Form</h2>
           <form onSubmit={onSubmit} className="form-grid">
-            {[
-              ['tenantId', 'Tenant ID'],
-              ['userId', 'User ID'],
-              ['policyId', 'Policy ID'],
-              ['conversationId', 'Conversation ID'],
-              ['idempotencyKey', 'Idempotency Key'],
-              ['city', 'City'],
-            ].map(([key, label]) => (
+            {textFields.map(([key, label]) => (
               <label key={key}>
                 <span>{label}</span>
                 <input

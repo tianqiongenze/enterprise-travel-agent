@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { TOKEN_KEY } from './auth.js';
-import { getToken, isAuthenticated, setToken } from './auth.js';
+import { getToken, isAuthenticated, setToken, TOKEN_KEY } from './auth';
 
 describe('auth token storage', () => {
   beforeEach(() => {
