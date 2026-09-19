@@ -1,0 +1,35 @@
+{
+  "generatedAt": 1775969798,
+  "evidenceKind": "multi-region-fault-drill",
+  "pass": false,
+  "scenarioCount": 3,
+  "passedScenarios": 2,
+  "recoveryRtoMinutes": 10,
+  "recoveryRpoSeconds": 30,
+  "eventConsumerLagSeconds": 0.001002,
+  "eventConsumerDlqTotal": 0.0,
+  "evidenceSource": "staging-drill",
+  "runId": "closure-sprint-drill",
+  "environment": "staging",
+  "canaryDecisionPath": "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\canary_gate_decision.json",
+  "canaryMetricsPath": "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\canary_gate_metrics.prom",
+  "incidentTicketPath": "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\p3_5_incident_ticket.json",
+  "scenarios": [
+    {
+      "name": "region-outage-failover",
+      "status": "PASS"
+    },
+    {
+      "name": "pulsar-lag-storm",
+      "status": "PASS"
+    },
+    {
+      "name": "redis-cluster-failover",
+      "status": "FAIL"
+    }
+  ],
+  "note": "Measured drill evidence derived from canary/incident artifacts. Avoid synthetic defaults.",
+  "signed": true,
+  "signatureAlgorithm": "HMAC-SHA256",
+  "signature": "19574e175985ed41f0d2f0c8b07becd7922b0de4993014cdd9266ea001184d7f"
+}

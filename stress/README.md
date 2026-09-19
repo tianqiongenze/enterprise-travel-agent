@@ -53,3 +53,45 @@ Then aggregate readiness:
 python3 stress/global_scale_readiness.py --target-concurrency 1000000
 ```
 
+## External evidence ingest (recommended for real PRODUCTION_PROVEN)
+
+```bash
+export TRAVEL_EVIDENCE_SIGNING_KEY="replace-with-strong-key"
+python3 stress/distributed_benchmark_ingest.py --input-json stress/report_5k.json --run-id 2026M04D02-benchmark --environment staging
+python3 stress/fault_drill_evidence_ingest.py --input-json stress/multi_region_fault_drill_report.json --run-id 2026M04D02-drill --environment staging
+```
+
+Then run hard gate:
+
+```bash
+python3 platform/deploy/scripts/go_live_final_check.py --min-scale-status PRODUCTION_PROVEN
+```
+
+Schema adapters for common load-test exports:
+
+```bash
+# k6 summary json
+python3 stress/distributed_benchmark_ingest.py --input-json path/to/k6-summary.json --schema k6 --run-id run-k6-001 --environment staging
+
+# JMeter statistics.json
+python3 stress/distributed_benchmark_ingest.py --input-json path/to/jmeter-statistics.json --schema jmeter --run-id run-jmeter-001 --environment staging
+
+# Locust json export
+python3 stress/distributed_benchmark_ingest.py --input-json path/to/locust-stats.json --schema locust --run-id run-locust-001 --environment staging
+```
+
+Cross-platform one-click deployment/load-test scripts:
+
+```bash
+# Linux
+bash platform/deploy/scripts/one_click_stack_linux.sh
+
+# macOS
+bash platform/deploy/scripts/one_click_stack_macos.sh
+```
+
+```powershell
+# Windows PowerShell
+powershell -ExecutionPolicy Bypass -File platform/deploy/scripts/one_click_stack_windows.ps1
+```
+

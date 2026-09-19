@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-smoke
+  namespace: loadtest-run
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: k6-smoke
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: ghcr.io/grafana/k6:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: GATEWAY_URL
+              value: http://gateway.infra-upgrade.svc.cluster.local:8080
+            - name: ORCHESTRATOR_URL
+              value: http://orchestrator.infra-upgrade.svc.cluster.local:8081
+            - name: INFERENCE_URL
+              value: http://inference.infra-upgrade.svc.cluster.local:8082
+          command:
+            - k6
+            - run
+            - --summary-export
+            - /tmp/k6-summary.json
+            - /scripts/script.js
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+      volumes:
+        - name: script
+          configMap:
+            name: k6-script

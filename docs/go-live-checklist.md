@@ -92,4 +92,13 @@
 - [ ] Multi-region active-active failover drill evidence attached
 - [ ] Runtime in-flight admission control enabled (`TRAVEL_INFLIGHT_LIMIT`)
 - [ ] Go Ranker gRPC transport and fallback metrics exported (`stress/ranker_transport_metrics.prom`)
+- [ ] Distributed benchmark evidence generated (`stress/distributed_benchmark_evidence.json`)
+- [ ] Multi-region fault drill evidence generated (`stress/multi_region_fault_drill_report.json`)
+- [ ] Final gate passes with `--min-scale-status PRODUCTION_PROVEN`
+
+## 12. Data Flywheel / Lakehouse Gates
+
+- [ ] Data flywheel pipeline manifest exists (`var/lakehouse/flywheel_manifest.json`)
+- [ ] Bronze/Silver/Gold artifacts generated under `var/lakehouse/`
+- [ ] Flink + Iceberg design reviewed (`docs/data-flywheel-lakehouse-design.md`)
 

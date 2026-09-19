@@ -77,3 +77,4 @@ CI Gate Behavior:
 
 - Checklist: `docs/go-live-checklist.md`
 - Runbook: `docs/release-runbook.md`
+- Manual 100万记录测试：`docs/manual-1m-record-testing.md`

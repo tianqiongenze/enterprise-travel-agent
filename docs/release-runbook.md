@@ -156,6 +156,8 @@ Health checks:
 
 ## 3. Canary Verification
 
+Manual 100万记录测试步骤与证据归档：`docs/manual-1m-record-testing.md`
+
 Monitor for 15~30 minutes:
 
 - success rate

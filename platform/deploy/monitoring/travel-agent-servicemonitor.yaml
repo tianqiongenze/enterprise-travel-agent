@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: travel-agent-api-servicemonitor
+  labels:
+    app: travel-agent
+spec:
+  selector:
+    matchLabels:
+      app: travel-agent-api
+  namespaceSelector:
+    any: true
+  endpoints:
+    - port: metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      path: /metrics

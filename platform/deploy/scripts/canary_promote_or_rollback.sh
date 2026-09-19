@@ -16,6 +16,9 @@ python3 "$ROOT_DIR/platform/deploy/scripts/canary_gate.py" \
   --event-metrics "$EVENT_METRICS" \
   --max-event-lag-seconds "$MAX_EVENT_LAG" \
   --max-event-dlq-total "$MAX_EVENT_DLQ" \
+  --max-success-gap "${CANARY_GATE_MAX_SUCCESS_GAP:-0.03}" \
+  --max-p95-drift "${CANARY_GATE_MAX_P95_DRIFT:-0.08}" \
+  --max-p99-drift "${CANARY_GATE_MAX_P99_DRIFT:-0.10}" \
   --metrics-out "$METRICS_OUT" \
   --pushgateway-url "$PUSHGATEWAY_URL" \
   --pushgateway-job "$PUSHGATEWAY_JOB"

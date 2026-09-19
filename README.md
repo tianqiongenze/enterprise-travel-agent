@@ -28,6 +28,52 @@ python stress/global_scale_readiness.py --target-concurrency 1000000
 
 输出：`stress/global_scale_readiness_report.json` 与 `stress/global_scale_readiness_report.md`。
 
+推到 `PRODUCTION_PROVEN` 的证据链（分布式压测 + 异地多活故障演练）：
+
+```bash
+export TRAVEL_EVIDENCE_SIGNING_KEY="replace-with-strong-key"
+python stress/distributed_benchmark_ingest.py --input-json stress/report_5k.json --run-id 2026M04D02-benchmark --environment staging --regions 3 --duration-minutes 60
+python stress/fault_drill_evidence_ingest.py --input-json stress/multi_region_fault_drill_report.json --run-id 2026M04D02-drill --environment staging
+python stress/global_scale_readiness.py --target-concurrency 1000000
+python platform/deploy/scripts/go_live_final_check.py --min-scale-status PRODUCTION_PROVEN --max-evidence-age-hours 24 --allowed-evidence-environments staging,prod
+```
+
+真实外部证据接入（推荐）：
+
+```bash
+export TRAVEL_EVIDENCE_SIGNING_KEY="replace-with-strong-key"
+python stress/distributed_benchmark_ingest.py --input-json stress/report_5k.json --run-id 2026M04D02-benchmark --environment staging
+python stress/fault_drill_evidence_ingest.py --input-json stress/multi_region_fault_drill_report.json --run-id 2026M04D02-drill --environment staging
+python platform/deploy/scripts/go_live_final_check.py --min-scale-status PRODUCTION_PROVEN --max-evidence-age-hours 24 --allowed-evidence-environments staging,prod
+```
+
+本地生活推荐能力：
+
+- 已有 `food-recommendation-agent`、`local-event-agent`
+- 新增 `local-lifestyle-agent`（活动 + 特产/伴手礼）
+- 新增工具：`search_activities`、`search_souvenirs`
+
+Iceberg/Flink/数据飞轮设计与落地入口：`docs/data-flywheel-lakehouse-design.md`
+
+GraphRAG + Faiss 已升级为必选（非可选）：
+
+- 依赖已进入 `requirements.txt`
+- 环境模板默认 `TRAVEL_MEMORY_BACKEND=vector`、`TRAVEL_VECTOR_BACKEND=faiss`、`TRAVEL_VECTOR_STRICT=true`
+- `go_live_final_check.py` 默认启用 `faiss_dependency_present` 硬门禁
+
+Flink + Iceberg（Hive/Glue/Nessie）与训练/特征回流 SLA 统一门禁：
+
+- Flink/Iceberg 配置校验：`platform/deploy/scripts/validate_flink_iceberg_config.py`
+- 数据飞轮 SLA 报告：`stress/flywheel_sla_report.py`
+- 统一门禁脚本：`platform/deploy/scripts/go_live_final_check.py`
+
+一键部署/压测/人工中间件检查脚本：
+
+- Windows: `platform/deploy/scripts/one_click_stack_windows.ps1`
+- Linux: `platform/deploy/scripts/one_click_stack_linux.sh`
+- macOS: `platform/deploy/scripts/one_click_stack_macos.sh`
+- 人工基础设施检查: `platform/deploy/scripts/manual_infra_checks.py`
+
 ## 1. Architecture Choice
 
 本项目按“生产建议架构”实现 MVP：
@@ -199,11 +245,13 @@ Redis 使用场景扩展（已实现）：
 - 热门城市计数（`city_popularity:*`）
 - 最近搜索历史（`recent_search:*`）
 
-GraphRAG + Faiss（可选）：
+GraphRAG + Faiss（必选）：
 
 ```bash
-pip install -r requirements-rag-optional.txt
+pip install -r requirements.txt
+export TRAVEL_MEMORY_BACKEND=vector
 export TRAVEL_VECTOR_BACKEND=faiss
+export TRAVEL_VECTOR_STRICT=true
 ```
 
 会员分级权限（`membershipTier`）：

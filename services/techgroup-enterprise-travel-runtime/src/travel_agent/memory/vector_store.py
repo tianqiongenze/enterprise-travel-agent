@@ -244,8 +244,8 @@ class _FaissVectorBackend:
 
 class VectorMemoryStore(MemoryStore):
     def __init__(self) -> None:
-        backend = os.getenv("TRAVEL_VECTOR_BACKEND", "local").strip().lower()
-        strict = os.getenv("TRAVEL_VECTOR_STRICT", "false").strip().lower() == "true"
+        backend = os.getenv("TRAVEL_VECTOR_BACKEND", "faiss").strip().lower()
+        strict = os.getenv("TRAVEL_VECTOR_STRICT", "true").strip().lower() == "true"
         if backend in {"", "local"}:
             self.backend = _LocalVectorBackend()
             self.backend_name = "local"

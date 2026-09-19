@@ -32,6 +32,7 @@ class LangGraphEngine(BaseOrchestrationEngine):
     def run(self, request: TravelRequest, weights: Dict[str, float]) -> EngineResult:
         visa_agent = getattr(self.manager, "visa_agent", None)
         concierge_agent = getattr(self.manager, "concierge_agent", None)
+        local_lifestyle_agent = getattr(self.manager, "local_lifestyle_agent", None)
         hotels, transports = self.manager.route_agent.plan_routes(request, weights)
         itinerary = self.manager.trip_agent.plan_trip(request, hotels, transports)
         engagement = (
@@ -42,6 +43,7 @@ class LangGraphEngine(BaseOrchestrationEngine):
             + self.manager.ancillary_agent.build_upsell_actions(request)
             + (visa_agent.build_visa_guidance(request) if visa_agent is not None else [])
             + (concierge_agent.build_concierge_actions(request) if concierge_agent is not None else [])
+            + (local_lifestyle_agent.recommend_local_lifestyle(request) if local_lifestyle_agent is not None else [])
         )
         rec = TravelRecommendation(
             hotel_options=hotels,
@@ -67,6 +69,7 @@ class AgentScopeEngine(BaseOrchestrationEngine):
     def run(self, request: TravelRequest, weights: Dict[str, float]) -> EngineResult:
         visa_agent = getattr(self.manager, "visa_agent", None)
         concierge_agent = getattr(self.manager, "concierge_agent", None)
+        local_lifestyle_agent = getattr(self.manager, "local_lifestyle_agent", None)
         hotels, transports = self.manager.route_agent.plan_routes(request, weights)
         itinerary = self.manager.trip_agent.plan_trip(request, hotels, transports)
         # AgentScope-like multi-role collaboration output.
@@ -77,6 +80,7 @@ class AgentScopeEngine(BaseOrchestrationEngine):
             + (visa_agent.build_visa_guidance(request) if visa_agent is not None else [])
             + (concierge_agent.build_concierge_actions(request) if concierge_agent is not None else [])
             + self.manager.loyalty_agent.build_growth_actions(request)
+            + (local_lifestyle_agent.recommend_local_lifestyle(request) if local_lifestyle_agent is not None else [])
         )
         rec = TravelRecommendation(
             hotel_options=hotels,
@@ -101,6 +105,7 @@ class OneAgentsEngine(BaseOrchestrationEngine):
 
     def run(self, request: TravelRequest, weights: Dict[str, float]) -> EngineResult:
         concierge_agent = getattr(self.manager, "concierge_agent", None)
+        local_lifestyle_agent = getattr(self.manager, "local_lifestyle_agent", None)
         hotels, transports = self.manager.route_agent.plan_routes(request, weights)
         itinerary = self.manager.trip_agent.plan_trip(request, hotels, transports)
         engagement = (
@@ -108,6 +113,7 @@ class OneAgentsEngine(BaseOrchestrationEngine):
             + self.manager.event_agent.recommend_events(request)
             + self.manager.ancillary_agent.build_upsell_actions(request)
             + (concierge_agent.build_concierge_actions(request) if concierge_agent is not None else [])
+            + (local_lifestyle_agent.recommend_local_lifestyle(request) if local_lifestyle_agent is not None else [])
         )
         rec = TravelRecommendation(
             hotel_options=hotels,

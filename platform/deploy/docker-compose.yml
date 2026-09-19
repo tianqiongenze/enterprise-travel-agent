@@ -1,12 +1,7 @@
 version: "3.9"
 services:
   techgroup-enterprise-travel-gateway:
-    image: maven:3.9.9-eclipse-temurin-21
-    working_dir: /app/services/techgroup-enterprise-travel-gateway
-    volumes:
-      - ../../:/app
-    command: >
-      sh -c "mvn -q -DskipTests spring-boot:run"
+    image: enterprise-travel-agent-gateway:local
     ports:
       - "8080:8080"
     environment:
@@ -15,14 +10,9 @@ services:
       - travel-agent-api
 
   techgroup-enterprise-travel-web:
-    image: node:22-alpine
-    working_dir: /app/apps/techgroup-enterprise-travel-web
-    volumes:
-      - ../../:/app
-    command: >
-      sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    image: enterprise-travel-agent-web:local
     ports:
-      - "5173:5173"
+      - "5173:80"
     environment:
       - VITE_TRAVEL_API_BASE_URL=http://localhost:8080
     depends_on:
@@ -69,12 +59,7 @@ services:
       - "7000-7005:7000-7005"
 
   travel-agent-api:
-    image: python:3.12-slim
-    working_dir: /app
-    volumes:
-      - ../../:/app
-    command: >
-      sh -c "pip install -r requirements.txt -r requirements-etcd-legacy.txt && uvicorn src.travel_agent.api.app:app --host 0.0.0.0 --port 8000"
+    image: enterprise-travel-agent-api:local
     ports:
       - "8000:8000"
     environment:

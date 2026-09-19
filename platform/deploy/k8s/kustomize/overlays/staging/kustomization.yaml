@@ -17,3 +17,6 @@ configMapGenerator:
       - TRAVEL_POLICY_SHADOW=true
       - TRAVEL_REGISTRY_CACHE_BACKEND=go
       - TRAVEL_REGISTRY_CACHE_URL=http://go-registry-cache.default.svc.cluster.local
+      - CANARY_GATE_MAX_SUCCESS_GAP=0.03
+      - CANARY_GATE_MAX_P95_DRIFT=0.08
+      - CANARY_GATE_MAX_P99_DRIFT=0.10

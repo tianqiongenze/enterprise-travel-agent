@@ -28,6 +28,8 @@ class CapacityOutput:
     runtime_monthly_cost: float
     platform_monthly_cost: float
     total_monthly_cost: float
+    recommended_partitions: int
+    runtime_per_partition: int
 
 
 def ceil_div(value: float) -> int:
@@ -45,6 +47,8 @@ def estimate(input_data: CapacityInput) -> CapacityOutput:
     gateway_monthly = gateway_pods * input_data.gateway_pod_cost_per_hour * input_data.hours_per_month
     runtime_monthly = runtime_pods * input_data.runtime_pod_cost_per_hour * input_data.hours_per_month
     platform_monthly = input_data.pulsar_cluster_cost_per_month + input_data.vector_cluster_cost_per_month
+    recommended_partitions = max(3, ceil_div(peak_active / 8000))
+    runtime_per_partition = ceil_div(runtime_pods / recommended_partitions)
 
     return CapacityOutput(
         peak_active=peak_active,
@@ -54,6 +58,8 @@ def estimate(input_data: CapacityInput) -> CapacityOutput:
         runtime_monthly_cost=round(runtime_monthly, 2),
         platform_monthly_cost=round(platform_monthly, 2),
         total_monthly_cost=round(gateway_monthly + runtime_monthly + platform_monthly, 2),
+        recommended_partitions=recommended_partitions,
+        runtime_per_partition=runtime_per_partition,
     )
 
 

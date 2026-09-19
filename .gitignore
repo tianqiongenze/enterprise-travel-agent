@@ -3,21 +3,35 @@
 .vscode/
 *.iml
 *.sublime-workspace
+
+# 依赖包目录
+node_modules/
+vendor/
+
 # 编译生成文件
 out/
 target/
 build/
 dist/
-# 依赖包目录
-node_modules/
-vendor/
 
-# 本地配置文件
+# Python 构建产物与缓存
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# 本地配置文件（含密钥，禁止入库）
 .env
 *.env.local
 application-*.yml
 application-*.properties
 config/local.*
+
 # 日志文件
 *.log
 logs/
@@ -29,20 +43,13 @@ logs/
 *.so
 *.a
 
-# 测试文件
-*.test.*
+# 测试与质量产物
 test-results/
 coverage/
+playwright-report/
 
-# 容器相关
-Dockerfile
-docker-compose.yml
-*.dockerignore
-
-# 临时文件
+# 临时文件与操作系统文件
 *.tmp
 *.swp
 .DS_Store
-
-# 操作系统文件
 Thumbs.db

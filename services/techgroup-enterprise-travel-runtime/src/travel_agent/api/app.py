@@ -26,6 +26,7 @@ shared_secret = os.getenv("TRAVEL_INTERNAL_SHARED_SECRET", "demo-internal-secret
 trusted_client_id = os.getenv("TRAVEL_INTERNAL_CLIENT_ID", "techgroup-enterprise-travel-gateway")
 membership_store = MembershipStore()
 traffic_guard = TrafficGuard()
+max_runtime_log_payload = int(os.getenv("TRAVEL_RUNTIME_RESPONSE_LOG_LIMIT", "50"))
 
 
 def _verify_signature(idempotency_key: str, signature: str) -> bool:
@@ -124,6 +125,8 @@ def runtime_recommend(payload: Dict[str, Any], headers: Optional[Dict[str, Any]]
         traffic_guard.release_inflight(inflight_scope)
     memory_after = orchestrator.read_memory(memory_key)
     memory_hits = orchestrator.query_memory(memory_key, request.city, limit=3)
+    audit_logs = orchestrator.registry.audit_logs[-max_runtime_log_payload:]
+    a2a_logs = orchestrator.a2a_logs[-max_runtime_log_payload:]
     return {
         "trace_id": trace_id,
         "memory_before": memory_before,
@@ -133,8 +136,8 @@ def runtime_recommend(payload: Dict[str, Any], headers: Optional[Dict[str, Any]]
         "transport_options": [item.__dict__ for item in result.transport_options],
         "itinerary": result.itinerary,
         "engagement_recommendations": result.engagement_recommendations,
-        "audit_logs": orchestrator.registry.audit_logs,
-        "a2a_logs": orchestrator.a2a_logs,
+        "audit_logs": audit_logs,
+        "a2a_logs": a2a_logs,
         "registered_agents": orchestrator.registry_center.list_services(),
         "registered_tools": orchestrator.registry_center.list_tools(),
     }

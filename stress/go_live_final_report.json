@@ -1,8 +1,8 @@
 {
-  "generatedAt": 1775039329,
+  "generatedAt": 1775978623,
   "summary": {
     "overall": "FAIL",
-    "passCount": 20,
+    "passCount": 29,
     "failCount": 1,
     "skipCount": 1
   },
@@ -19,8 +19,8 @@
     {
       "name": "canary_gate_recompute",
       "status": "PASS",
-      "detail": "command=python D:\\移动云盘同步盘\\enterprise-travel-agent\\platform\\deploy\\scripts\\canary_gate.py --report D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\etcd_migration_compare.json --event-metrics D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\pulsar_consumer_metrics.prom --out D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\canary_gate_decision.json --metrics-out D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\canary_gate_metrics.prom | returncode=0 | stdout={\n  \"action\": \"promote\",\n  \"reasons\": [],\n  \"thresholds\": {\n    \"max_success_gap\": 0.03,\n    \"max_p95_drift\": 0.08,\n    \"max_p99_drift\": 0.1,\n    \"max_event_lag_seconds\": 60.0,\n    \"max_event_dlq_total\": 0.0\n  }\n}",
-      "durationMs": 147,
+      "detail": "command=python D:\\移动云盘同步盘\\enterprise-travel-agent\\platform\\deploy\\scripts\\canary_gate.py --report D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\etcd_migration_compare.json --event-metrics D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\pulsar_consumer_metrics.prom --out D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\canary_gate_decision.json --metrics-out D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\canary_gate_metrics.prom | returncode=0 | stdout={\n  \"action\": \"promote\",\n  \"reasons\": [],\n  \"thresholds\": {\n    \"max_success_gap\": 0.03,\n    \"max_p95_drift\": 0.08,\n    \"max_p99_drift\": 0.1,\n    \"max_event_lag_seconds\": 60.0,\n    \"max_event_dlq_total\": 0.0,\n    \"max_runtime_error_rate\": 0.01\n  }\n}",
+      "durationMs": 182,
       "artifacts": [
         "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\canary_gate_decision.json",
         "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\canary_gate_metrics.prom"
@@ -73,16 +73,16 @@
     },
     {
       "name": "python_test_suite",
-      "status": "FAIL",
-      "detail": "command=python -u -m unittest tests.test_event_bus tests.test_event_consumers tests.test_vector_backends tests.test_capacity_cost_model tests.test_canary_gate tests.test_autosafemode -v | returncode=1 | stderr=test_event_bus (unittest.loader._FailedTest.test_event_bus) ... ERROR\ntest_event_consumers (unittest.loader._FailedTest.test_event_consumers) ... ERROR\ntest_vector_backends (unittest.loader._FailedTest.test_vector_backends) ... ERROR\ntest_estimate_returns_positive_capacity (tests.test_capacity_cost_model.CapacityCostModelTestCase.test_estimate_returns_positive_capacity) ... ok\ntest_event_metrics_reasoning (tests.test_canary_gate.CanaryGateTestCase.test_event_metrics_reasoning) ... ok\ntest_load_prometheus_metrics (tests.test_canary_gate.CanaryGateTestCase.test_load_prometheus_metrics) ... ok\ntest_requires_safemode_for_event_reason (tests.test_autosafemode.AutoSafemodeTestCase.test_requires_safemode_for_event_reason) ... ok\ntest_write_override_and_incident (tests.test_autosafemode.AutoSafemodeTestCase.test_write_override_and_incident) ... ok\n\n======================================================================\nERROR: test_event_bus (unittest.loader._FailedTest.test_event_bus)\n----------------------------------------------------------------------\nImportError: Failed to import test module: test_event_bus\nTraceback (most recent call last):\n  File \"C:\\Users\\Lenovo\\.conda\\envs\\ai_env\\Li",
-      "durationMs": 238,
+      "status": "PASS",
+      "detail": "command=python -u scripts/run_python_tests_ci.py tests.test_event_bus tests.test_event_consumers tests.test_vector_backends tests.test_capacity_cost_model tests.test_canary_gate tests.test_autosafemode | returncode=0 | stdout=[event-bus] pulsar unavailable, fallback to local: pulsar unavailable\n[vector-store] faiss unavailable, fallback to local: faiss not installed\n[vector-store] unknown-backend unavailable, fallback to local: Unsupported TRAVEL_VECTOR_BACKEND: unknown-backend | stderr=.............\n----------------------------------------------------------------------\nRan 13 tests in 0.051s\n\nOK",
+      "durationMs": 1331,
       "artifacts": []
     },
     {
       "name": "capacity_cost_json_present",
       "status": "PASS",
       "detail": "file exists: D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\capacity_cost_report.json",
-      "durationMs": 1,
+      "durationMs": 0,
       "artifacts": [
         "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\capacity_cost_report.json"
       ]
@@ -100,30 +100,20 @@
       "name": "capacity_cost_recompute",
       "status": "PASS",
       "detail": "command=python -u D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\capacity_cost_model.py --peak-connected 1000000 --active-ratio 0.1 | returncode=0 | stdout=Generated: stress/capacity_cost_report.json\nGenerated: stress/capacity_cost_report.md",
-      "durationMs": 107,
+      "durationMs": 102,
       "artifacts": [
         "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\capacity_cost_report.json",
         "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\capacity_cost_report.md"
       ]
     },
     {
-      "name": "distributed_benchmark_evidence",
+      "name": "dr_automation_hook",
       "status": "PASS",
-      "detail": "command=python -u D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\distributed_benchmark_evidence.py --target-concurrency 1000000 --achieved-concurrency 1000000 --regions 3 --duration-minutes 60 --p95-ms 850.0 --p99-ms 1200.0 --error-rate-percent 0.2 | returncode=0 | stdout=Generated: D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\distributed_benchmark_evidence.json\nGenerated: D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\distributed_benchmark_evidence.md\n{\"pass\": true}",
-      "durationMs": 61,
+      "detail": "command=python -u D:\\移动云盘同步盘\\enterprise-travel-agent\\platform\\deploy\\scripts\\dr_automation_hook.py --evidence D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\multi_region_fault_drill_report.json --incident-out stress/dr_automation_incident.json --status-out stress/dr_automation_status.json | returncode=0 | stdout={\"timestamp\": 1775978623, \"evidence\": \"D:\\\\移动云盘同步盘\\\\enterprise-travel-agent\\\\stress\\\\multi_region_fault_drill_report.json\", \"pass\": false, \"action\": \"trigger-dr-playbook\"}",
+      "durationMs": 146,
       "artifacts": [
-        "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\distributed_benchmark_evidence.json",
-        "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\distributed_benchmark_evidence.md"
-      ]
-    },
-    {
-      "name": "multi_region_fault_drill",
-      "status": "PASS",
-      "detail": "command=python -u D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\multi_region_fault_drill.py --scenario-count 3 --passed-scenarios 3 --recovery-rto-minutes 10 --recovery-rpo-seconds 30 | returncode=0 | stdout=Generated: D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\multi_region_fault_drill_report.json\nGenerated: D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\multi_region_fault_drill_report.md\n{\"pass\": true}",
-      "durationMs": 65,
-      "artifacts": [
-        "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\multi_region_fault_drill_report.json",
-        "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\multi_region_fault_drill_report.md"
+        "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\dr_automation_status.json",
+        "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\dr_automation_incident.json"
       ]
     },
     {
@@ -163,10 +153,89 @@
       ]
     },
     {
+      "name": "distributed_benchmark_evidence_hardening",
+      "status": "PASS",
+      "detail": "signed=True, signatureOk=True, requireSignature=True, ageSeconds=8916, maxAgeSeconds=86400, environment=staging, allowed=['prod', 'staging']",
+      "durationMs": 0,
+      "artifacts": [
+        "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\distributed_benchmark_evidence.json"
+      ]
+    },
+    {
+      "name": "multi_region_fault_drill_evidence_hardening",
+      "status": "PASS",
+      "detail": "signed=True, signatureOk=True, requireSignature=True, ageSeconds=8825, maxAgeSeconds=86400, environment=staging, allowed=['prod', 'staging']",
+      "durationMs": 0,
+      "artifacts": [
+        "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\multi_region_fault_drill_report.json"
+      ]
+    },
+    {
+      "name": "data_flywheel_pipeline",
+      "status": "PASS",
+      "detail": "command=python -u D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\data_flywheel_pipeline.py --events var/events/audit_events.jsonl --out-root var/lakehouse | returncode=0 | stdout=Generated: D:\\移动云盘同步盘\\enterprise-travel-agent\\var\\lakehouse\\flywheel_manifest.json",
+      "durationMs": 114,
+      "artifacts": [
+        "D:\\移动云盘同步盘\\enterprise-travel-agent\\var\\lakehouse\\flywheel_manifest.json"
+      ]
+    },
+    {
+      "name": "data_flywheel_manifest_present",
+      "status": "PASS",
+      "detail": "file exists: D:\\移动云盘同步盘\\enterprise-travel-agent\\var\\lakehouse\\flywheel_manifest.json",
+      "durationMs": 0,
+      "artifacts": [
+        "D:\\移动云盘同步盘\\enterprise-travel-agent\\var\\lakehouse\\flywheel_manifest.json"
+      ]
+    },
+    {
+      "name": "flywheel_sla_report",
+      "status": "PASS",
+      "detail": "command=python -u D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\flywheel_sla_report.py --project-root D:\\移动云盘同步盘\\enterprise-travel-agent --manifest var\\lakehouse\\flywheel_manifest.json --feature-freshness-sec 600.0 --training-latency-sec 1200.0 --feedback-lag-sec 180.0 --out-json stress\\flywheel_sla_report.json | returncode=0 | stdout=Generated: D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\flywheel_sla_report.json",
+      "durationMs": 142,
+      "artifacts": [
+        "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\flywheel_sla_report.json"
+      ]
+    },
+    {
+      "name": "flywheel_sla_report_present",
+      "status": "PASS",
+      "detail": "file exists: D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\flywheel_sla_report.json",
+      "durationMs": 0,
+      "artifacts": [
+        "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\flywheel_sla_report.json"
+      ]
+    },
+    {
+      "name": "flink_iceberg_config_check",
+      "status": "PASS",
+      "detail": "command=python -u D:\\移动云盘同步盘\\enterprise-travel-agent\\platform\\deploy\\scripts\\validate_flink_iceberg_config.py --project-root D:\\移动云盘同步盘\\enterprise-travel-agent --catalog-type hive --out-json stress\\flink_iceberg_config_report.json | returncode=0 | stdout=Generated: D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\flink_iceberg_config_report.json",
+      "durationMs": 145,
+      "artifacts": [
+        "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\flink_iceberg_config_report.json"
+      ]
+    },
+    {
+      "name": "flink_iceberg_config_report_present",
+      "status": "PASS",
+      "detail": "file exists: D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\flink_iceberg_config_report.json",
+      "durationMs": 0,
+      "artifacts": [
+        "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\flink_iceberg_config_report.json"
+      ]
+    },
+    {
+      "name": "faiss_dependency_present",
+      "status": "PASS",
+      "detail": "faiss import succeeded",
+      "durationMs": 0,
+      "artifacts": []
+    },
+    {
       "name": "global_scale_readiness",
       "status": "PASS",
-      "detail": "command=python -u D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\global_scale_readiness.py --target-concurrency 1000000 | returncode=0 | stdout=Generated: D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\global_scale_readiness_report.json\nGenerated: D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\global_scale_readiness_report.md\n{\"status\": \"PRODUCTION_PROVEN\"}",
-      "durationMs": 96,
+      "detail": "command=python -u D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\global_scale_readiness.py --target-concurrency 1000000 --ignore-go-live-summary | returncode=0 | stdout=Generated: D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\global_scale_readiness_report.json\nGenerated: D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\global_scale_readiness_report.md\n{\"status\": \"ARCHITECTURE_READY_NOT_PROVEN\"}",
+      "durationMs": 115,
       "artifacts": [
         "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\global_scale_readiness_report.json",
         "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\global_scale_readiness_report.md"
@@ -191,9 +260,16 @@
       ]
     },
     {
-      "name": "global_scale_status_minimum",
+      "name": "canary_slo_enforcement",
       "status": "PASS",
-      "detail": "status=PRODUCTION_PROVEN, minRequired=PRODUCTION_PROVEN",
+      "detail": "command=python -u D:\\移动云盘同步盘\\enterprise-travel-agent\\platform\\deploy\\scripts\\canary_gate.py --report D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\etcd_migration_compare.json --event-metrics D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\pulsar_consumer_metrics.prom --out D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\canary_gate_decision.json --metrics-out D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\canary_gate_metrics.prom --max-success-gap 0.03 --max-p95-drift 0.08 --max-p99-drift 0.1 --max-runtime-error-rate 0.01 | returncode=0 | stdout={\n  \"action\": \"promote\",\n  \"reasons\": [],\n  \"thresholds\": {\n    \"max_success_gap\": 0.03,\n    \"max_p95_drift\": 0.08,\n    \"max_p99_drift\": 0.1,\n    \"max_event_lag_seconds\": 60.0,\n    \"max_event_dlq_total\": 0.0,\n    \"max_runtime_error_rate\": 0.01\n  }\n}",
+      "durationMs": 127,
+      "artifacts": []
+    },
+    {
+      "name": "global_scale_status_minimum",
+      "status": "FAIL",
+      "detail": "status=ARCHITECTURE_READY_NOT_PROVEN, minRequired=PRODUCTION_PROVEN",
       "durationMs": 0,
       "artifacts": [
         "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\global_scale_readiness_report.json"
@@ -203,7 +279,7 @@
       "name": "java_gateway_compile",
       "status": "SKIP",
       "detail": "command unavailable: [WinError 2] 系统找不到指定的文件。",
-      "durationMs": 3,
+      "durationMs": 4,
       "artifacts": []
     }
   ]

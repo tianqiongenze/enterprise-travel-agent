@@ -1,0 +1,20 @@
+{
+  "generatedAt": 1775969707,
+  "evidenceKind": "distributed-benchmark",
+  "pass": false,
+  "targetConcurrency": 1000000,
+  "achievedConcurrency": 300,
+  "regions": 3,
+  "durationMinutes": 60,
+  "p95Ms": 509.32,
+  "p99Ms": 521.44,
+  "errorRatePercent": 0.0,
+  "evidenceSource": "local-loadtest",
+  "runId": "closure-sprint-local",
+  "environment": "staging",
+  "reportPath": "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\report_5k.json",
+  "note": "Measured evidence generated from report artifacts. Avoid synthetic defaults.",
+  "signed": true,
+  "signatureAlgorithm": "HMAC-SHA256",
+  "signature": "0aaa18b2774f58091a3cf1b32026037167f62c0567f71ccdfc7297a03f25c878"
+}

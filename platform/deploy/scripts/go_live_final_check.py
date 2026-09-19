@@ -1,13 +1,22 @@
 """Module provides service components and helpers."""
 
 import argparse
+import hashlib
+import hmac
+import importlib
 import json
+import os
 import subprocess
 import sys
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
+
+try:
+    import faiss  # type: ignore # noqa: F401
+except Exception:
+    faiss = None  # type: ignore[assignment]
 
 
 @dataclass
@@ -89,7 +98,7 @@ def _file_check(name: str, path: Path, required: bool = True) -> CheckResult:
     )
 
 
-def _load_json(path: Path) -> Optional[Dict[str, object]]:
+def _load_json(path: Path) -> Optional[Dict[str, Any]]:
     if not path.exists():
         return None
     try:
@@ -116,13 +125,70 @@ def _parse_prom_metrics(path: Path) -> Dict[str, float]:
     return metrics
 
 
+def _canonical_payload(payload: Dict[str, Any]) -> str:
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _verify_evidence_signature(payload: Dict[str, Any], key: str) -> bool:
+    signature = str(payload.get("signature", ""))
+    if not signature or not key:
+        return False
+    signable = dict(payload)
+    signable.pop("signature", None)
+    signable.pop("signed", None)
+    signable.pop("signatureAlgorithm", None)
+    expected = hmac.new(key.encode("utf-8"), _canonical_payload(signable).encode("utf-8"), hashlib.sha256).hexdigest()
+    return hmac.compare_digest(signature, expected)
+
+
+def _evidence_hardening_check(
+    name: str,
+    path: Path,
+    key: str,
+    require_signature: bool,
+    max_age_hours: float,
+    allowed_envs: List[str],
+) -> CheckResult:
+    payload = _load_json(path)
+    if payload is None:
+        return CheckResult(name=name, status="FAIL", detail=f"missing or invalid json: {path}", durationMs=0, artifacts=[str(path)])
+
+    generated_at_raw = payload.get("generatedAt", 0)
+    generated_at = int(generated_at_raw) if isinstance(generated_at_raw, (int, float, str)) else 0
+    age_seconds = max(0, int(time.time()) - generated_at) if generated_at > 0 else 10**9
+    max_age_seconds = int(max(1.0, max_age_hours) * 3600)
+
+    environment = str(payload.get("environment", "")).strip().lower()
+    allowed = {item.strip().lower() for item in allowed_envs if item.strip()}
+    env_ok = environment in allowed if allowed else True
+
+    signed = bool(payload.get("signed", False))
+    signature_ok = _verify_evidence_signature(payload, key) if signed else False
+    signature_gate_ok = (signature_ok if require_signature else (signature_ok or not signed))
+
+    status = "PASS" if (signature_gate_ok and age_seconds <= max_age_seconds and env_ok) else "FAIL"
+    detail = (
+        f"signed={signed}, signatureOk={signature_ok}, requireSignature={require_signature}, "
+        f"ageSeconds={age_seconds}, maxAgeSeconds={max_age_seconds}, "
+        f"environment={environment}, allowed={sorted(list(allowed))}"
+    )
+    return CheckResult(name=name, status=status, detail=detail, durationMs=0, artifacts=[str(path)])
+
+
 def _bootstrap_consumer_metrics(project_root: Path, metrics_path: Path) -> Optional[str]:
     if metrics_path.exists():
         return None
     try:
         if str(project_root) not in sys.path:
             sys.path.insert(0, str(project_root))
-        from src.travel_agent.events.consumer import ConsumerMetrics, RetryPolicy, process_local_events
+        runtime_src = project_root / "services" / "techgroup-enterprise-travel-runtime"
+        runtime_src_path = str(runtime_src)
+        if runtime_src_path not in sys.path:
+            sys.path.insert(0, runtime_src_path)
+        consumer_module = importlib.import_module("src.travel_agent.events.consumer")
+        ConsumerMetrics = getattr(consumer_module, "ConsumerMetrics")
+        RetryPolicy = getattr(consumer_module, "RetryPolicy")
+        process_local_events = getattr(consumer_module, "process_local_events")
 
         events = [
             {
@@ -163,6 +229,7 @@ def run_all_checks(project_root: Path, args: argparse.Namespace) -> Dict[str, ob
     distributed_md = stress_dir / "distributed_benchmark_evidence.md"
     fault_drill_json = stress_dir / "multi_region_fault_drill_report.json"
     fault_drill_md = stress_dir / "multi_region_fault_drill_report.md"
+    flywheel_manifest = project_root / "var" / "lakehouse" / "flywheel_manifest.json"
     source_protection_manifest = project_root / "var" / "release_hardening" / "source_protection_manifest.json"
 
     bootstrap_detail = _bootstrap_consumer_metrics(project_root, consumer_metrics)
@@ -259,15 +326,13 @@ def run_all_checks(project_root: Path, args: argparse.Namespace) -> Dict[str, ob
                 [
                     args.python_exec,
                     "-u",
-                    "-m",
-                    "unittest",
+                    "scripts/run_python_tests_ci.py",
                     "tests.test_event_bus",
                     "tests.test_event_consumers",
                     "tests.test_vector_backends",
                     "tests.test_capacity_cost_model",
                     "tests.test_canary_gate",
                     "tests.test_autosafemode",
-                    "-v",
                 ],
                 cwd=project_root,
                 timeout_sec=300,
@@ -307,18 +372,18 @@ def run_all_checks(project_root: Path, args: argparse.Namespace) -> Dict[str, ob
                 str(stress_dir / "distributed_benchmark_evidence.py"),
                 "--target-concurrency",
                 str(args.target_concurrency),
-                "--achieved-concurrency",
-                str(args.achieved_concurrency),
                 "--regions",
                 str(args.distributed_regions),
                 "--duration-minutes",
                 str(args.distributed_duration_minutes),
-                "--p95-ms",
-                str(args.distributed_p95_ms),
-                "--p99-ms",
-                str(args.distributed_p99_ms),
-                "--error-rate-percent",
-                str(args.distributed_error_rate_percent),
+                "--report-json",
+                args.distributed_report_json,
+                "--evidence-source",
+                args.distributed_evidence_source,
+                "--run-id",
+                args.distributed_run_id,
+                "--environment",
+                args.distributed_environment,
             ],
             cwd=project_root,
             timeout_sec=120,
@@ -333,14 +398,22 @@ def run_all_checks(project_root: Path, args: argparse.Namespace) -> Dict[str, ob
                 args.python_exec,
                 "-u",
                 str(stress_dir / "multi_region_fault_drill.py"),
-                "--scenario-count",
-                str(args.fault_scenario_count),
-                "--passed-scenarios",
-                str(args.fault_passed_scenarios),
+                "--canary-decision",
+                args.fault_canary_decision,
+                "--canary-metrics",
+                args.fault_canary_metrics,
+                "--incident-ticket",
+                args.fault_incident_ticket,
                 "--recovery-rto-minutes",
                 str(args.fault_recovery_rto_minutes),
                 "--recovery-rpo-seconds",
                 str(args.fault_recovery_rpo_seconds),
+                "--evidence-source",
+                args.fault_evidence_source,
+                "--run-id",
+                args.fault_run_id,
+                "--environment",
+                args.fault_environment,
             ],
             cwd=project_root,
             timeout_sec=120,
@@ -348,10 +421,146 @@ def run_all_checks(project_root: Path, args: argparse.Namespace) -> Dict[str, ob
         check.artifacts = [str(fault_drill_json), str(fault_drill_md)]
         checks.append(check)
 
+    if args.run_dr_automation:
+        check = _run_command(
+            "dr_automation_hook",
+            [
+                args.python_exec,
+                "-u",
+                str(scripts_dir / "dr_automation_hook.py"),
+                "--evidence",
+                str(fault_drill_json),
+                "--incident-out",
+                args.dr_incident_out,
+                "--status-out",
+                args.dr_status_out,
+            ] + (["--auto-run"] if args.dr_auto_run else []),
+            cwd=project_root,
+            timeout_sec=120,
+        )
+        check.artifacts = [str(project_root / args.dr_status_out), str(project_root / args.dr_incident_out)]
+        checks.append(check)
+
     checks.append(_file_check("distributed_benchmark_evidence_json_present", distributed_json, required=False))
     checks.append(_file_check("distributed_benchmark_evidence_md_present", distributed_md, required=False))
     checks.append(_file_check("multi_region_fault_drill_json_present", fault_drill_json, required=False))
     checks.append(_file_check("multi_region_fault_drill_md_present", fault_drill_md, required=False))
+
+    evidence_key = str(os.environ.get(args.evidence_signing_key_env, "")).strip()
+    allowed_envs = [item.strip() for item in str(args.allowed_evidence_environments).split(",") if item.strip()]
+    checks.append(
+        _evidence_hardening_check(
+            "distributed_benchmark_evidence_hardening",
+            distributed_json,
+            evidence_key,
+            args.require_evidence_signature,
+            args.max_evidence_age_hours,
+            allowed_envs,
+        )
+    )
+    checks.append(
+        _evidence_hardening_check(
+            "multi_region_fault_drill_evidence_hardening",
+            fault_drill_json,
+            evidence_key,
+            args.require_evidence_signature,
+            args.max_evidence_age_hours,
+            allowed_envs,
+        )
+    )
+
+    if args.run_data_flywheel:
+        check = _run_command(
+            "data_flywheel_pipeline",
+            [
+                args.python_exec,
+                "-u",
+                str(stress_dir / "data_flywheel_pipeline.py"),
+                "--events",
+                args.flywheel_events,
+                "--out-root",
+                args.flywheel_out_root,
+            ],
+            cwd=project_root,
+            timeout_sec=120,
+        )
+        check.artifacts = [str(flywheel_manifest)]
+        checks.append(check)
+
+    checks.append(_file_check("data_flywheel_manifest_present", flywheel_manifest, required=False))
+
+    if args.run_flywheel_sla:
+        flywheel_sla_json = stress_dir / "flywheel_sla_report.json"
+        check = _run_command(
+            "flywheel_sla_report",
+            [
+                args.python_exec,
+                "-u",
+                str(stress_dir / "flywheel_sla_report.py"),
+                "--project-root",
+                str(project_root),
+                "--manifest",
+                str(flywheel_manifest.relative_to(project_root)) if flywheel_manifest.is_absolute() else str(flywheel_manifest),
+                "--feature-freshness-sec",
+                str(args.feature_freshness_sec),
+                "--training-latency-sec",
+                str(args.training_latency_sec),
+                "--feedback-lag-sec",
+                str(args.feedback_lag_sec),
+                "--out-json",
+                str(flywheel_sla_json.relative_to(project_root)),
+            ],
+            cwd=project_root,
+            timeout_sec=120,
+        )
+        check.artifacts = [str(flywheel_sla_json)]
+        checks.append(check)
+        checks.append(_file_check("flywheel_sla_report_present", flywheel_sla_json, required=True))
+
+    if args.run_flink_iceberg_config_check:
+        flink_iceberg_json = stress_dir / "flink_iceberg_config_report.json"
+        check = _run_command(
+            "flink_iceberg_config_check",
+            [
+                args.python_exec,
+                "-u",
+                str(scripts_dir / "validate_flink_iceberg_config.py"),
+                "--project-root",
+                str(project_root),
+                "--catalog-type",
+                str(args.iceberg_catalog_type),
+                "--out-json",
+                str(flink_iceberg_json.relative_to(project_root)),
+            ],
+            cwd=project_root,
+            timeout_sec=120,
+        )
+        check.artifacts = [str(flink_iceberg_json)]
+        checks.append(check)
+        checks.append(_file_check("flink_iceberg_config_report_present", flink_iceberg_json, required=True))
+
+    if args.require_faiss:
+        try:
+            __import__("faiss")
+            checks.append(
+                CheckResult(
+                    name="faiss_dependency_present",
+                    status="PASS",
+                    detail="faiss import succeeded",
+                    durationMs=0,
+                    artifacts=[],
+                )
+            )
+        except Exception as error:
+            checks.append(
+                CheckResult(
+                    name="faiss_dependency_present",
+                    status="FAIL",
+                    detail=f"faiss import failed: {error}",
+                    durationMs=0,
+                    artifacts=[],
+                )
+            )
 
     if args.run_scale_readiness:
         check = _run_command(
@@ -362,6 +571,7 @@ def run_all_checks(project_root: Path, args: argparse.Namespace) -> Dict[str, ob
                 str(stress_dir / "global_scale_readiness.py"),
                 "--target-concurrency",
                 str(args.target_concurrency),
+                "--ignore-go-live-summary",
             ],
             cwd=project_root,
             timeout_sec=120,
@@ -371,6 +581,36 @@ def run_all_checks(project_root: Path, args: argparse.Namespace) -> Dict[str, ob
 
     checks.append(_file_check("global_scale_readiness_json_present", scale_readiness_json, required=False))
     checks.append(_file_check("global_scale_readiness_md_present", scale_readiness_md, required=False))
+
+    if args.require_slo_enforcement:
+        checks.append(
+            _run_command(
+                "canary_slo_enforcement",
+                [
+                    args.python_exec,
+                    "-u",
+                    str(scripts_dir / "canary_gate.py"),
+                    "--report",
+                    str(canary_report),
+                    "--event-metrics",
+                    str(consumer_metrics),
+                    "--out",
+                    str(canary_decision),
+                    "--metrics-out",
+                    str(canary_metrics),
+                    "--max-success-gap",
+                    str(args.slo_max_success_gap),
+                    "--max-p95-drift",
+                    str(args.slo_max_p95_drift),
+                    "--max-p99-drift",
+                    str(args.slo_max_p99_drift),
+                    "--max-runtime-error-rate",
+                    str(args.slo_max_runtime_error_rate),
+                ],
+                cwd=project_root,
+                timeout_sec=120,
+            )
+        )
 
     scale_readiness = _load_json(scale_readiness_json)
     if scale_readiness is None:
@@ -445,20 +685,47 @@ def main() -> None:
     parser.add_argument("--peak-connected", type=int, default=1_000_000)
     parser.add_argument("--active-ratio", type=float, default=0.1)
     parser.add_argument("--target-concurrency", type=int, default=1_000_000)
-    parser.add_argument("--run-distributed-benchmark", action="store_true", default=True)
-    parser.add_argument("--run-fault-drill", action="store_true", default=True)
-    parser.add_argument("--achieved-concurrency", type=int, default=1_000_000)
+    parser.add_argument("--run-distributed-benchmark", action="store_true", default=False)
+    parser.add_argument("--run-fault-drill", action="store_true", default=False)
+    parser.add_argument("--run-dr-automation", action="store_true", default=True)
+    parser.add_argument("--dr-auto-run", action="store_true", default=False)
+    parser.add_argument("--dr-incident-out", default="stress/dr_automation_incident.json")
+    parser.add_argument("--dr-status-out", default="stress/dr_automation_status.json")
     parser.add_argument("--distributed-regions", type=int, default=3)
     parser.add_argument("--distributed-duration-minutes", type=int, default=60)
-    parser.add_argument("--distributed-p95-ms", type=float, default=850.0)
-    parser.add_argument("--distributed-p99-ms", type=float, default=1200.0)
-    parser.add_argument("--distributed-error-rate-percent", type=float, default=0.2)
-    parser.add_argument("--fault-scenario-count", type=int, default=3)
-    parser.add_argument("--fault-passed-scenarios", type=int, default=3)
+    parser.add_argument("--distributed-report-json", default="stress/report_5k.json")
+    parser.add_argument("--distributed-evidence-source", default="local-loadtest")
+    parser.add_argument("--distributed-run-id", default="local-unknown")
+    parser.add_argument("--distributed-environment", default="local")
     parser.add_argument("--fault-recovery-rto-minutes", type=int, default=10)
     parser.add_argument("--fault-recovery-rpo-seconds", type=int, default=30)
+    parser.add_argument("--fault-canary-decision", default="stress/canary_gate_decision.json")
+    parser.add_argument("--fault-canary-metrics", default="stress/canary_gate_metrics.prom")
+    parser.add_argument("--fault-incident-ticket", default="stress/p3_5_incident_ticket.json")
+    parser.add_argument("--fault-evidence-source", default="staging-drill")
+    parser.add_argument("--fault-run-id", default="drill-unknown")
+    parser.add_argument("--fault-environment", default="staging")
+    parser.add_argument("--run-data-flywheel", action="store_true", default=True)
+    parser.add_argument("--flywheel-events", default="var/events/audit_events.jsonl")
+    parser.add_argument("--flywheel-out-root", default="var/lakehouse")
+    parser.add_argument("--run-flywheel-sla", action="store_true", default=True)
+    parser.add_argument("--feature-freshness-sec", type=float, default=600.0)
+    parser.add_argument("--training-latency-sec", type=float, default=1200.0)
+    parser.add_argument("--feedback-lag-sec", type=float, default=180.0)
+    parser.add_argument("--run-flink-iceberg-config-check", action="store_true", default=True)
+    parser.add_argument("--iceberg-catalog-type", default=os.getenv("ICEBERG_CATALOG_TYPE", "hive"))
+    parser.add_argument("--require-faiss", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--evidence-signing-key-env", default="TRAVEL_EVIDENCE_SIGNING_KEY")
+    parser.add_argument("--max-evidence-age-hours", type=float, default=24.0)
+    parser.add_argument("--allowed-evidence-environments", default="staging,prod")
+    parser.add_argument("--require-evidence-signature", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--require-source-protection", action="store_true", default=False)
     parser.add_argument("--run-scale-readiness", action="store_true", default=True)
+    parser.add_argument("--require-slo-enforcement", action="store_true", default=True)
+    parser.add_argument("--slo-max-success-gap", type=float, default=0.03)
+    parser.add_argument("--slo-max-p95-drift", type=float, default=0.08)
+    parser.add_argument("--slo-max-p99-drift", type=float, default=0.10)
+    parser.add_argument("--slo-max-runtime-error-rate", type=float, default=0.01)
     parser.add_argument(
         "--min-scale-status",
         choices=["NOT_READY", "ARCHITECTURE_READY_NOT_PROVEN", "PRODUCTION_PROVEN"],

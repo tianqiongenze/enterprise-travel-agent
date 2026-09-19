@@ -1,6 +1,7 @@
 """Module provides service components and helpers."""
 
 import time
+import os
 from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -12,6 +13,7 @@ class MCPToolRegistry:
         self._tools: Dict[str, Callable[..., Any]] = {}
         self.audit_logs: List[Dict[str, Any]] = []
         self.service_registry = service_registry
+        self.max_audit_logs = int(os.getenv("TRAVEL_MCP_AUDIT_MAX_RECORDS", "500"))
 
     def register(self, name: str, func: Callable[..., Any]) -> None:
         self._tools[name] = func
@@ -49,5 +51,8 @@ class MCPToolRegistry:
                 "result_count": len(result) if isinstance(result, list) else 1,
             }
         )
+        overflow = len(self.audit_logs) - self.max_audit_logs
+        if overflow > 0:
+            del self.audit_logs[:overflow]
         return result
 

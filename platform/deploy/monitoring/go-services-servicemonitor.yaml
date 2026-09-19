@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: go-services-servicemonitor
+  labels:
+    app: travel-agent
+spec:
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - go-ranker
+          - go-policy
+          - go-fanout
+          - go-registry-cache
+  namespaceSelector:
+    any: true
+  endpoints:
+    - port: metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      path: /metrics

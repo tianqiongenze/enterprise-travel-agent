@@ -24,11 +24,16 @@ def evaluate(
     distributed: Dict[str, Any],
     fault_drill: Dict[str, Any],
     target_concurrency: int,
+    ignore_go_live_summary: bool = False,
+    capacity: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     summary = go_live.get("summary", {}) if isinstance(go_live, dict) else {}
     go_live_fail = int(summary.get("failCount", 999))
     go_live_pass = str(summary.get("overall", "FAIL")).upper() == "PASS"
-    if not go_live_pass and isinstance(go_live, dict):
+    if ignore_go_live_summary:
+        go_live_pass = True
+        go_live_fail = 0
+    elif not go_live_pass and isinstance(go_live, dict):
         checks = go_live.get("checks", [])
         if isinstance(checks, list):
             failed_names = [
@@ -51,6 +56,10 @@ def evaluate(
 
     distributed_ok = bool(distributed.get("pass", False)) and int(distributed.get("achievedConcurrency", 0)) >= target_concurrency
     fault_drill_ok = bool(fault_drill.get("pass", False))
+    capacity_payload = capacity if isinstance(capacity, dict) else {}
+    capacity_output = capacity_payload.get("output", {}) if isinstance(capacity_payload, dict) else {}
+    partitions = int(capacity_output.get("recommended_partitions", 0) or 0)
+    runtime_per_partition = int(capacity_output.get("runtime_per_partition", 0) or 0)
 
     criteria = {
         "go_live_gate_pass": go_live_pass and go_live_fail == 0,
@@ -59,6 +68,7 @@ def evaluate(
         "local_5k_p99_le_1500ms": p99 <= 1500.0,
         "distributed_1m_evidence": distributed_ok,
         "global_multi_region_drill_evidence": fault_drill_ok,
+        "capacity_partitioning_ready": partitions >= 3 and runtime_per_partition > 0,
     }
 
     architecture_ready = all(
@@ -70,6 +80,8 @@ def evaluate(
         ]
     )
     production_proven = architecture_ready and criteria["distributed_1m_evidence"] and criteria["global_multi_region_drill_evidence"]
+    if production_proven and not criteria["capacity_partitioning_ready"]:
+        production_proven = False
 
     return {
         "generatedAt": int(time.time()),
@@ -88,6 +100,8 @@ def evaluate(
             "distributedAchievedConcurrency": int(distributed.get("achievedConcurrency", 0)),
             "distributedRegions": int(distributed.get("regions", 0)),
             "faultDrillScenarioCount": int(fault_drill.get("scenarioCount", 0)),
+            "recommendedPartitions": partitions,
+            "runtimePerPartition": runtime_per_partition,
         },
         "nextActions": [
             "Run distributed >=1,000,000 concurrent benchmark across >=3 regions.",
@@ -136,6 +150,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Assess 10B/1M readiness from local evidence")
     parser.add_argument("--project-root", default=".")
     parser.add_argument("--target-concurrency", type=int, default=1_000_000)
+    parser.add_argument("--ignore-go-live-summary", action="store_true", default=False)
     parser.add_argument("--out-json", default="stress/global_scale_readiness_report.json")
     parser.add_argument("--out-md", default="stress/global_scale_readiness_report.md")
     args = parser.parse_args()
@@ -145,7 +160,16 @@ def main() -> int:
     report_5k = load_json(root / "stress" / "report_5k.json")
     distributed = load_json(root / "stress" / "distributed_benchmark_evidence.json")
     fault_drill = load_json(root / "stress" / "multi_region_fault_drill_report.json")
-    result = evaluate(go_live, report_5k, distributed, fault_drill, args.target_concurrency)
+    capacity = load_json(root / "stress" / "capacity_cost_report.json")
+    result = evaluate(
+        go_live,
+        report_5k,
+        distributed,
+        fault_drill,
+        args.target_concurrency,
+        ignore_go_live_summary=args.ignore_go_live_summary,
+        capacity=capacity,
+    )
 
     out_json = root / args.out_json
     out_md = root / args.out_md

@@ -1,0 +1,13 @@
+{
+  "total_requests": 500,
+  "concurrency": 50,
+  "success": 0,
+  "error": 500,
+  "success_rate": 0.0,
+  "avg_latency_ms": 2036.08,
+  "p95_latency_ms": 2057.63,
+  "p99_latency_ms": 2067.49,
+  "status_histogram": {
+    "0": 500
+  }
+}

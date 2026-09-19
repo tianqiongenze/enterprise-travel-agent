@@ -1,0 +1,6 @@
+{
+  "timestamp": 1775978623,
+  "evidence": "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\multi_region_fault_drill_report.json",
+  "pass": false,
+  "action": "trigger-dr-playbook"
+}

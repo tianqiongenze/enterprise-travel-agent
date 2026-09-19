@@ -214,3 +214,19 @@ Estimated baseline:
 - Automatic rollback if burn rate exceeds policy window.
 - Release artifact must include: load report, SLO report, rollback validation, and dashboard snapshots.
 
+## 9. Iceberg + Flink + Data Flywheel Adoption Guidance
+
+Recommended introduction points:
+
+1. When event volume reaches cross-region high throughput and needs immutable long-term analytics.
+2. When recommendation feature freshness must be near real-time (minutes).
+3. When model/policy tuning needs closed-loop evidence from user feedback and operational outcomes.
+
+In-repo implementation baseline:
+
+- `stress/data_flywheel_pipeline.py` (local executable scaffold)
+- `platform/data/flink/travel_events_flywheel.sql` (Flink SQL template)
+- `docs/data-flywheel-lakehouse-design.md` (enterprise design)
+
+This baseline is designed to migrate smoothly to managed Flink + Iceberg in production.
+

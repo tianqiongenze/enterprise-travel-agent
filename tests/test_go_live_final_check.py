@@ -10,8 +10,8 @@ from types import SimpleNamespace
 def _load_module():
     script = Path(__file__).resolve().parents[1] / "platform" / "deploy" / "scripts" / "go_live_final_check.py"
     spec = importlib.util.spec_from_file_location("go_live_final_check", script)
-    module = importlib.util.module_from_spec(spec)
     assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
@@ -37,6 +37,8 @@ class GoLiveFinalCheckTestCase(unittest.TestCase):
             (root / "stress" / "canary_gate_metrics.prom").write_text('canary_gate_event_consumer_lag_seconds 0\ncanary_gate_event_consumer_dlq_total 0\n', encoding="utf-8")
             (root / "stress" / "capacity_cost_report.json").write_text('{}', encoding="utf-8")
             (root / "stress" / "capacity_cost_report.md").write_text('# x', encoding="utf-8")
+            (root / "stress" / "global_scale_readiness_report.json").write_text('{"status":"NOT_READY"}', encoding="utf-8")
+            (root / "stress" / "global_scale_readiness_report.md").write_text('# readiness', encoding="utf-8")
 
             args = SimpleNamespace(
                 python_exec="python",
@@ -44,10 +46,53 @@ class GoLiveFinalCheckTestCase(unittest.TestCase):
                 run_java_compile=False,
                 run_canary_gate=False,
                 run_capacity_model=False,
+                run_distributed_benchmark=False,
+                run_fault_drill=False,
+                run_dr_automation=False,
+                dr_auto_run=False,
+                dr_incident_out="stress/dr_automation_incident.json",
+                dr_status_out="stress/dr_automation_status.json",
+                run_data_flywheel=False,
+                run_scale_readiness=False,
                 max_event_lag=60.0,
                 max_event_dlq=0.0,
                 peak_connected=1_000_000,
                 active_ratio=0.1,
+                target_concurrency=1_000_000,
+                distributed_regions=3,
+                distributed_duration_minutes=60,
+                distributed_report_json="stress/report_5k.json",
+                distributed_evidence_source="local-loadtest",
+                distributed_run_id="local-unknown",
+                distributed_environment="local",
+                fault_recovery_rto_minutes=10,
+                fault_recovery_rpo_seconds=30,
+                fault_canary_decision="stress/canary_gate_decision.json",
+                fault_canary_metrics="stress/canary_gate_metrics.prom",
+                fault_incident_ticket="stress/p3_5_incident_ticket.json",
+                fault_evidence_source="staging-drill",
+                fault_run_id="drill-unknown",
+                fault_environment="staging",
+                flywheel_events="var/events/audit_events.jsonl",
+                flywheel_out_root="var/lakehouse",
+                run_flywheel_sla=False,
+                feature_freshness_sec=600.0,
+                training_latency_sec=1200.0,
+                feedback_lag_sec=180.0,
+                run_flink_iceberg_config_check=False,
+                iceberg_catalog_type="hive",
+                require_faiss=False,
+                evidence_signing_key_env="TRAVEL_EVIDENCE_SIGNING_KEY",
+                max_evidence_age_hours=24.0,
+                allowed_evidence_environments="staging,prod",
+                require_evidence_signature=False,
+                require_source_protection=False,
+                min_scale_status="NOT_READY",
+                require_slo_enforcement=False,
+                slo_max_success_gap=0.03,
+                slo_max_p95_drift=0.08,
+                slo_max_p99_drift=0.10,
+                slo_max_runtime_error_rate=0.01,
             )
             report = mod.run_all_checks(root, args)
             self.assertIn("summary", report)

@@ -33,6 +33,13 @@ from .skills.loader import SkillLoader
 from .tools.data_store import DataStore
 
 
+def _bounded_append(rows: List[Dict[str, object]], item: Dict[str, object], max_len: int) -> None:
+    rows.append(item)
+    overflow = len(rows) - max_len
+    if overflow > 0:
+        del rows[:overflow]
+
+
 def build_orchestrator(project_root: str) -> "TravelOrchestrator":
     return TravelOrchestrator(
         data_dir=os.path.join(project_root, "data"),
@@ -50,6 +57,7 @@ class TravelOrchestrator:
         self.registry = MCPToolRegistry(self.registry_center)
         self.a2a_router = A2ARouter()
         self.a2a_logs: List[Dict[str, object]] = []
+        self.max_a2a_logs = int(os.getenv("TRAVEL_A2A_LOG_MAX_RECORDS", "200"))
         self.harness = OrchestrationHarness(max_records=int(os.getenv("TRAVEL_HARNESS_MAX_RECORDS", "50")))
         self.memory_store = self._build_memory_store()
         self._register_agents()
@@ -108,25 +116,25 @@ class TravelOrchestrator:
         self.registry.register("search_souvenirs", self._search_souvenirs)
 
     def _search_hotels(self, city: str) -> List[Dict[str, object]]:
-        return [row for row in self.data_store.hotels() if row.get("city") == city]
+        return [dict(row) for row in self.data_store.hotels_by_city(city)]
 
     def _search_transports(self, city: str) -> List[Dict[str, object]]:
-        return [row for row in self.data_store.transports() if row.get("city") == city]
+        return [dict(row) for row in self.data_store.transports_by_city(city)]
 
     def _search_attractions(self, city: str) -> List[Dict[str, object]]:
-        return [row for row in self.data_store.attractions() if row.get("city") == city]
+        return [dict(row) for row in self.data_store.attractions_by_city(city)]
 
     def _search_foods(self, city: str) -> List[Dict[str, object]]:
-        return [row for row in self.data_store.foods() if row.get("city") == city]
+        return [dict(row) for row in self.data_store.foods_by_city(city)]
 
     def _search_events(self, city: str) -> List[Dict[str, object]]:
-        return [row for row in self.data_store.events() if row.get("city") == city]
+        return [dict(row) for row in self.data_store.events_by_city(city)]
 
     def _search_activities(self, city: str) -> List[Dict[str, object]]:
-        return [row for row in self.data_store.activities() if row.get("city") == city]
+        return [dict(row) for row in self.data_store.activities_by_city(city)]
 
     def _search_souvenirs(self, city: str) -> List[Dict[str, object]]:
-        return [row for row in self.data_store.souvenirs() if row.get("city") == city]
+        return [dict(row) for row in self.data_store.souvenirs_by_city(city)]
 
     def recommend(self, request: TravelRequest) -> TravelRecommendation:
         return self._run_recommendation(request)
@@ -175,8 +183,8 @@ class TravelOrchestrator:
         try:
             route_message = self.a2a_router.send("manager-agent", "route-making-agent", "route_plan", {"city": request.city})
             trip_message = self.a2a_router.send("manager-agent", "trip-planner-agent", "trip_plan", {"days": request.days})
-            self.a2a_logs.append(route_message.__dict__)
-            self.a2a_logs.append(trip_message.__dict__)
+            _bounded_append(self.a2a_logs, route_message.__dict__, self.max_a2a_logs)
+            _bounded_append(self.a2a_logs, trip_message.__dict__, self.max_a2a_logs)
             self.event_bus.publish("recommend.a2a_dispatched", {
                 "route_topic": route_message.topic,
                 "trip_topic": trip_message.topic,

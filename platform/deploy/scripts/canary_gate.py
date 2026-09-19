@@ -179,6 +179,7 @@ def main() -> None:
     parser.add_argument("--event-metrics", default="stress/pulsar_consumer_metrics.prom")
     parser.add_argument("--max-event-lag-seconds", type=float, default=60.0)
     parser.add_argument("--max-event-dlq-total", type=float, default=0.0)
+    parser.add_argument("--max-runtime-error-rate", type=float, default=0.01)
     parser.add_argument("--out", default="stress/canary_gate_decision.json")
     parser.add_argument("--metrics-out", default="stress/canary_gate_metrics.prom")
     parser.add_argument("--pushgateway-url", default="")
@@ -199,7 +200,13 @@ def main() -> None:
         "max_p99_drift": args.max_p99_drift,
         "max_event_lag_seconds": args.max_event_lag_seconds,
         "max_event_dlq_total": args.max_event_dlq_total,
+        "max_runtime_error_rate": args.max_runtime_error_rate,
     }
+
+    runtime_error_rate = float(consumer_metrics.get("travel_runtime_error_rate", 0.0))
+    if runtime_error_rate > args.max_runtime_error_rate:
+        reasons.append("runtime_error_rate_exceeds_threshold")
+        action = "rollback"
 
     output = {
         "action": action,

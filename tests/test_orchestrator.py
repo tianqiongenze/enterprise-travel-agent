@@ -11,7 +11,13 @@ from src.travel_agent.orchestrator import build_orchestrator
 class OrchestratorTestCase(unittest.TestCase):
     def setUp(self) -> None:
         self._prev_a2a_transport = os.environ.get("TRAVEL_A2A_TRANSPORT")
+        self._prev_event_bus = os.environ.get("TRAVEL_EVENT_BUS")
+        self._prev_event_bus_strict = os.environ.get("TRAVEL_EVENT_BUS_STRICT")
+        self._prev_audit_mirror = os.environ.get("TRAVEL_A2A_AUDIT_MIRROR_PULSAR")
         os.environ["TRAVEL_A2A_TRANSPORT"] = "mock-distributed"
+        os.environ["TRAVEL_EVENT_BUS"] = "local"
+        os.environ["TRAVEL_EVENT_BUS_STRICT"] = "false"
+        os.environ["TRAVEL_A2A_AUDIT_MIRROR_PULSAR"] = "false"
         project_root = str(Path(__file__).resolve().parents[1])
         self.orchestrator = build_orchestrator(project_root)
 
@@ -21,6 +27,18 @@ class OrchestratorTestCase(unittest.TestCase):
                 del os.environ["TRAVEL_A2A_TRANSPORT"]
         else:
             os.environ["TRAVEL_A2A_TRANSPORT"] = self._prev_a2a_transport
+        if self._prev_event_bus is None:
+            os.environ.pop("TRAVEL_EVENT_BUS", None)
+        else:
+            os.environ["TRAVEL_EVENT_BUS"] = self._prev_event_bus
+        if self._prev_event_bus_strict is None:
+            os.environ.pop("TRAVEL_EVENT_BUS_STRICT", None)
+        else:
+            os.environ["TRAVEL_EVENT_BUS_STRICT"] = self._prev_event_bus_strict
+        if self._prev_audit_mirror is None:
+            os.environ.pop("TRAVEL_A2A_AUDIT_MIRROR_PULSAR", None)
+        else:
+            os.environ["TRAVEL_A2A_AUDIT_MIRROR_PULSAR"] = self._prev_audit_mirror
 
     def test_recommend_returns_all_sections(self) -> None:
         request = TravelRequest(city="北京", days=3, budget=3000, travelers=2, preferences=["family", "budget"])

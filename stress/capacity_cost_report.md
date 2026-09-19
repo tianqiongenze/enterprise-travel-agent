@@ -26,6 +26,8 @@
 | runtime_monthly_cost | 157680.0 |
 | platform_monthly_cost | 7700.0 |
 | total_monthly_cost | 174140.0 |
+| recommended_partitions | 13 |
+| runtime_per_partition | 139 |
 
 ## Notes
 

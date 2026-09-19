@@ -174,3 +174,19 @@ spec:
             summary: "A2A stream metrics are stale"
             description: "No fresh A2A stream metrics exported in the last 10 minutes."
 
+    - name: runtime-slo.rules
+      rules:
+        - record: travel_agent_api_error_rate_5m
+          expr: |
+            sum(rate(http_requests_total{app="travel-agent-api",status=~"5.."}[5m]))
+            /
+            clamp_min(sum(rate(http_requests_total{app="travel-agent-api"}[5m])), 1)
+        - alert: TravelAgentAPIErrorRateHigh
+          expr: travel_agent_api_error_rate_5m > 0.01
+          for: 5m
+          labels:
+            severity: critical
+            component: travel-agent-api
+          annotations:
+            summary: "travel-agent-api error rate exceeds SLO"
+            description: "5xx error-rate over last 5m is above 1%."

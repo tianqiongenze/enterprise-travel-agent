@@ -15,6 +15,11 @@ test -f "$ROOT_DIR/platform/deploy/nginx/nginx.conf"
 test -f "$ROOT_DIR/docs/go-live-checklist.md"
 test -f "$ROOT_DIR/docs/release-runbook.md"
 
+python3 "$ROOT_DIR/platform/deploy/scripts/validate_flink_iceberg_config.py" \
+  --project-root "$ROOT_DIR" \
+  --catalog-type "${ICEBERG_CATALOG_TYPE:-hive}" \
+  --out-json "stress/flink_iceberg_config_report.json"
+
 if [ "${TRAVEL_RELEASE_HARDENING:-false}" = "true" ]; then
   if [ -z "${TRAVEL_RELEASE_SOURCE_KEY:-}" ]; then
     printf 'missing TRAVEL_RELEASE_SOURCE_KEY while TRAVEL_RELEASE_HARDENING=true\n'

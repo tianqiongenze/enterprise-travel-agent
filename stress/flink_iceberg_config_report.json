@@ -1,0 +1,10 @@
+{
+  "generatedAt": 1775978623,
+  "catalogType": "hive",
+  "requiredKeys": [
+    "ICEBERG_HIVE_METASTORE_URI",
+    "ICEBERG_WAREHOUSE"
+  ],
+  "missingKeys": [],
+  "pass": true
+}

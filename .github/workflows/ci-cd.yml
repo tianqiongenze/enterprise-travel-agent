@@ -7,6 +7,19 @@ on:
     branches: [ main, master ]
 
 jobs:
+  setup-image-meta:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.vars.outputs.image_tag }}
+      image_repo_prefix: ${{ steps.vars.outputs.image_repo_prefix }}
+    steps:
+      - id: vars
+        shell: bash
+        run: |
+          echo "image_tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          REPO_PREFIX="${IMAGE_REPO_PREFIX:-ghcr.io/${GITHUB_REPOSITORY}}"
+          echo "image_repo_prefix=${REPO_PREFIX}" >> "$GITHUB_OUTPUT"
+
   python-tests:
     runs-on: ubuntu-latest
     steps:
@@ -20,13 +33,13 @@ jobs:
           pip install -r requirements.txt
       - name: Run tests
         run: |
-          python -m unittest discover -s tests -p "test_*.py" -v
+          python scripts/run_python_tests_ci.py
 
   java-tests:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: spring-gateway
+        working-directory: services/techgroup-enterprise-travel-gateway
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -40,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend-web
+        working-directory: apps/techgroup-enterprise-travel-web
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -66,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: go-ranker
+        working-directory: services/techgroup-enterprise-travel-ranker-go
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -84,7 +97,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: go-policy
+        working-directory: services/techgroup-enterprise-travel-policy-go
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -102,7 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: go-fanout
+        working-directory: services/techgroup-enterprise-travel-fanout-go
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -120,7 +133,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: go-registry-cache
+        working-directory: services/techgroup-enterprise-travel-registry-cache-go
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -135,12 +148,51 @@ jobs:
           docker build -t go-registry-cache:ci .
 
   build-image:
-    needs: [python-tests, java-tests, web-build, miniapp-structure-check, go-ranker-build, go-policy-build, go-fanout-build, go-registry-cache-build]
+    needs: [setup-image-meta, python-tests, java-tests, web-build, miniapp-structure-check, go-ranker-build, go-policy-build, go-fanout-build, go-registry-cache-build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE_REPO_PREFIX: ${{ needs.setup-image-meta.outputs.image_repo_prefix }}
+      IMAGE_TAG: ${{ needs.setup-image-meta.outputs.image_tag }}
     steps:
       - uses: actions/checkout@v4
-      - name: Build placeholder image
-        run: echo "Build and push images here"
+      - uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: platform/deploy/docker/Dockerfile.travel-agent-api
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.IMAGE_REPO_PREFIX }}/travel-agent-api:${{ env.IMAGE_TAG }}
+            ${{ env.IMAGE_REPO_PREFIX }}/travel-agent-api:latest
+      - name: Build Gateway image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: platform/deploy/docker/Dockerfile.travel-gateway
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.IMAGE_REPO_PREFIX }}/travel-gateway:${{ env.IMAGE_TAG }}
+            ${{ env.IMAGE_REPO_PREFIX }}/travel-gateway:latest
+      - name: Build Web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: platform/deploy/docker/Dockerfile.travel-web
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.IMAGE_REPO_PREFIX }}/travel-web:${{ env.IMAGE_TAG }}
+            ${{ env.IMAGE_REPO_PREFIX }}/travel-web:latest
 
   kustomize-check:
     runs-on: ubuntu-latest
@@ -148,23 +200,43 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate kustomize overlays exist
         run: |
-          test -f deploy/k8s/kustomize/base/kustomization.yaml
-          test -f deploy/k8s/kustomize/overlays/dev/kustomization.yaml
-          test -f deploy/k8s/kustomize/overlays/staging/kustomization.yaml
-          test -f deploy/k8s/kustomize/overlays/prod/kustomization.yaml
+          test -f platform/deploy/k8s/kustomize/base/kustomization.yaml
+          test -f platform/deploy/k8s/kustomize/overlays/dev/kustomization.yaml
+          test -f platform/deploy/k8s/kustomize/overlays/staging/kustomization.yaml
+          test -f platform/deploy/k8s/kustomize/overlays/prod/kustomization.yaml
+          test -f platform/deploy/k8s/kustomize/overlays/region-a/kustomization.yaml
+          test -f platform/deploy/k8s/kustomize/overlays/region-b/kustomization.yaml
+          test -f platform/deploy/k8s/kustomize/overlays/region-c/kustomization.yaml
 
   canary-deploy:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    needs: [build-image]
+    needs: [setup-image-meta, build-image, kustomize-check]
     runs-on: ubuntu-latest
+    env:
+      IMAGE_REPO_PREFIX: ${{ needs.setup-image-meta.outputs.image_repo_prefix }}
+      IMAGE_TAG: ${{ needs.setup-image-meta.outputs.image_tag }}
+    strategy:
+      matrix:
+        overlay: [staging, region-a, region-b, region-c]
     steps:
       - uses: actions/checkout@v4
-      - name: Canary deploy placeholder
-        run: echo "Deploy canary and evaluate SLO gates"
       - name: Enforce canary gate when report exists
         run: |
           if [ -f stress/etcd_migration_compare.json ]; then
-            bash deploy/scripts/canary_promote_or_rollback.sh stress/etcd_migration_compare.json
+            bash platform/deploy/scripts/canary_promote_or_rollback.sh stress/etcd_migration_compare.json
+            ACTION=$(python3 -c "import json; from pathlib import Path; payload=json.loads(Path('stress/canary_gate_decision.json').read_text(encoding='utf-8')); print(payload.get('action','rollback'))")
+            if [ "$ACTION" = "promote" ]; then
+              echo "canary promoted for overlay=${{ matrix.overlay }}"
+              if command -v kubectl >/dev/null 2>&1 && kubectl config current-context >/dev/null 2>&1; then
+                KUSTOMIZE_OVERLAY=${{ matrix.overlay }} bash platform/deploy/scripts/deploy_release.sh
+              else
+                echo "no kube context found, skip deploy for overlay=${{ matrix.overlay }}"
+              fi
+            else
+              echo "canary rollback for overlay=${{ matrix.overlay }}"
+              exit 1
+            fi
           else
-            echo "canary report not found, skip gate"
+            echo "canary report not found"
+            exit 1
           fi

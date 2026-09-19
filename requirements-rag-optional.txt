@@ -1,5 +1,3 @@
-# Optional GraphRAG / FAISS dependencies
-# Install for high-performance local vector retrieval path.
-faiss-cpu==1.12.0
-numpy==2.3.3
+# GraphRAG + Faiss is now mandatory and moved into requirements.txt.
+# This file is kept for backward compatibility of old install commands.
 

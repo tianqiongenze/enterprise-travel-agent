@@ -1,0 +1,9 @@
+{
+  "timestamp": 1775978623,
+  "status": "open",
+  "severity": "critical",
+  "reason": "multi_region_fault_drill_failed",
+  "evidence": "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\multi_region_fault_drill_report.json",
+  "next_step": "Execute DR runbook and regional failover validation",
+  "autoRun": false
+}

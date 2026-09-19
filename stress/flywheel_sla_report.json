@@ -1,0 +1,13 @@
+{
+  "generatedAt": 1775978623,
+  "featureFreshnessSec": 600.0,
+  "trainingLatencySec": 1200.0,
+  "feedbackLagSec": 180.0,
+  "thresholds": {
+    "maxFeatureFreshnessSec": 900.0,
+    "maxTrainingLatencySec": 1800.0,
+    "maxFeedbackLagSec": 300.0
+  },
+  "manifestPath": "D:\\移动云盘同步盘\\enterprise-travel-agent\\var\\lakehouse\\flywheel_manifest.json",
+  "pass": true
+}

@@ -26,3 +26,5 @@ resources:
   - ../../../monitoring/prometheus-rule.yaml
   - ../../../monitoring/a2a-servicemonitor.yaml
   - ../../../monitoring/a2a-podmonitor.yaml
+  - ../../../monitoring/travel-agent-servicemonitor.yaml
+  - ../../../monitoring/go-services-servicemonitor.yaml

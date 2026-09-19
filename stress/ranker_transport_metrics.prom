@@ -1,0 +1,9 @@
+travel_ranker_fallback_http_total 0.0
+travel_ranker_grpc_attempt_total 1.0
+travel_ranker_grpc_error_total 1.0
+travel_ranker_grpc_success_total 0.0
+travel_ranker_http_attempt_total 0.0
+travel_ranker_http_error_total 0.0
+travel_ranker_http_success_total 0.0
+travel_ranker_shadow_diff_total 0.0
+travel_ranker_metrics_timestamp 1789785662.720831

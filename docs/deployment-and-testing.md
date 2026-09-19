@@ -25,6 +25,70 @@ python3 -m src.travel_agent.run_demo
 
 新增：`redis-cluster` 服务用于本地集群模式联调。
 
+### 2.1 一键脚本离线包模式（Windows/macOS/Linux）
+
+离线第 3 层（预构建镜像）已接入：
+
+- `techgroup-enterprise-travel-gateway` 使用 `enterprise-travel-agent-gateway:local`
+- `techgroup-enterprise-travel-web` 使用 `enterprise-travel-agent-web:local`
+- `travel-agent-api` 使用 `enterprise-travel-agent-api:local`
+- compose 启动阶段不再执行在线 `mvn/npm/pip install`
+
+- 在线机器先准备离线包（拉取镜像并产出签名清单）：
+
+```bash
+python3 -u platform/deploy/scripts/one_click_stack.py \
+  --project-root . \
+  --package-mode prepare \
+  --offline-bundle-dir platform/deploy/offline_bundle \
+  --bundle-tool-targets windows-amd64,linux-amd64,darwin-amd64,darwin-arm64
+```
+
+- 可选：把离线 Docker 安装器一并打包（BYO 文件路径）
+
+```bash
+python3 -u platform/deploy/scripts/one_click_stack.py \
+  --project-root . \
+  --package-mode prepare \
+  --offline-bundle-dir platform/deploy/offline_bundle \
+  --bundle-docker-installer-windows "D:/installers/DockerDesktopInstaller.exe" \
+  --bundle-docker-installer-linux "/tmp/docker-linux-installer.tgz" \
+  --bundle-docker-installer-macos "/tmp/Docker.dmg"
+```
+
+- 将 `platform/deploy/offline_bundle/` 拷贝到目标机器后执行离线启动：
+
+```bash
+python3 -u platform/deploy/scripts/one_click_stack.py \
+  --project-root . \
+  --package-mode offline \
+  --offline-bundle-dir platform/deploy/offline_bundle \
+  --offline-tool-install-dir var/offline_tools/bin \
+  --offline-strict
+```
+
+- 平台包装脚本同样支持环境变量：
+  - `TRAVEL_PACKAGE_MODE=online|prepare|offline`
+  - `TRAVEL_OFFLINE_BUNDLE_DIR=platform/deploy/offline_bundle`
+  - `TRAVEL_ARTIFACT_MANIFEST=artifacts.manifest.json`
+  - `TRAVEL_OFFLINE_STRICT=true|false`
+  - `TRAVEL_OFFLINE_TOOL_INSTALL_DIR=var/offline_tools/bin`
+  - `TRAVEL_BUNDLE_TOOL_TARGETS=windows-amd64,linux-amd64,darwin-amd64,darwin-arm64`
+
+说明：
+
+- 离线模式会自动把 `kubectl/kind` 从 bundle 安装到 `TRAVEL_OFFLINE_TOOL_INSTALL_DIR` 并注入当前 PATH。
+- Docker daemon 仍依赖宿主机能力。若 `docker` 缺失，Windows 会尝试使用离线包中的 `docker-desktop-installer.exe` 静默安装；Linux/macOS 建议提前通过企业镜像源或 BYO 安装器完成 Docker 引擎安装。
+
+Rancher Desktop（Windows）K8s 模式：
+
+- 需要管理员权限安装（`choco install rancher-desktop -y` 或 MSI 安装）。
+- 启动 Rancher Desktop 并启用 Kubernetes 后，执行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File platform/deploy/scripts/one_click_stack_windows.ps1 -K8sProvider rancher-desktop
+```
+
 ## 3. Kubernetes（生产示例）
 
 - Deployment：2副本
@@ -162,6 +226,7 @@ curl http://localhost:8000/a2a/inbox/trip-planner-agent
 ## 7. 分布式压测与上线
 
 - 压测方案：`stress/distributed-plan.md`
+- 100万记录人工测试运行手册：`docs/manual-1m-record-testing.md`
 - CI/CD 流水线：`.github/workflows/ci-cd.yml`
 - 灰度发布：`deploy/k8s/canary-rollout.md`
 
@@ -241,4 +306,3 @@ python3 stress/redis_cluster_scenarios.py
 - 限流计数结果
 - 幂等键重复提交结果
 - 分布式锁加解锁结果
-

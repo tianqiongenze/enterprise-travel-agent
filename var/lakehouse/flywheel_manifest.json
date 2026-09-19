@@ -1,0 +1,15 @@
+{
+  "generatedAt": 1775978623,
+  "source": "var\\events\\audit_events.jsonl",
+  "recordsIn": 68,
+  "recordsNormalized": 68,
+  "recordsDeduped": 4,
+  "duplicateDropped": 64,
+  "artifacts": [
+    "var\\lakehouse\\bronze\\travel_events.jsonl",
+    "var\\lakehouse\\silver\\travel_events_clean.jsonl",
+    "var\\lakehouse\\gold\\city_features.jsonl",
+    "var\\lakehouse\\gold\\top_topics.jsonl"
+  ],
+  "pass": true
+}

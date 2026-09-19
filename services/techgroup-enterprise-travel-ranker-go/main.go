@@ -28,6 +28,14 @@ type ScoreResponse struct {
 	Score float64 `json:"score"`
 }
 
+type BatchScoreRequest struct {
+	Items []ScoreRequest `json:"items"`
+}
+
+type BatchScoreResponse struct {
+	Scores []float64 `json:"scores"`
+}
+
 type rankerGRPCServer struct {
 	travelgrpcv1.UnimplementedRankerServiceServer
 }
@@ -59,6 +67,34 @@ func main() {
 		}
 		score := transportScore(req.Price, req.Duration, req.Tags, req.Budget, req.Weights)
 		c.JSON(http.StatusOK, ScoreResponse{Score: round(score, 8)})
+	})
+
+	r.POST("/v1/score/hotel/batch", func(c *gin.Context) {
+		var req BatchScoreRequest
+		if err := bindJSON(c, &req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		scores := make([]float64, 0, len(req.Items))
+		for _, item := range req.Items {
+			score := hotelScore(item.Price, item.Rating, item.Tags, item.Budget, item.Weights)
+			scores = append(scores, round(score, 8))
+		}
+		c.JSON(http.StatusOK, BatchScoreResponse{Scores: scores})
+	})
+
+	r.POST("/v1/score/transport/batch", func(c *gin.Context) {
+		var req BatchScoreRequest
+		if err := bindJSON(c, &req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		scores := make([]float64, 0, len(req.Items))
+		for _, item := range req.Items {
+			score := transportScore(item.Price, item.Duration, item.Tags, item.Budget, item.Weights)
+			scores = append(scores, round(score, 8))
+		}
+		c.JSON(http.StatusOK, BatchScoreResponse{Scores: scores})
 	})
 
 	port := os.Getenv("GO_RANKER_PORT")
