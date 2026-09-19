@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 
 from .a2a.router import A2ARouter
 from .a2a.worker import A2AWorker
+from .agents.llm import LlmRationaleDecorator, create_rationale_provider
 from .agents.manager_agent import (
     AncillaryRevenueAgent,
     ConciergeAgent,
@@ -80,6 +81,7 @@ class TravelOrchestrator:
             VisaComplianceAgent(),
             ConciergeAgent(),
             LocalLifestyleAgent(self.recommender),
+            rationale_decorator=LlmRationaleDecorator(create_rationale_provider()),
         )
         self.engine = build_engine_from_env(self.manager)
         self.shadow_engine_mode = os.getenv("TRAVEL_ORCHESTRATION_SHADOW_ENGINE", "").strip().lower()

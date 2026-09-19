@@ -91,3 +91,63 @@ Chaos Mesh 后使用其 Workflow 注入（`stress/` 已支持 chaosmesh schema �
   重跑本脚本（`--environment staging`）；
 - 后续：① 查明连接层错误根因；② 集群内部署 gateway 后以 k6 走全链路；
   ③ kind node 内存调至 8GB 复测。
+
+### 5.6 项3 复测（2026-09-19，全链路经 gateway，签名证据）
+在 5.3 之后完成了 gateway 集群内部署与三个降级 bug 修复（list_services/list_tools
+不可达时降级缓存，见 5.2.3），并按下列方式复测：
+
+- **探针**：集群内 `deploy/travel-agent-api-local` 直连
+  `http://travel-gateway.travel-local.svc.cluster.local:8080/api/v1/travel/recommend`
+  （gateway 自动补 X-Trace-Id），返回 HTTP 200，响应含全部键
+  `[a2aLogs, aiRationale, auditLogs, engagementRecommendations, hotelOptions,
+  itinerary, traceId, transportOptions]`，hotelOptions=2 条。
+- **签名压测**：`stress/load_test_gateway.py` 以 ConfigMap 注入 + 本地镜像
+  `enterprise-travel-agent-api:local` 以 Job 形式在集群内执行
+  （kind 无镜像拉取网络，python:3.12-slim 会 ImagePullBackOff），报告直接
+  `--out /dev/stdout` 打入 Job 日志（`kubectl logs job/loadtest-signed`），
+  避开 `kubectl cp`/exec 已完成 Pod 的导出限制。
+- **结果（20 并发 × 500 请求，全链路经 gateway）**：
+
+| 指标 | 数值 |
+|------|------|
+| 成功率 | **100%（500/500，error=0）** |
+| 全部状态码 | 200（直方图 `{"200": 500}`） |
+| 平均延迟 | 5416ms |
+| p95 / p99 | 5523ms / 5648ms |
+
+- 报告文件：`stress/report_gateway_signed_kind.json`（由 Job 日志导出）。
+- 延迟抬升原因：本轮经 gateway 全链路（含 A2A/审计埋点），且 API 副本为 2，
+  Agent 多步编排本身耗时 ~5s；连接层错误（5.3 的 status=0）已归零。
+- 结论：项3「kind 全链路」功能与稳定性目标达成——探针 200 + 500/500 成功、
+  0 错误；p95 超 1200ms 演练门槛属本机资源限制，维持"staging 档证据需在真实
+  多节点集群重跑"的结论。
+
+## 6. 真 LLM / Embedding 远端验证（项4b，2026-09-19）
+
+本机环境 **未配置** `AI_DASHSCOPE_API_KEY`，因此运行时按设计降级：
+`TRAVEL_LLM_BACKEND=auto` 时 `create_rationale_provider()` 返回
+`NullLlmProvider`，`TRAVEL_EMBEDDING_BACKEND=auto` 时 embedding 回退
+hash 向量——推荐链路零行为变化、零报错。真远端验证按以下步骤执行
+（需可出网的环境或 CI secret）：
+
+1. 设置密钥与后端：
+   ```bash
+   export AI_DASHSCOPE_API_KEY="sk-..."
+   export TRAVEL_EMBEDDING_BACKEND=dashscope   # 或 auto
+   export TRAVEL_EMBEDDING_DIM=1024            # text-embedding-v3 为 1024 维
+   export TRAVEL_LLM_BACKEND=auto              # 有 key 即激活 DashScopeLlmProvider
+   ```
+2. 判定标准：
+   - LLM：推荐响应中 engagement 条目出现 `reasonSource=dashscope:qwen-plus`
+     且 `reason` 为非模板中文短句；LLM 超时/断网时自动回落模板理由
+     （日志出现 `keeping template reasons`）且响应仍 200；
+   - Embedding：`VectorMemoryStore` 的 provider_name 为
+     `dashscope:text-embedding-v3`，向量维度 = 1024；维度与
+     `TRAVEL_EMBEDDING_DIM` 不一致时启动即抛错（fail-fast）。
+3. 覆盖情况：mock 路径已由单测覆盖——`tests/test_llm_rationale.py`
+   （12 用例：provider 选择、鉴权失败、行数不足、异常降级）与
+   `tests/test_embedding_providers.py`（11 用例：hash 确定性/归一化、
+   后端选择、维度不匹配 fail-fast、HTTP 403）。
+4. 部署注入：三个环境文件（dev/staging/prod.env）已含
+   `TRAVEL_LLM_BACKEND=auto` / `TRAVEL_LLM_MODEL=qwen-plus` /
+   `TRAVEL_LLM_TIMEOUT_SEC=8.0`；密钥经 K8s Secret 注入，不入库。

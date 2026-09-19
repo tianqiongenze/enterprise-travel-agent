@@ -1,8 +1,9 @@
 """Module contains agent implementations."""
 
-from typing import Dict, List, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from ..models import RecommendationItem, TravelRecommendation, TravelRequest
+from .llm import LlmRationaleDecorator, NullLlmProvider
 
 if TYPE_CHECKING:
     from ..recommendation.recommender import TravelRecommender
@@ -21,6 +22,7 @@ class ManagerAgent:
         visa_agent: "VisaComplianceAgent",
         concierge_agent: "ConciergeAgent",
         local_lifestyle_agent: "LocalLifestyleAgent",
+        rationale_decorator: Optional[LlmRationaleDecorator] = None,
     ) -> None:
         self.route_agent = route_agent
         self.trip_agent = trip_agent
@@ -32,6 +34,7 @@ class ManagerAgent:
         self.visa_agent = visa_agent
         self.concierge_agent = concierge_agent
         self.local_lifestyle_agent = local_lifestyle_agent
+        self.rationale_decorator = rationale_decorator
 
     def execute(self, request: TravelRequest, weights: Dict[str, float]) -> TravelRecommendation:
         hotel_options, transport_options = self.route_agent.plan_routes(request, weights)
@@ -45,6 +48,16 @@ class ManagerAgent:
         concierge_pack = self.concierge_agent.build_concierge_actions(request)
         lifestyle_pack = self.local_lifestyle_agent.recommend_local_lifestyle(request)
         engagement_recommendations = food_pack + event_pack + lifestyle_pack + growth_pack + weather_pack + ancillary_pack + visa_pack + concierge_pack
+        if self.rationale_decorator is not None:
+            engagement_recommendations = self.rationale_decorator.enrich(
+                {
+                    "city": request.city,
+                    "preferences": list(request.preferences),
+                    "budget": request.budget,
+                    "days": request.days,
+                },
+                engagement_recommendations,
+            )
         return TravelRecommendation(
             hotel_options=hotel_options,
             transport_options=transport_options,

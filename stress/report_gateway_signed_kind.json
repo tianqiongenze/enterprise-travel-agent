@@ -1,0 +1,14 @@
+{
+  "target": "gateway-full-path",
+  "total_requests": 500,
+  "concurrency": 20,
+  "success": 500,
+  "error": 0,
+  "success_rate": 1.0,
+  "avg_latency_ms": 5389.01,
+  "p95_latency_ms": 5523.19,
+  "p99_latency_ms": 5570.87,
+  "status_histogram": {
+    "200": 500
+  }
+}
