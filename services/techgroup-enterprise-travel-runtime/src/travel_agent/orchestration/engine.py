@@ -1,12 +1,26 @@
-"""Module provides service components and helpers."""
+"""Orchestration engines with real state-graph execution and step budgets.
+
+The ``langgraph`` engine builds a genuine LangGraph ``StateGraph`` when the
+package is installed (route -> trip -> engagement pipeline with shared state,
+end finish); otherwise it falls back to the sequential adapter and the result
+metadata records ``real_stategraph: "false"`` so deployments can distinguish
+the two. Every stage consumes an agent step from the ambient
+:class:`~travel_agent.orchestration.budget.ExecutionBudget` when one is active.
+"""
+
+from __future__ import annotations
 
 from importlib.util import find_spec
+import logging
 import os
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Optional
 
 from ..agents.manager_agent import ManagerAgent
 from ..models import TravelRecommendation, TravelRequest
+from .budget import ExecutionBudget
+
+logger = logging.getLogger("travel_agent.orchestration")
 
 
 @dataclass
@@ -22,43 +36,129 @@ class BaseOrchestrationEngine:
     def __init__(self, manager: ManagerAgent) -> None:
         self.manager = manager
 
-    def run(self, request: TravelRequest, weights: Dict[str, float]) -> EngineResult:
+    def run(
+        self,
+        request: TravelRequest,
+        weights: Dict[str, float],
+        budget: Optional[ExecutionBudget] = None,
+    ) -> EngineResult:
         raise NotImplementedError("Framework engines must implement run()")
+
+
+def _consume_step(budget: Optional[ExecutionBudget], step: str) -> None:
+    if budget is not None:
+        budget.consume_agent_step(step)
+
+
+def _build_recommendation(manager: ManagerAgent, request: TravelRequest, weights: Dict[str, float]) -> TravelRecommendation:
+    visa_agent = getattr(manager, "visa_agent", None)
+    concierge_agent = getattr(manager, "concierge_agent", None)
+    local_lifestyle_agent = getattr(manager, "local_lifestyle_agent", None)
+    hotels, transports = manager.route_agent.plan_routes(request, weights)
+    itinerary = manager.trip_agent.plan_trip(request, hotels, transports)
+    engagement = (
+        manager.food_agent.recommend_food(request)
+        + manager.event_agent.recommend_events(request)
+        + manager.loyalty_agent.build_growth_actions(request)
+        + manager.weather_agent.build_risk_hints(request)
+        + manager.ancillary_agent.build_upsell_actions(request)
+        + (visa_agent.build_visa_guidance(request) if visa_agent is not None else [])
+        + (concierge_agent.build_concierge_actions(request) if concierge_agent is not None else [])
+        + (local_lifestyle_agent.recommend_local_lifestyle(request) if local_lifestyle_agent is not None else [])
+    )
+    return TravelRecommendation(
+        hotel_options=hotels,
+        transport_options=transports,
+        itinerary=itinerary,
+        engagement_recommendations=engagement,
+    )
+
+
+def _run_state_graph(manager: ManagerAgent, request: TravelRequest, weights: Dict[str, float]) -> TravelRecommendation:
+    """Execute the pipeline as a real LangGraph StateGraph (requires langgraph)."""
+    import importlib
+
+    state_graph = getattr(importlib.import_module("langgraph.graph"), "StateGraph", None)
+    if state_graph is None:
+        raise ImportError("langgraph.graph.StateGraph unavailable")
+
+    state: Dict[str, object] = {"request": request, "weights": weights}
+
+    def node_route(state: Dict[str, object]) -> Dict[str, object]:
+        hotels, transports = manager.route_agent.plan_routes(state["request"], state["weights"])
+        return {"hotels": hotels, "transports": transports}
+
+    def node_trip(state: Dict[str, object]) -> Dict[str, object]:
+        itinerary = manager.trip_agent.plan_trip(
+            state["request"], state["hotels"], state["transports"]
+        )
+        return {"itinerary": itinerary}
+
+    def node_engagement(state: Dict[str, object]) -> Dict[str, object]:
+        return {"engagement": _collect_engagement(manager, state["request"])}
+
+    graph = state_graph(dict)
+    graph.add_node("route", node_route)
+    graph.add_node("trip", node_trip)
+    graph.add_node("engagement", node_engagement)
+    graph.set_entry_point("route")
+    graph.add_edge("route", "trip")
+    graph.add_edge("trip", "engagement")
+    app = graph.compile()
+    final = app.invoke(state)
+    return TravelRecommendation(
+        hotel_options=final.get("hotels", []),
+        transport_options=final.get("transports", []),
+        itinerary=final.get("itinerary", []),
+        engagement_recommendations=final.get("engagement", []),
+    )
+
+
+def _collect_engagement(manager: ManagerAgent, request: TravelRequest) -> list:
+    visa_agent = getattr(manager, "visa_agent", None)
+    concierge_agent = getattr(manager, "concierge_agent", None)
+    local_lifestyle_agent = getattr(manager, "local_lifestyle_agent", None)
+    return (
+        manager.food_agent.recommend_food(request)
+        + manager.event_agent.recommend_events(request)
+        + manager.loyalty_agent.build_growth_actions(request)
+        + manager.weather_agent.build_risk_hints(request)
+        + manager.ancillary_agent.build_upsell_actions(request)
+        + (visa_agent.build_visa_guidance(request) if visa_agent is not None else [])
+        + (concierge_agent.build_concierge_actions(request) if concierge_agent is not None else [])
+        + (local_lifestyle_agent.recommend_local_lifestyle(request) if local_lifestyle_agent is not None else [])
+    )
 
 
 class LangGraphEngine(BaseOrchestrationEngine):
     name = "langgraph"
 
-    def run(self, request: TravelRequest, weights: Dict[str, float]) -> EngineResult:
-        visa_agent = getattr(self.manager, "visa_agent", None)
-        concierge_agent = getattr(self.manager, "concierge_agent", None)
-        local_lifestyle_agent = getattr(self.manager, "local_lifestyle_agent", None)
-        hotels, transports = self.manager.route_agent.plan_routes(request, weights)
-        itinerary = self.manager.trip_agent.plan_trip(request, hotels, transports)
-        engagement = (
-            self.manager.food_agent.recommend_food(request)
-            + self.manager.event_agent.recommend_events(request)
-            + self.manager.loyalty_agent.build_growth_actions(request)
-            + self.manager.weather_agent.build_risk_hints(request)
-            + self.manager.ancillary_agent.build_upsell_actions(request)
-            + (visa_agent.build_visa_guidance(request) if visa_agent is not None else [])
-            + (concierge_agent.build_concierge_actions(request) if concierge_agent is not None else [])
-            + (local_lifestyle_agent.recommend_local_lifestyle(request) if local_lifestyle_agent is not None else [])
-        )
-        rec = TravelRecommendation(
-            hotel_options=hotels,
-            transport_options=transports,
-            itinerary=itinerary,
-            engagement_recommendations=engagement,
-        )
+    def run(
+        self,
+        request: TravelRequest,
+        weights: Dict[str, float],
+        budget: Optional[ExecutionBudget] = None,
+    ) -> EngineResult:
+        _consume_step(budget, "route_plan")
+        _consume_step(budget, "trip_plan")
+        _consume_step(budget, "engagement_plan")
+        real_stategraph = find_spec("langgraph") is not None
+        if real_stategraph:
+            try:
+                rec = _run_state_graph(self.manager, request, weights)
+            except Exception as error:
+                logger.warning("langgraph StateGraph execution failed, falling back to sequential adapter: %s", error)
+                real_stategraph = False
+        if not real_stategraph:
+            rec = _build_recommendation(self.manager, request, weights)
         return EngineResult(
             recommendation=rec,
             engine=self.name,
             metadata={
                 "adapter": "langgraph",
                 "available": str(find_spec("langgraph") is not None).lower(),
-                "graph_nodes": "route,trip,engagement,risk,compliance",
-                "note": "state-graph-bound",
+                "graph_nodes": "route,trip,engagement",
+                "real_stategraph": str(real_stategraph).lower(),
             },
         )
 
@@ -66,28 +166,16 @@ class LangGraphEngine(BaseOrchestrationEngine):
 class AgentScopeEngine(BaseOrchestrationEngine):
     name = "agentscope"
 
-    def run(self, request: TravelRequest, weights: Dict[str, float]) -> EngineResult:
-        visa_agent = getattr(self.manager, "visa_agent", None)
-        concierge_agent = getattr(self.manager, "concierge_agent", None)
-        local_lifestyle_agent = getattr(self.manager, "local_lifestyle_agent", None)
-        hotels, transports = self.manager.route_agent.plan_routes(request, weights)
-        itinerary = self.manager.trip_agent.plan_trip(request, hotels, transports)
-        # AgentScope-like multi-role collaboration output.
-        engagement = (
-            self.manager.food_agent.recommend_food(request)
-            + self.manager.event_agent.recommend_events(request)
-            + self.manager.weather_agent.build_risk_hints(request)
-            + (visa_agent.build_visa_guidance(request) if visa_agent is not None else [])
-            + (concierge_agent.build_concierge_actions(request) if concierge_agent is not None else [])
-            + self.manager.loyalty_agent.build_growth_actions(request)
-            + (local_lifestyle_agent.recommend_local_lifestyle(request) if local_lifestyle_agent is not None else [])
-        )
-        rec = TravelRecommendation(
-            hotel_options=hotels,
-            transport_options=transports,
-            itinerary=itinerary,
-            engagement_recommendations=engagement,
-        )
+    def run(
+        self,
+        request: TravelRequest,
+        weights: Dict[str, float],
+        budget: Optional[ExecutionBudget] = None,
+    ) -> EngineResult:
+        _consume_step(budget, "route_plan")
+        _consume_step(budget, "trip_plan")
+        _consume_step(budget, "engagement_plan")
+        rec = _build_recommendation(self.manager, request, weights)
         return EngineResult(
             recommendation=rec,
             engine=self.name,
@@ -95,7 +183,7 @@ class AgentScopeEngine(BaseOrchestrationEngine):
                 "adapter": "agentscope-ai",
                 "available": str(find_spec("agentscope") is not None).lower(),
                 "session_mode": "multi-role",
-                "note": "agentscope-session-bound",
+                "real_stategraph": "false",
             },
         )
 
@@ -103,24 +191,16 @@ class AgentScopeEngine(BaseOrchestrationEngine):
 class OneAgentsEngine(BaseOrchestrationEngine):
     name = "oneagents"
 
-    def run(self, request: TravelRequest, weights: Dict[str, float]) -> EngineResult:
-        concierge_agent = getattr(self.manager, "concierge_agent", None)
-        local_lifestyle_agent = getattr(self.manager, "local_lifestyle_agent", None)
-        hotels, transports = self.manager.route_agent.plan_routes(request, weights)
-        itinerary = self.manager.trip_agent.plan_trip(request, hotels, transports)
-        engagement = (
-            self.manager.food_agent.recommend_food(request)
-            + self.manager.event_agent.recommend_events(request)
-            + self.manager.ancillary_agent.build_upsell_actions(request)
-            + (concierge_agent.build_concierge_actions(request) if concierge_agent is not None else [])
-            + (local_lifestyle_agent.recommend_local_lifestyle(request) if local_lifestyle_agent is not None else [])
-        )
-        rec = TravelRecommendation(
-            hotel_options=hotels,
-            transport_options=transports,
-            itinerary=itinerary,
-            engagement_recommendations=engagement,
-        )
+    def run(
+        self,
+        request: TravelRequest,
+        weights: Dict[str, float],
+        budget: Optional[ExecutionBudget] = None,
+    ) -> EngineResult:
+        _consume_step(budget, "route_plan")
+        _consume_step(budget, "trip_plan")
+        _consume_step(budget, "engagement_plan")
+        rec = _build_recommendation(self.manager, request, weights)
         return EngineResult(
             recommendation=rec,
             engine=self.name,
@@ -128,7 +208,7 @@ class OneAgentsEngine(BaseOrchestrationEngine):
                 "adapter": "oneagents",
                 "available": str(find_spec("oneagents") is not None).lower(),
                 "contract_mode": "task-contract",
-                "note": "oneagents-contract-bound",
+                "real_stategraph": "false",
             },
         )
 
@@ -175,5 +255,3 @@ def _build_resolved_engine(resolved: str, manager: ManagerAgent) -> BaseOrchestr
     if resolved == "agentscope":
         return AgentScopeEngine(manager)
     return OneAgentsEngine(manager)
-
-

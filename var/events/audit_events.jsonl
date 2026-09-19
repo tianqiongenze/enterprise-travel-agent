@@ -104,3 +104,19 @@
 {"ts": "2026-09-19T03:25:00.750520+00:00", "topic": "recommend.completed", "payload": {"city": "上海", "hotel_count": 3, "transport_count": 2, "itinerary_days": 3}}
 {"ts": "2026-09-19T03:28:44.755403+00:00", "topic": "recommend.requested", "payload": {"city": "上海", "days": 3, "budget": 3200}}
 {"ts": "2026-09-19T03:28:44.755403+00:00", "topic": "recommend.completed", "payload": {"city": "上海", "hotel_count": 3, "transport_count": 2, "itinerary_days": 3}}
+{"ts": "2026-09-19T03:41:55.452107+00:00", "topic": "recommend.requested", "payload": {"city": "上海", "days": 3, "budget": 3200}}
+{"ts": "2026-09-19T03:41:55.452107+00:00", "topic": "recommend.completed", "payload": {"city": "上海", "hotel_count": 3, "transport_count": 2, "itinerary_days": 3}}
+{"ts": "2026-09-19T03:42:22.546197+00:00", "topic": "recommend.requested", "payload": {"city": "上海", "days": 3, "budget": 3200}}
+{"ts": "2026-09-19T03:42:22.546197+00:00", "topic": "recommend.completed", "payload": {"city": "上海", "hotel_count": 3, "transport_count": 2, "itinerary_days": 3}}
+{"ts": "2026-09-19T03:43:01.227439+00:00", "topic": "recommend.requested", "payload": {"city": "上海", "days": 3, "budget": 3200}}
+{"ts": "2026-09-19T03:43:01.227439+00:00", "topic": "recommend.completed", "payload": {"city": "上海", "hotel_count": 3, "transport_count": 2, "itinerary_days": 3}}
+{"ts": "2026-09-19T03:47:30.494541+00:00", "topic": "recommend.requested", "payload": {"city": "上海", "days": 3, "budget": 3200}}
+{"ts": "2026-09-19T03:47:30.494541+00:00", "topic": "recommend.completed", "payload": {"city": "上海", "hotel_count": 3, "transport_count": 2, "itinerary_days": 3}}
+{"ts": "2026-09-19T03:49:35.638759+00:00", "topic": "recommend.requested", "payload": {"city": "上海", "days": 3, "budget": 3200}}
+{"ts": "2026-09-19T03:49:35.638759+00:00", "topic": "recommend.completed", "payload": {"city": "上海", "hotel_count": 3, "transport_count": 2, "itinerary_days": 3}}
+{"ts": "2026-09-19T03:51:30.523282+00:00", "topic": "recommend.requested", "payload": {"city": "上海", "days": 3, "budget": 3200}}
+{"ts": "2026-09-19T03:51:30.523282+00:00", "topic": "recommend.completed", "payload": {"city": "上海", "hotel_count": 3, "transport_count": 2, "itinerary_days": 3}}
+{"ts": "2026-09-19T03:52:58.520755+00:00", "topic": "recommend.requested", "payload": {"city": "上海", "days": 3, "budget": 3200}}
+{"ts": "2026-09-19T03:52:58.520755+00:00", "topic": "recommend.completed", "payload": {"city": "上海", "hotel_count": 3, "transport_count": 2, "itinerary_days": 3}}
+{"ts": "2026-09-19T03:53:21.026104+00:00", "topic": "recommend.requested", "payload": {"city": "上海", "days": 3, "budget": 3200}}
+{"ts": "2026-09-19T03:53:21.026104+00:00", "topic": "recommend.completed", "payload": {"city": "上海", "hotel_count": 3, "transport_count": 2, "itinerary_days": 3}}

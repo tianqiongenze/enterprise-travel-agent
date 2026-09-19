@@ -72,7 +72,9 @@ class OrchestratorTestCase(unittest.TestCase):
         self.assertIn("visa-compliance-agent", services)
         self.assertIn("concierge-agent", services)
         self.assertIn("local-lifestyle-agent", services)
-        self.assertEqual(len(self.orchestrator.a2a_logs), 2)
+        # A2A is a real round trip now: dispatch records + consumed replies.
+        self.assertGreaterEqual(len(self.orchestrator.a2a_logs), 4)
+        self.assertTrue(any(row.get("direction") == "reply" for row in self.orchestrator.a2a_logs))
         tools = self.orchestrator.registry_center.list_tools()
         self.assertIn("search_hotels", tools)
         self.assertIn("search_transports", tools)

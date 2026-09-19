@@ -1,10 +1,11 @@
-"""Module coordinates orchestration flow."""
+"""Coordinates orchestration flow: engines, A2A round trips, budgets, memory."""
 
 import os
 import json
 from typing import Dict, List, Optional
 
 from .a2a.router import A2ARouter
+from .a2a.worker import A2AWorker
 from .agents.manager_agent import (
     AncillaryRevenueAgent,
     ConciergeAgent,
@@ -28,6 +29,11 @@ from .memory.vector_store import VectorMemoryStore
 from .models import TravelRecommendation, TravelRequest
 from .recommendation.recommender import TravelRecommender
 from .orchestration.engine import build_engine_by_name, build_engine_from_env
+from .orchestration.budget import (
+    ExecutionBudget,
+    reset_current_budget,
+    set_current_budget,
+)
 from .harness.replay import OrchestrationHarness
 from .skills.loader import SkillLoader
 from .tools.data_store import DataStore
@@ -77,6 +83,31 @@ class TravelOrchestrator:
         )
         self.engine = build_engine_from_env(self.manager)
         self.shadow_engine_mode = os.getenv("TRAVEL_ORCHESTRATION_SHADOW_ENGINE", "").strip().lower()
+        self.a2a_worker = A2AWorker(self.a2a_router)
+        self.a2a_replies_enabled = os.getenv("TRAVEL_A2A_REPLIES", "true").strip().lower() == "true"
+        self._register_a2a_handlers()
+
+    def _register_a2a_handlers(self) -> None:
+        """Handlers execute agent tasks when A2A tasks are drained (infra-level
+        data access, deliberately outside the caller's MCP tool budget)."""
+
+        def route_plan(payload: Dict[str, object]) -> Dict[str, object]:
+            city = str(payload.get("city", ""))
+            hotels = self.data_store.hotels_by_city(city)
+            transports = self.data_store.transports_by_city(city)
+            return {
+                "city": city,
+                "hotel_count": len(hotels),
+                "transport_count": len(transports),
+                "status": "completed",
+            }
+
+        def trip_plan(payload: Dict[str, object]) -> Dict[str, object]:
+            days = int(payload.get("days", 0) or 0)
+            return {"days": days, "status": "acknowledged", "planner": "trip-planner-agent"}
+
+        self.a2a_worker.register_handler("route-making-agent", "route_plan", route_plan)
+        self.a2a_worker.register_handler("trip-planner-agent", "trip_plan", trip_plan)
 
     def _build_memory_store(self):
         backend = os.getenv("TRAVEL_MEMORY_BACKEND", "memory").strip().lower()
@@ -140,7 +171,7 @@ class TravelOrchestrator:
         return self._run_recommendation(request)
 
     def recommend_with_memory(self, request: TravelRequest, memory_key: str) -> TravelRecommendation:
-        return self._run_with_memory(request, memory_key, max_agent_steps=None, max_tool_calls=None, allowed_tools=None)
+        return self._run_with_memory(request, memory_key)
 
     def recommend_with_controls(
         self,
@@ -150,7 +181,8 @@ class TravelOrchestrator:
         allowed_tools: List[str],
     ) -> TravelRecommendation:
         self._validate_controls(max_agent_steps, max_tool_calls, allowed_tools)
-        return self._run_recommendation(request)
+        budget = ExecutionBudget(max_agent_steps=max_agent_steps, max_tool_calls=max_tool_calls)
+        return self._run_recommendation(request, budget=budget)
 
     def recommend_with_controls_and_memory(
         self,
@@ -160,7 +192,9 @@ class TravelOrchestrator:
         max_tool_calls: int,
         allowed_tools: List[str],
     ) -> TravelRecommendation:
-        return self._run_with_memory(request, memory_key, max_agent_steps, max_tool_calls, allowed_tools)
+        self._validate_controls(max_agent_steps, max_tool_calls, allowed_tools)
+        budget = ExecutionBudget(max_agent_steps=max_agent_steps, max_tool_calls=max_tool_calls)
+        return self._run_with_memory(request, memory_key, budget, allowed_tools)
 
     def close(self) -> None:
         self.registry_center.close()
@@ -172,50 +206,71 @@ class TravelOrchestrator:
     def query_memory(self, memory_key: str, query: str, limit: int = 10) -> List[str]:
         return self.memory_store.query_messages(memory_key, query, limit=limit)
 
-    def _run_recommendation(self, request: TravelRequest) -> TravelRecommendation:
-        self.event_bus.publish("recommend.requested", {
-            "city": request.city,
-            "days": request.days,
-            "budget": request.budget,
-            "travelers": request.travelers,
-        })
-        weights = self.skill_loader.load(request.preferences)
+    def _run_recommendation(self, request: TravelRequest, budget: Optional[ExecutionBudget] = None) -> TravelRecommendation:
+        budget_token = set_current_budget(budget)
         try:
-            route_message = self.a2a_router.send("manager-agent", "route-making-agent", "route_plan", {"city": request.city})
-            trip_message = self.a2a_router.send("manager-agent", "trip-planner-agent", "trip_plan", {"days": request.days})
-            _bounded_append(self.a2a_logs, route_message.__dict__, self.max_a2a_logs)
-            _bounded_append(self.a2a_logs, trip_message.__dict__, self.max_a2a_logs)
-            self.event_bus.publish("recommend.a2a_dispatched", {
-                "route_topic": route_message.topic,
-                "trip_topic": trip_message.topic,
+            self.event_bus.publish("recommend.requested", {
                 "city": request.city,
                 "days": request.days,
+                "budget": request.budget,
+                "travelers": request.travelers,
             })
-        except Exception as error:
-            self.event_bus.publish("recommend.a2a_dispatch_failed", {"city": request.city, "error": str(error)})
-        engine_result = self.engine.run(request, weights)
-        result = engine_result.recommendation
-        self.event_bus.publish("recommend.completed", {
-            "city": request.city,
-            "hotel_count": len(result.hotel_options),
-            "transport_count": len(result.transport_options),
-            "itinerary_days": len(result.itinerary),
-            "engagement_count": len(result.engagement_recommendations),
-            "engine": engine_result.engine,
-        })
-        self.event_bus.publish("recommend.engine_selected", {
-            "engine": engine_result.engine,
-            "metadata": engine_result.metadata,
-        })
-        self._emit_shadow_engine_observation(request, weights, engine_result.engine)
-        self.harness.capture(
-            request=request,
-            engine_name=engine_result.engine,
-            engine_metadata=engine_result.metadata,
-            a2a_logs=self.a2a_logs[-2:],
-            mcp_logs=self.registry.audit_logs,
-        )
-        return result
+            weights = self.skill_loader.load(request.preferences)
+            try:
+                route_message = self.a2a_router.send("manager-agent", "route-making-agent", "route_plan", {"city": request.city})
+                trip_message = self.a2a_router.send("manager-agent", "trip-planner-agent", "trip_plan", {"days": request.days})
+                _bounded_append(self.a2a_logs, route_message.__dict__, self.max_a2a_logs)
+                _bounded_append(self.a2a_logs, trip_message.__dict__, self.max_a2a_logs)
+                self.event_bus.publish("recommend.a2a_dispatched", {
+                    "route_topic": route_message.topic,
+                    "trip_topic": trip_message.topic,
+                    "city": request.city,
+                    "days": request.days,
+                })
+                self._process_a2a_replies()
+            except Exception as error:
+                self.event_bus.publish("recommend.a2a_dispatch_failed", {"city": request.city, "error": str(error)})
+            engine_result = self.engine.run(request, weights, budget)
+            result = engine_result.recommendation
+            if budget is not None:
+                self.event_bus.publish("recommend.budget_snapshot", budget.snapshot())
+            self.event_bus.publish("recommend.completed", {
+                "city": request.city,
+                "hotel_count": len(result.hotel_options),
+                "transport_count": len(result.transport_options),
+                "itinerary_days": len(result.itinerary),
+                "engagement_count": len(result.engagement_recommendations),
+                "engine": engine_result.engine,
+            })
+            self.event_bus.publish("recommend.engine_selected", {
+                "engine": engine_result.engine,
+                "metadata": engine_result.metadata,
+            })
+            self._emit_shadow_engine_observation(request, weights, engine_result.engine)
+            self.harness.capture(
+                request=request,
+                engine_name=engine_result.engine,
+                engine_metadata=engine_result.metadata,
+                a2a_logs=self.a2a_logs[-2:],
+                mcp_logs=self.registry.audit_logs,
+            )
+            return result
+        finally:
+            reset_current_budget(budget_token)
+
+    def _process_a2a_replies(self) -> None:
+        """Drain agent inboxes (round trip) and pull replies into the manager log."""
+        if not self.a2a_replies_enabled:
+            return
+        # Refresh in case tests/hosts swapped the router after construction.
+        self.a2a_worker.router = self.a2a_router
+        self.a2a_worker.drain("route-making-agent")
+        self.a2a_worker.drain("trip-planner-agent")
+        for reply in self.a2a_router.inbox("manager-agent"):
+            if isinstance(reply, dict):
+                record = dict(reply)
+                record["direction"] = "reply"
+                _bounded_append(self.a2a_logs, record, self.max_a2a_logs)
 
     def replay_last_harness_case(self) -> Dict[str, object]:
         return self.harness.replay_last(self)
@@ -264,14 +319,11 @@ class TravelOrchestrator:
         self,
         request: TravelRequest,
         memory_key: str,
-        max_agent_steps: Optional[int],
-        max_tool_calls: Optional[int],
-        allowed_tools: Optional[List[str]],
+        budget: Optional[ExecutionBudget] = None,
+        allowed_tools: Optional[List[str]] = None,
     ) -> TravelRecommendation:
         self.memory_store.append_message(memory_key, _serialize_event("request", request))
-        if max_agent_steps is not None and max_tool_calls is not None and allowed_tools is not None:
-            self._validate_controls(max_agent_steps, max_tool_calls, allowed_tools)
-        result = self._run_recommendation(request)
+        result = self._run_recommendation(request, budget=budget)
         self.memory_store.append_message(memory_key, _serialize_event("recommendation", result))
         return result
 

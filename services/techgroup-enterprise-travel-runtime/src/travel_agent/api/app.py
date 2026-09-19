@@ -15,6 +15,7 @@ if fastapi_module is not None:
     FastAPIRequest = getattr(fastapi_loaded, "Request")
 
 from ..access.control import enforce_tools_for_tier, evaluate_policy
+from ..application.recommend_service import RecommendApplicationService
 from ..membership_store import MembershipStore
 from ..models import TravelRequest
 from ..orchestrator import build_orchestrator
@@ -38,6 +39,7 @@ membership_store = MembershipStore()
 traffic_guard = TrafficGuard()
 max_runtime_log_payload = int(os.getenv("TRAVEL_RUNTIME_RESPONSE_LOG_LIMIT", "50"))
 oidc_authenticator = build_authenticator_from_env()
+application_service = RecommendApplicationService(orchestrator)
 
 
 def require_bearer_identity(authorization_header: str) -> Dict[str, str]:
@@ -152,6 +154,10 @@ def runtime_recommend(payload: Dict[str, Any], headers: Optional[Dict[str, Any]]
         traffic_guard.release_inflight(inflight_scope)
     memory_after = orchestrator.read_memory(memory_key)
     memory_hits = orchestrator.query_memory(memory_key, request.city, limit=3)
+    try:
+        application_service.plan_trip(request, result, tenant_id=tenant_id, user_id=user_id)
+    except Exception as plan_error:  # noqa: BLE001 - read path survives domain invariant violations
+        logger.warning("trip plan build skipped for city=%s: %s", request.city, plan_error)
     audit_logs = orchestrator.registry.audit_logs[-max_runtime_log_payload:]
     a2a_logs = orchestrator.a2a_logs[-max_runtime_log_payload:]
     return {
@@ -224,3 +230,12 @@ else:
         if request is not None and auth_mode() == "oidc":
             require_bearer_identity(request.headers.get("Authorization", ""))
         return a2a_inbox(receiver)
+
+    if os.getenv("TRAVEL_RUNTIME_GRPC_ENABLED", "false").strip().lower() == "true":
+        from ..grpc.runtime_server import serve_grpc
+
+        _grpc_server = serve_grpc(runtime_recommend)
+
+        @app.get("/health/grpc")
+        def grpc_health() -> Dict[str, str]:
+            return {"status": "ok", "grpc_port": os.getenv("TRAVEL_RUNTIME_GRPC_PORT", "9092")}

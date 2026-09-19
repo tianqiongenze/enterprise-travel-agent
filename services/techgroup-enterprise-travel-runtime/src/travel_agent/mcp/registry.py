@@ -1,8 +1,10 @@
-"""Module provides service components and helpers."""
+"""MCP tool registry with audit logging and per-request tool-call budgets."""
 
 import time
 import os
 from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING
+
+from ..orchestration.budget import current_budget
 
 if TYPE_CHECKING:
     from ..discovery.base import ServiceRegistry
@@ -38,6 +40,9 @@ class MCPToolRegistry:
     ) -> Any:
         if name not in self._tools:
             raise ValueError("Tool not found: %s" % name)
+        budget = current_budget()
+        if budget is not None:
+            budget.consume_tool_call(name)
         started = time.time()
         result = self._tools[name](**kwargs)
         elapsed_ms = int((time.time() - started) * 1000)
