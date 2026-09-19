@@ -109,8 +109,14 @@ class RealNacosRegistry(ServiceRegistry):
         params = {"namespaceId": self.namespace, "groupName": self.group, "pageNo": "1", "pageSize": "500"}
         params.update(self._auth_params())
         auth = _auth_tuple(self.username, self.password)
-        response = session.get(self.server.rstrip("/") + "/nacos/v1/ns/service/list", params=params, auth=auth, timeout=3)
-        response.raise_for_status()
+        try:
+            response = session.get(self.server.rstrip("/") + "/nacos/v1/ns/service/list", params=params, auth=auth, timeout=3)
+            response.raise_for_status()
+        except Exception as error:
+            # Discovery must degrade like register(): an unreachable registry
+            # cannot be allowed to fail every recommend request.
+            logger.warning("nacos list_services failed (%s); degrading to local registry view", error)
+            return sorted(self._registered.keys())
         payload = response.json()
         names = payload.get("doms", [])
         return sorted([_strip_group(name) for name in names])
@@ -134,8 +140,14 @@ class RealNacosRegistry(ServiceRegistry):
         params = {"namespaceId": self.namespace, "groupName": self.group, "pageNo": "1", "pageSize": "1000"}
         params.update(self._auth_params())
         auth = _auth_tuple(self.username, self.password)
-        response = session.get(self.server.rstrip("/") + "/nacos/v1/ns/service/list", params=params, auth=auth, timeout=3)
-        response.raise_for_status()
+        try:
+            response = session.get(self.server.rstrip("/") + "/nacos/v1/ns/service/list", params=params, auth=auth, timeout=3)
+            response.raise_for_status()
+        except Exception as error:
+            # Same degrade rule as list_services: tools fall back to the
+            # locally registered view when the registry is unreachable.
+            logger.warning("nacos list_tools failed (%s); degrading to local tool cache", error)
+            return dict(self._tools_cache)
         payload = response.json()
         names = payload.get("doms", [])
         rows = dict(self._tools_cache)

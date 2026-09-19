@@ -1,0 +1,84 @@
+# Single-node drill profile: gateway with OIDC disabled (travel.security.mode=off)
+# and demo internal secret matching the API default. Staging/prod must use
+# oauth2 mode with real secrets (enforced by go-live gate).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: travel-gateway-local
+  namespace: travel-local
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: travel-gateway
+  template:
+    metadata:
+      labels:
+        app: travel-gateway
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: travel-gateway
+          image: enterprise-travel-agent-gateway:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TRAVEL_RUNTIME_BASE_URL
+              value: http://travel-agent-api-local.travel-local.svc.cluster.local:8000
+            - name: TRAVEL_SECURITY_MODE
+              value: "off"
+            - name: TRAVEL_INTERNAL_SHARED_SECRET
+              value: demo-internal-secret
+            - name: TRAVEL_OIDC_ISSUER
+              value: http://keycloak:8080/realms/travel
+            - name: JAVA_TOOL_OPTIONS
+              value: -XX:MaxRAMPercentage=70
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          readinessProbe:
+            httpGet:
+              path: /api/v1/travel/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/v1/travel/health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: travel-gateway
+  namespace: travel-local
+spec:
+  selector:
+    app: travel-gateway
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP

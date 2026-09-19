@@ -28,6 +28,7 @@ public class PythonRuntimeClient {
     private final InternalTokenService internalTokenService;
     private final String mtlsClientId;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public PythonRuntimeClient(
             RestTemplateBuilder builder,
             @Value("${travel.runtime.base-url}") String baseUrl,

@@ -9,6 +9,23 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from statistics import mean
 
 import requests
+from requests.adapters import HTTPAdapter
+
+# Connection pooling: one session per worker thread. Opening a fresh TCP
+# connection per request exhausts ephemeral ports/conntrack in container
+# networks and produces spurious connection errors at load.
+_local = threading.local()
+
+
+def _session() -> requests.Session:
+    session = getattr(_local, "session", None)
+    if session is None:
+        session = requests.Session()
+        adapter = HTTPAdapter(pool_connections=64, pool_maxsize=64, max_retries=0)
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
+        _local.session = session
+    return session
 
 
 def _single_call(base_url: str, timeout_sec: int) -> dict:
@@ -21,7 +38,7 @@ def _single_call(base_url: str, timeout_sec: int) -> dict:
     }
     start = time.perf_counter()
     try:
-        response = requests.post(base_url.rstrip("/") + "/recommend", json=payload, timeout=timeout_sec)
+        response = _session().post(base_url.rstrip("/") + "/recommend", json=payload, timeout=timeout_sec)
         elapsed = (time.perf_counter() - start) * 1000
         return {"ok": response.status_code == 200, "latency_ms": elapsed, "status": response.status_code}
     except Exception:
