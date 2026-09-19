@@ -154,6 +154,20 @@ Python 运行环境升级：
   - `agentscope`
   - `oneagents`（按实际发行版选择）
 
+可选可观测性（OpenTelemetry，按需安装）：
+
+- `requirements-otel-optional.txt`：`opentelemetry-sdk/api/exporter-otlp-proto-grpc/instrumentation-fastapi`
+- 启用方式：`TRAVEL_OTEL_ENABLED=true`（默认关闭，零硬依赖）
+- 关键环境变量：
+  - `TRAVEL_OTEL_ENDPOINT`：OTLP gRPC 地址，默认 `http://localhost:4317`
+  - `TRAVEL_OTEL_SERVICE_NAME`：服务名，默认 `travel-agent-runtime`
+  - `TRAVEL_ENV`：部署环境标签，默认 `local`
+- 接线点：
+  - Runtime：`api/app.py` 应用创建时调用 `configure_tracing()`；推荐主链路包裹 `travel_agent.recommend` span（`observability/tracing.py::trace_recommendation`），把网关传入的 `X-Trace-Id` 桥接为 `travel.trace_id` 属性
+  - Web：axios 拦截器每请求生成 `X-Trace-Id`（`apps/techgroup-enterprise-travel-web/src/api.ts`）
+  - Gateway：透传 `X-Trace-Id` 并注入 W3C traceparent（`PythonRuntimeClient.java`）
+- CI 断言：`.github/workflows/ci-cd.yml` python-tests job 安装 otel 可选依赖后运行 `tests/test_otel_tracing.py`（`TRAVEL_OTEL_ENABLED=true`，内存 exporter 断言 span 发出与 X-Trace-Id 桥接）
+
 ## 5.3 记忆存储（Memory）
 
 - 默认：内存存储（无需额外依赖）

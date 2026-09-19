@@ -139,13 +139,14 @@ def runtime_recommend(payload: Dict[str, Any], headers: Optional[Dict[str, Any]]
         membership_tier=tier,
     )
     try:
-        result = orchestrator.recommend_with_controls_and_memory(
-            request=request,
-            memory_key=memory_key,
-            max_agent_steps=int(payload.get("maxAgentSteps", 10)),
-            max_tool_calls=int(payload.get("maxToolCalls", 10)),
-            allowed_tools=allowed_tools,
-        )
+        with trace_recommendation(trace_id, tenant_id, current_engine):
+            result = orchestrator.recommend_with_controls_and_memory(
+                request=request,
+                memory_key=memory_key,
+                max_agent_steps=int(payload.get("maxAgentSteps", 10)),
+                max_tool_calls=int(payload.get("maxToolCalls", 10)),
+                allowed_tools=allowed_tools,
+            )
         traffic_guard.record_success("runtime_recommend")
     except Exception:
         traffic_guard.record_failure("runtime_recommend")
@@ -199,6 +200,9 @@ def a2a_inbox(receiver: str) -> Dict[str, Any]:
 if FastAPI is None:
     app = None
 else:
+    from ..observability.tracing import configure_tracing, trace_recommendation
+
+    configure_tracing()
     app = FastAPI(title="Enterprise Travel Agent API", version="0.1.0")
 
     @app.get("/health")
@@ -210,7 +214,7 @@ else:
         return recommend(payload)
 
     @app.post("/runtime/recommend")
-    def runtime_recommend_endpoint(payload: Dict[str, Any], request: Any) -> Dict[str, Any]:
+    def runtime_recommend_endpoint(payload: Dict[str, Any], request: FastAPIRequest = None) -> Dict[str, Any]:
         runtime_headers = {
             "X-Trace-Id": request.headers.get("X-Trace-Id", ""),
             "X-Internal-Client-Id": request.headers.get("X-Internal-Client-Id", ""),
@@ -220,13 +224,13 @@ else:
         return runtime_recommend(payload, runtime_headers)
 
     @app.post("/a2a/send")
-    def a2a_send_endpoint(payload: Dict[str, Any], request: Any = None) -> Dict[str, Any]:
+    def a2a_send_endpoint(payload: Dict[str, Any], request: FastAPIRequest = None) -> Dict[str, Any]:
         if request is not None and auth_mode() == "oidc":
             require_bearer_identity(request.headers.get("Authorization", ""))
         return a2a_send(payload)
 
     @app.get("/a2a/inbox/{receiver}")
-    def a2a_inbox_endpoint(receiver: str, request: Any = None) -> Dict[str, Any]:
+    def a2a_inbox_endpoint(receiver: str, request: FastAPIRequest = None) -> Dict[str, Any]:
         if request is not None and auth_mode() == "oidc":
             require_bearer_identity(request.headers.get("Authorization", ""))
         return a2a_inbox(receiver)

@@ -45,6 +45,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -r requirements-otel-optional.txt
           pip install aiosqlite coverage
       - name: Run tests with coverage
         run: |
@@ -54,6 +55,11 @@ jobs:
             -m unittest discover -s tests -p "test_*.py"
           coverage report --fail-under=50
           coverage xml -o coverage-python.xml
+      - name: Assert OTel trace wiring (spans + X-Trace-Id bridge)
+        run: |
+          TRAVEL_OTEL_ENABLED=true TRAVEL_OTEL_ENDPOINT=http://localhost:4317 \
+          PYTHONPATH="$PWD/services/techgroup-enterprise-travel-runtime" \
+          python -m pytest tests/test_otel_tracing.py -q
 
   java-tests:
     runs-on: ubuntu-latest

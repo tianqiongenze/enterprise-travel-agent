@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import logging
 import os
+from contextlib import contextmanager
+from typing import Any, Dict, Iterator, Optional
 
 logger = logging.getLogger("travel_agent.otel")
 
@@ -60,3 +62,53 @@ def tracer(name: str = "travel_agent.runtime"):
     from opentelemetry import trace
 
     return trace.get_tracer(name)
+
+
+def start_span(name: str, attributes: Optional[Dict[str, Any]] = None):
+    """Start a span on the runtime tracer. Returns a no-op CM when otel is off."""
+    if not is_enabled() or not _configured:
+        return _NullSpan()
+    span = tracer().start_span(name, attributes=attributes or {})
+    return span
+
+
+class _NullSpan:
+    """Stand-in span used when OpenTelemetry is disabled or unavailable."""
+
+    def __enter__(self) -> "_NullSpan":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> bool:
+        return False
+
+    def set_attribute(self, key: str, value: Any) -> None:
+        pass
+
+    def record_exception(self, exception: BaseException) -> None:
+        pass
+
+    def set_status(self, *args: Any, **kwargs: Any) -> None:
+        pass
+
+    def end(self) -> None:
+        pass
+
+
+@contextmanager
+def trace_recommendation(trace_id: str, tenant_id: str, engine: str) -> Iterator[Any]:
+    """Span wrapping a full recommendation; bridges the gateway X-Trace-Id."""
+    span = start_span(
+        "travel_agent.recommend",
+        attributes={
+            "travel.trace_id": trace_id,
+            "travel.tenant_id": tenant_id,
+            "travel.engine": engine,
+        },
+    )
+    try:
+        yield span
+    except Exception as error:
+        span.record_exception(error)
+        raise
+    finally:
+        span.end()
