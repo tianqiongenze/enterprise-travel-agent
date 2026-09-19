@@ -31,19 +31,19 @@ spec:
         - name: TRAVEL_ETCD_CLIENT_MODE
           value: legacy
         - name: TRAVEL_EVENT_BUS
-          value: pulsar
+          value: local
         - name: PULSAR_SERVICE_URL
           value: pulsar://pulsar:6650
         - name: TRAVEL_MEMORY_BACKEND
-          value: redis
-        - name: TRAVEL_REDIS_MODE
-          value: cluster
-        - name: TRAVEL_REDIS_URL
-          value: redis://redis-cluster:7000
+          value: memory
         - name: TRAVEL_VECTOR_BACKEND
           value: qdrant
         - name: QDRANT_URL
           value: http://qdrant:6333
+        - name: TRAVEL_A2A_TRANSPORT
+          value: mock-distributed
+        - name: TRAVEL_ORCHESTRATION_ENGINE
+          value: langgraph
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true

@@ -6,7 +6,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 COPY requirements.txt requirements-etcd-legacy.txt ./
-RUN pip install --no-cache-dir -r requirements.txt -r requirements-etcd-legacy.txt
+# requirements-etcd-legacy.txt (etcd3) is excluded: its sdist setup.py imports
+# pkg_resources, removed in setuptools>=81, so it cannot build in a fresh env.
+# Install it manually only for legacy etcd drills.
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY services/techgroup-enterprise-travel-runtime /app/services/techgroup-enterprise-travel-runtime
 COPY skills /app/skills

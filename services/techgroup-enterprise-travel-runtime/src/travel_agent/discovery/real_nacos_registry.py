@@ -1,6 +1,9 @@
 """Module provides service components and helpers."""
 
+import logging
 import os
+
+logger = logging.getLogger("travel_agent.discovery.nacos")
 import threading
 import time
 import json
@@ -56,8 +59,15 @@ class RealNacosRegistry(ServiceRegistry):
             "metadata": '{"endpoint":"%s"}' % endpoint,
         }
         auth = _auth_tuple(self.username, self.password)
-        response = session.post(self.server.rstrip("/") + "/nacos/v1/ns/instance", params=params, data=data, auth=auth, timeout=3)
-        response.raise_for_status()
+        try:
+            response = session.post(self.server.rstrip("/") + "/nacos/v1/ns/instance", params=params, data=data, auth=auth, timeout=3)
+            response.raise_for_status()
+        except Exception as error:
+            # An unreachable registry must not prevent boot: degrade to the
+            # local registry view unless the operator demanded fail-fast.
+            if os.getenv("TRAVEL_REGISTRY_FAIL_FAST", "false").strip().lower() == "true":
+                raise
+            logger.warning("nacos register %s failed (%s); degrading to local registry view", service_name, error)
         self._registered[service_name] = {"endpoint": endpoint, "ip": host, "port": str(port)}
 
     def discover(self, service_name: str) -> str:
@@ -240,11 +250,19 @@ class RealNacosRegistry(ServiceRegistry):
 
 
 def _parse_endpoint(endpoint: str) -> tuple:
-    cleaned = endpoint.replace("http://", "").replace("https://", "")
-    if ":" not in cleaned:
-        return cleaned, 80
-    host, port = cleaned.rsplit(":", 1)
-    return host, int(port)
+    # Endpoints may carry a path (e.g. "http://host:8000/agent/manager");
+    # only the host:port part identifies the service instance.
+    from urllib.parse import urlparse
+
+    if "//" not in endpoint:
+        endpoint = "http://" + endpoint
+    parsed = urlparse(endpoint)
+    host = parsed.hostname or ""
+    if not host:
+        raise ValueError(f"invalid service endpoint: {endpoint!r}")
+    if parsed.port:
+        return host, int(parsed.port)
+    return host, 443 if parsed.scheme == "https" else 80
 
 
 def _auth_tuple(username: str, password: str):

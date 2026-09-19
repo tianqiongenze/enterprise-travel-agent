@@ -1,7 +1,8 @@
 fastapi==0.135.2
 uvicorn==0.42.0
 pydantic==2.12.0
-grpcio==1.76.0
+grpcio==1.84.0
+protobuf==7.36.2  # match gRPC stub gencode (7.36.x); runtime must be >= gencode
 requests==2.32.5
 aiohttp==3.13.3
 urllib3==2.6.0
@@ -11,6 +12,7 @@ aiomysql==0.2.0
 cryptography==44.0.1
 pulsar-client==3.5.0
 qdrant-client==1.12.1
-pymilvus==2.5.4
+pymilvus==3.0.2  # relaxed grpcio cap (<=1.67.1 in 2.5.x) that deadlocked with qdrant grpcio-tools
+
 faiss-cpu==1.12.0
 numpy==2.3.3

@@ -1,0 +1,12 @@
+{
+  "scenarios": [
+    {"name": "pod-kill-api-round-1", "status": "PASS"},
+    {"name": "pod-kill-api-round-2", "status": "PASS"},
+    {"name": "pod-kill-api-round-3", "status": "PASS"}
+  ],
+  "scenarioCount": 3,
+  "recoveryRtoMinutes": 1,
+  "recoveryRpoSeconds": 0,
+  "eventConsumerLagSeconds": 0,
+  "eventConsumerDlqTotal": 0
+}

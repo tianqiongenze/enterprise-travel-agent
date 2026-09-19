@@ -1,0 +1,44 @@
+{
+  "generatedAt": 1789813171,
+  "evidenceKind": "multi-region-fault-drill",
+  "pass": false,
+  "scenarioCount": 3,
+  "passedScenarios": 3,
+  "recoveryRtoMinutes": 1,
+  "recoveryRpoSeconds": 0,
+  "eventConsumerLagSeconds": 0.0,
+  "eventConsumerDlqTotal": 0.0,
+  "evidenceSource": "kind-cluster-drill",
+  "runId": "kind-drill-20260919",
+  "environment": "local",
+  "schema": "native",
+  "sourcePath": "D:\\移动云盘同步盘\\enterprise-travel-agent\\tmp_drill.json",
+  "scenarios": [
+    {
+      "name": "pod-kill-api-round-1",
+      "status": "PASS"
+    },
+    {
+      "name": "pod-kill-api-round-2",
+      "status": "PASS"
+    },
+    {
+      "name": "pod-kill-api-round-3",
+      "status": "PASS"
+    }
+  ],
+  "linkedBenchmark": {
+    "schema": "native",
+    "sourcePath": "D:\\移动云盘同步盘\\enterprise-travel-agent\\stress\\report_kind.json",
+    "targetConcurrency": 50,
+    "achievedConcurrency": 50,
+    "p95Ms": 1304.63,
+    "p99Ms": 1667.79,
+    "errorRatePercent": 12.469999999999999,
+    "pass": false
+  },
+  "note": "Signed evidence ingested from external fault-drill output.",
+  "signed": true,
+  "signatureAlgorithm": "HMAC-SHA256",
+  "signature": "1e53b09fe78656a25cb06d3640c0fa38fcdaa08b0fdd9560d8d39620f4490422"
+}
