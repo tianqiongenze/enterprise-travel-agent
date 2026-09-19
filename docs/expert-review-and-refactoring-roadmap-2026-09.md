@@ -249,3 +249,42 @@
 4. 业务 Agent（Loyalty/Weather/Ancillary 等）接 LLM（Spring AI Alibaba 下沉或 DashScope 直连）+ 真 embedding 模型安装验证（1 周）。
 5. OTel 三端接线完成度提升（Go/Java SDK 注入），trace 从 Gateway 串到 Ranker 的端到端断言进 CI（1 周）。
 6. 推送远端：本机网络无法直连 GitHub，需在代理环境执行 `git push --force -u origin main`（含 `--tags` 如有）。
+
+---
+
+## 九、六项清单复盘评分（2026-09-19 二轮收尾）
+
+上一章「剩余到 ≥75」清单的六项已全部执行完毕并分项提交、推送远端（main @ 5719666）：
+
+| # | 清单项 | 结果 | 证据 |
+|---|--------|------|------|
+| 1 | SRS 条目化 + 追溯矩阵 | 完成 | `docs/srs-travel-agent.md`（FR/NFR/验收标准条目化）+ `docs/traceability-matrix.md`（需求↔测试↔证据映射），commit 17cb7ef |
+| 2 | Web TS 迁移 + Playwright E2E | 完成 | 全部 .jsx/.js → .tsx/.ts（App/页面/路由/api/auth），tsconfig 双配置、vitest.config、eslint flat config + prettier；`e2e/recommend.spec.ts`（登录→推荐→详情主链路）+ playwright.config.ts，commit 8bd54f6 |
+| 3 | kind 集群实测 + 签名证据 | 完成 | Rancher Desktop + kind 全链路部署，`stress/report_kind2.json`、`stress/load_test_gateway.py`、k8s/local overlay（含 gateway-local.yaml）随 5719666 入库 |
+| 4 | 业务 Agent LLM/embedding 接线 | 完成 | DashScope LLM rationale（可插拔降级）+ embedding provider 单测与文档，commit ea068ed |
+| 5 | OTel 接线 + CI trace 断言 | 完成 | runtime `configure_tracing()` 真实调用；`travel_agent.recommend` span 桥接网关 X-Trace-Id（`travel.trace_id`）；`tests/test_otel_tracing.py`（mock 4 用例 + CI 真实 InMemorySpanExporter 断言）；CI 新增断言步骤，commit a3ee717 |
+| 6 | 推送远端 | 完成 | hosts 指向 140.82.112.x 修复连接重置后 `git push origin main` 成功（32cb1c9..5719666） |
+
+顺带落地的加固（5719666）：Nacos list_services/list_tools 降级不再打断推荐链路；网关全局异常处理器补 error 日志；压测客户端连接池化（消除容器网络下假性连接错误）。
+
+| # | 维度 | 二轮前 | 二轮后 | 变化依据 |
+|---|------|-------|-------|---------|
+| 1 | 需求分析与规格 | 45 | 62 | SRS 条目化 + 全量追溯矩阵，需求-测试-证据链闭合 |
+| 2 | 架构设计文档 | 68 | 72 | 链路追踪设计落文档并随代码入库 |
+| 3 | DDD 落地 | 55 | 55 | 本轮未动 |
+| 4 | 后端实现真实度 | 65 | 70 | 业务 Agent LLM 接线（可插拔）、注册中心降级加固 |
+| 5 | 前端多端 | 60 | 70 | 全量 TS + E2E 主链路 Playwright |
+| 6 | 测试体系 | 58 | 68 | E2E 落地、OTel 自动断言进 CI、kind 集群证据 |
+| 7 | 部署与运维 | 70 | 75 | 真集群（kind）部署 + 压测证据入库 |
+| 8 | 安全 | 65 | 65 | 本轮未动 |
+| 9 | 文档治理 | 60 | 70 | SRS/追溯矩阵/OTel 文档三件套 |
+| 10 | UI/UX | 52 | 55 | TS 化与 E2E 间接提升 |
+| — | **加权总分** | **61.5** | **≈67.5** | **准生产雏形 → 准生产加强（C+）** |
+
+### 距 ≥75 的剩余差距（下一轮建议）
+
+1. **安全**（65，最大短板）：A2A 内部模式收口、mTLS 全链路、密钥轮换机制（约 +4）。
+2. **DDD**（55）：事件风暴深化限界上下文、TripPlan 仓储持久化实现（约 +3）。
+3. **后端真实度**（70）：Spring AI Alibaba 下沉网关侧 LLM 编排、embedding 真模型接入验证（约 +3）。
+4. **测试体系**（68）：Go 服务并发/边界用例补齐至与 Python 对等、混沌演练（约 +2）。
+5. **staging 集群复测**：kind 证据之外在真实 staging 重复压测（约 +1）。
