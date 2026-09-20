@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-09-20T13:02:23+0800",
+  "backend_env": "auto",
+  "checks": [
+    {
+      "provider": "hash",
+      "result": "PASS",
+      "checks": [
+        {
+          "text": "杭州 家庭 酒店 亲子",
+          "dim": 64,
+          "expected_dim": 64,
+          "norm": 1.0,
+          "ok": true
+        },
+        {
+          "text": "北京 商务 出行",
+          "dim": 64,
+          "expected_dim": 64,
+          "norm": 1.0,
+          "ok": true
+        }
+      ]
+    },
+    {
+      "provider": "dashscope",
+      "result": "SKIP",
+      "reason": "AI_DASHSCOPE_API_KEY/DASHSCOPE_API_KEY not set; real-embedding call not performed (honest skip)"
+    }
+  ],
+  "verdict": "SKIP"
+}

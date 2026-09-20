@@ -31,3 +31,9 @@ travel:
     # Required outside local dev; the go-live gate rejects the demo value.
     shared-secret: ${TRAVEL_INTERNAL_SHARED_SECRET:demo-internal-secret}
     mtls-client-id: ${TRAVEL_INTERNAL_CLIENT_ID:techgroup-enterprise-travel-gateway}
+  ai:
+    advisor:
+      # Master switch for Spring AI Alibaba advisor calls (rationale / assistant rewrite).
+      enabled: ${TRAVEL_AI_ADVISOR_ENABLED:true}
+      # Per-call timeout; on timeout the advisor degrades to the deterministic fallback.
+      timeout-seconds: ${TRAVEL_AI_ADVISOR_TIMEOUT_SECONDS:5}

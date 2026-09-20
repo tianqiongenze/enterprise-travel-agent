@@ -104,6 +104,44 @@ class TravelGatewayControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/travel/recommend"));
     }
 
+    @Test
+    void assistantRewriteShouldReturnAdvisorPayload() throws Exception {
+        Mockito.when(springAiAlibabaAdvisorService.advise(Mockito.any(), Mockito.anyString()))
+                .thenReturn(new SpringAiAlibabaAdvisorService.AdvisorResult("改写后的文本", false, null));
+
+        mockMvc.perform(post("/api/v1/travel/assistant/rewrite")
+                        .header("X-Trace-Id", "trace-rewrite-001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"text\":\"请优化这段行程说明\",\"city\":\"北京\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.traceId").value("trace-rewrite-001"))
+                .andExpect(jsonPath("$.rewritten").value("改写后的文本"))
+                .andExpect(jsonPath("$.degraded").value(false));
+    }
+
+    @Test
+    void assistantRewriteShouldExposeDegradation() throws Exception {
+        Mockito.when(springAiAlibabaAdvisorService.advise(Mockito.any(), Mockito.anyString()))
+                .thenReturn(new SpringAiAlibabaAdvisorService.AdvisorResult("兜底建议", true, "chat-client-unavailable"));
+
+        mockMvc.perform(post("/api/v1/travel/assistant/rewrite")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"text\":\"请优化这段行程说明\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.degraded").value(true))
+                .andExpect(jsonPath("$.degradedReason").value("chat-client-unavailable"))
+                .andExpect(jsonPath("$.rewritten").value("兜底建议"));
+    }
+
+    @Test
+    void assistantRewriteShouldRejectBlankText() throws Exception {
+        mockMvc.perform(post("/api/v1/travel/assistant/rewrite")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"text\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
     private Map<String, Object> validRequest() {
         Map<String, Object> req = new HashMap<>();
         req.put("tenantId", "tenant-a");
