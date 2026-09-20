@@ -1,0 +1,3 @@
+# Gap2 持久化集成测试专用依赖（可选安装）
+# 主依赖已在根 requirements.txt（SQLAlchemy）；此文件仅补测试用异步驱动。
+aiosqlite==0.20.0

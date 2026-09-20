@@ -7,10 +7,13 @@ import os
 from typing import List, Optional
 
 from ..domain.travel import Budget, HotelOption, TransportOption, TripPlan, TripPlanRepository
+from ..events.bus import EventBus, LocalEventBus
 from ..infrastructure.repositories import InMemoryTripPlanRepository, SqlAlchemyTripPlanRepository
 from ..models import TravelRecommendation, TravelRequest
 
 logger = logging.getLogger("travel_agent.application")
+
+_DOMAIN_EVENT_TOPIC = "travel.plan.domain-events"
 
 
 def build_plan_repository() -> TripPlanRepository:
@@ -26,9 +29,18 @@ class RecommendApplicationService:
     outage must not fail the traveler's read path.
     """
 
-    def __init__(self, orchestrator, repository: Optional[TripPlanRepository] = None) -> None:
+    def __init__(
+        self,
+        orchestrator,
+        repository: Optional[TripPlanRepository] = None,
+        event_bus: Optional[EventBus] = None,
+    ) -> None:
         self._orchestrator = orchestrator
         self._repository = repository or build_plan_repository()
+        # Out-of-band event bus for domain events recorded on the aggregate;
+        # deliberately separate from the orchestrator's own bus so the domain
+        # path stays publishable even when the orchestrator runs bus-less.
+        self._event_bus = event_bus or LocalEventBus()
         self._persist = os.getenv("TRAVEL_PERSIST_TRIP_PLANS", "true").strip().lower() == "true"
 
     def plan_trip(
@@ -70,6 +82,7 @@ class RecommendApplicationService:
         if self._persist:
             try:
                 self._repository.save(plan)
+                self._publish_domain_events(plan)
             except Exception as error:  # noqa: BLE001 - read path must survive write outage
                 logger.warning("trip plan persistence failed (plan stays in-memory of caller): %s", error)
         if tenant_id and user_id:
@@ -81,6 +94,18 @@ class RecommendApplicationService:
                 plan.city,
             )
         return plan
+
+    def _publish_domain_events(self, plan: TripPlan) -> None:
+        """Republish the aggregate's collected domain events onto the bus.
+
+        Never raises: an event-outage must not break the request, same bargain
+        as the persistence failure path above.
+        """
+        for record in getattr(plan, "events", []):
+            try:
+                self._event_bus.publish(_DOMAIN_EVENT_TOPIC, {"plan_id": plan.plan_id, **record})
+            except Exception as error:  # noqa: BLE001 - event outage must not fail request
+                logger.warning("domain event publication failed for %s: %s", record.get("event"), error)
 
     def get_plan(self, plan_id: str) -> Optional[TripPlan]:
         return self._repository.get(plan_id)
