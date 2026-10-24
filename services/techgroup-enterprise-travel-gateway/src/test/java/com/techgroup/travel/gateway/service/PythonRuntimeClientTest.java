@@ -23,7 +23,7 @@ class PythonRuntimeClientTest {
     void recommendShouldAttachInternalHeadersAndReturnBody() {
         RestTemplate restTemplate = new RestTemplate(new SimpleClientHttpRequestFactory());
         MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
-        InternalTokenService tokenService = new InternalTokenService("secret-test");
+        InternalTokenService tokenService = new InternalTokenService("secret-test", "");
         PythonRuntimeClient client = new PythonRuntimeClient(restTemplate, "http://localhost:8000", "gateway-a", tokenService);
 
         server.expect(requestTo("http://localhost:8000/runtime/recommend"))
@@ -43,7 +43,7 @@ class PythonRuntimeClientTest {
     void recommendShouldFailWhenBodyIsEmpty() {
         RestTemplate restTemplate = new RestTemplate(new SimpleClientHttpRequestFactory());
         MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
-        InternalTokenService tokenService = new InternalTokenService("secret-test");
+        InternalTokenService tokenService = new InternalTokenService("secret-test", "");
         PythonRuntimeClient client = new PythonRuntimeClient(restTemplate, "http://localhost:8000", "gateway-a", tokenService);
 
         server.expect(requestTo("http://localhost:8000/runtime/recommend"))
