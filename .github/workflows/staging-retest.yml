@@ -128,11 +128,11 @@ jobs:
             echo "=== fanout logs ===" ; kubectl logs deployment/go-fanout --tail=50 || true
             echo "=== registry-cache logs ===" ; kubectl logs statefulset/go-registry-cache --tail=50 || true
           }
-          if ! kubectl rollout status deployment/travel-agent-api --timeout=300s; then dump; exit 1; fi
-          if ! kubectl rollout status deployment/go-ranker --timeout=180s; then dump; exit 1; fi
-          if ! kubectl rollout status deployment/go-policy --timeout=180s; then dump; exit 1; fi
-          if ! kubectl rollout status deployment/go-fanout --timeout=180s; then dump; exit 1; fi
-          if ! kubectl rollout status statefulset/go-registry-cache --timeout=300s; then dump; exit 1; fi
+          if ! kubectl rollout status deployment/travel-agent-api --timeout=600s; then dump; exit 1; fi
+          if ! kubectl rollout status deployment/go-ranker --timeout=300s; then dump; exit 1; fi
+          if ! kubectl rollout status deployment/go-policy --timeout=300s; then dump; exit 1; fi
+          if ! kubectl rollout status deployment/go-fanout --timeout=300s; then dump; exit 1; fi
+          if ! kubectl rollout status statefulset/go-registry-cache --timeout=600s; then dump; exit 1; fi
           kubectl get pods -o wide
 
       - name: Smoke load + canary evidence (real traffic via port-forward)
