@@ -1,0 +1,89 @@
+{
+  "title": "Gap5 staging 集群复测（kind 实测）",
+  "generated_at_utc": "2026-10-24T18:30:31Z",
+  "ci_run": {
+    "workflow": "staging-retest-kind",
+    "run_id": 40119911250,
+    "url": "https://github.com/tianqiongenze/enterprise-travel-agent/actions/runs/40119911250",
+    "head_sha": "1c5ac1b8cb286191f8a43027ea7de1e5776c7f5a",
+    "conclusion": "success"
+  },
+  "environment": {
+    "cluster": "kind travel-staging (kind v0.29.0, GitHub Actions ubuntu runner)",
+    "kustomize": "v5.5.0 standalone, --load-restrictor LoadRestrictionsNone",
+    "overlay": "platform/deploy/k8s/kustomize/overlays/staging",
+    "images": [
+      "enterprise-travel-agent-api:staging",
+      "enterprise-travel-agent-go-ranker:local",
+      "enterprise-travel-agent-go-policy:local",
+      "enterprise-travel-agent-go-fanout:local",
+      "enterprise-travel-agent-go-registry-cache:local"
+    ],
+    "adaptations": [
+      "single-node kind: HPAs deleted, 1 replica per service, api request 200m/384Mi (production overlay unchanged)",
+      "no pulsar/redis/nacos in kind: api env TRAVEL_EVENT_BUS=local, TRAVEL_A2A_TRANSPORT=mock, TRAVEL_A2A_AUDIT_MIRROR_PULSAR=false (same as CI test suite)",
+      "TLS secret placeholders replaced with self-signed cert (certs not committed)",
+      "a2a-metrics cronjob suspended during smoke window"
+    ]
+  },
+  "pods_all_running": true,
+  "pod_status": {
+    "go-fanout": "Running",
+    "go-policy": "Running",
+    "go-ranker": "Running",
+    "go-registry-cache": "Running (StatefulSet, SA fix verified)",
+    "travel-agent-api": "Running"
+  },
+  "canary": {
+    "decision": "promote",
+    "reasons": [],
+    "thresholds": {
+      "max_success_gap": 0.03,
+      "max_p95_drift": 0.08,
+      "max_p99_drift": 0.10
+    },
+    "summary": {
+      "success_rate_gap": 0.0,
+      "legacy_p95_latency_ms": 4166.011,
+      "legacy_p99_latency_ms": 4175.026,
+      "new_p95_latency_ms": 5.602,
+      "new_p99_latency_ms": 10.86,
+      "legacy_success_rate": 1.0,
+      "new_success_rate": 1.0,
+      "sample_size_per_path": 60
+    },
+    "method": "sequential HTTP load via kubectl port-forward; success = HTTP 200; percentiles nearest-rank; legacy = POST /recommend (api, python legacy ranker + go-ranker shadow), new = POST /v1/score/hotel (go-ranker)"
+  },
+  "defects_found_and_fixed_by_this_retest": [
+    {
+      "defect": "go-policy image lacked policy.rego — rego.Load panicked at startup, CrashLoopBackOff",
+      "fix": "Dockerfile COPY policy.rego into runtime image",
+      "commit": "435b98a7c4153ba394fd77670a9d49ecc45791f4"
+    },
+    {
+      "defect": "go-registry-cache StatefulSet referenced undefined ServiceAccount go-registry-cache-sa — FailedCreate",
+      "fix": "define SA + endpoints-reader Role/RoleBinding in serviceaccount.yaml",
+      "commit": "cfdb757 (in-branch)"
+    },
+    {
+      "defect": "runtime go_ranker_client metrics flush raised OSError (read-only rootfs) and turned user requests into 500",
+      "fix": "telemetry write failure now logs and continues; python regression green",
+      "commit": "1c5ac1b8cb286191f8a43027ea7de1e5776c7f5a"
+    },
+    {
+      "defect": "pulsar client publish() blocks 30s per call without broker (fallback-to-local never triggered: constructor does not raise)",
+      "fix": "staging harness injects TRAVEL_EVENT_BUS=local for smoke; local repro stress/repro_recommend_hang.py (200/4.1s after fix)",
+      "commit": "c3706284610f3f3903ae405cb26a8a27f9e4be2f"
+    }
+  ],
+  "evidence_files": [
+    "stress/ci-evidence/canary_report.json",
+    "stress/ci-evidence/canary_gate_decision.json",
+    "stress/ci-evidence/canary_gate_metrics.prom",
+    "stress/ci-evidence/cluster_state.txt",
+    "stress/ci-evidence/pods.txt",
+    "stress/ci-evidence/staging-rendered.yaml",
+    "stress/ci-evidence/api_logs.txt",
+    "stress/ci-evidence/api_metrics.txt"
+  ]
+}
