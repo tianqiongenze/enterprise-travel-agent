@@ -328,3 +328,14 @@
 5. **后端真实度**（73）：业务 Agent 全链路 LLM 化（多工具编排）端到端验证（约 +1）。
 
 > 备注：kind 复测过程中暴露的 4 项缺陷均已修复并随回归验证入库；执行环境的容量/依赖降级适配仅存在于 CI 冒烟窗口（详见 `docs/staging-retest-runbook.md` §2），staging overlay 保持生产形态。
+
+### 远端 CI 复核结果（main @ db18c57，2026-10-25）
+
+合并推送后远端 CI 实测跑通并暴露/修复了 4 项合并集成回归（gap 分支各自基线从未合在一起编译过）：
+
+1. gateway/java 测试编译失败：gap1 将 `InternalTokenService` 构造器改为双参数（双窗口轮换），存量 `PythonRuntimeClientTest` 未同步——已修（3d8000b），本地 mvn test 13+ 用例全绿（含 gap3 新增 SpringAiAlibabaAdvisorServiceTest）。
+2. go-policy `go test -race` 失败：测试重复调用 `initPolicy()`/`initDecisionLogWorkers()` 并发改写全局——已用 sync.Once 幂等化（db18c57），CI go-policy-build 转绿。
+3. gofmt 门禁失败（gap4 测试文件 + registry-cache main.go）——已格式化。
+4. ruff F401×2 + F821 `async_session`（PEP 562 惰性属性不能用裸全局名访问）——已修。
+
+staging-retest-kind 在 main 上连续两轮 **success**（run 40123671022 等）。仍红的两项为预存问题：`python-tests`（2026-09-19 起即红，CI Python 3.12 与本地 3.14 行为差异，需在可读 CI 日志的网络环境定位）与 `security-scan`（"Set up job" 阶段失败，runner 基础设施层，与代码无关）。二者不计入本轮评分。
