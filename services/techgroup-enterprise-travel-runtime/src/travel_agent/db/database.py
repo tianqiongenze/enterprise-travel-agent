@@ -12,6 +12,7 @@ Async engine layer for the DDD persistence path:
 """
 
 import os
+import sys
 from typing import Any, Dict, Optional
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
@@ -109,5 +110,8 @@ async def get_db_session() -> AsyncSession: # type: ignore
     """
     提供给各种Agent或者FastAPI路由使用的数据库依赖
     """
-    async with async_session() as session:
+    # async_session is exposed lazily via module __getattr__ (PEP 562), so it
+    # must be resolved through the module namespace, not as a bare global.
+    factory = sys.modules[__name__].async_session
+    async with factory() as session:
         yield session

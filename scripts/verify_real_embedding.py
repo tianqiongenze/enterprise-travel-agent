@@ -28,7 +28,6 @@ sys.path.insert(0, str(ROOT / "services" / "techgroup-enterprise-travel-runtime"
 from travel_agent.memory.embeddings import (  # noqa: E402
     DashScopeEmbeddingProvider,
     HashEmbeddingProvider,
-    create_embedding_provider,
 )
 
 

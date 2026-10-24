@@ -3,7 +3,7 @@
 from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from ..models import RecommendationItem, TravelRecommendation, TravelRequest
-from .llm import LlmRationaleDecorator, NullLlmProvider
+from .llm import LlmRationaleDecorator
 
 if TYPE_CHECKING:
     from ..recommendation.recommender import TravelRecommender

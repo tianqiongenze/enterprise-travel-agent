@@ -10,8 +10,8 @@ import (
 )
 
 type goldenCase struct {
-	Name     string `json:"name"`
-	Input    struct {
+	Name  string `json:"name"`
+	Input struct {
 		Tier          string   `json:"tier"`
 		Engine        string   `json:"engine"`
 		AllowedTools  []string `json:"allowedTools"`
