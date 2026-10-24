@@ -288,3 +288,43 @@
 3. **后端真实度**（70）：Spring AI Alibaba 下沉网关侧 LLM 编排、embedding 真模型接入验证（约 +3）。
 4. **测试体系**（68）：Go 服务并发/边界用例补齐至与 Python 对等、混沌演练（约 +2）。
 5. **staging 集群复测**：kind 证据之外在真实 staging 重复压测（约 +1）。
+
+---
+
+## 十、三轮复盘评分（2026-10-24 三轮收尾）
+
+二轮「距 ≥75 的剩余差距」五项已全部执行完毕并分项提交、合并回 main（main @ 31fc657）：
+
+| # | 差距项 | 结果 | 证据 |
+|---|--------|------|------|
+| 1 | 安全：A2A 内部模式收口 + mTLS + 密钥轮换 | 完成 | A2A internal mode + dev mTLS 证书（证书不入库）+ 双窗口密钥轮换；`tests/test_secret_rotation.py` 65 行；commit 9b49fae |
+| 2 | DDD：TripPlan 聚合仓储持久化 | 完成 | 聚合仓储持久化 + 领域事件外送 + DDD 事件风暴文档；`tests/test_trip_plan_persistence.py` 138 行；commit ee6f55d |
+| 3 | 后端真实度：Spring AI Alibaba 下沉 + 真 embedding | 完成 | advisor 下沉 + rewrite 端点 + 真 embedding 契约验证；`tests/test_embedding_real_contract.py` 99 行；commit e36af5b |
+| 4 | 测试体系：Go 对等测试 + 混沌演练 | 完成 | policy/ranker/fanout/registry-cache 对等+边界+并发测试（-race 进 CI）+ 混沌演练脚本与 runbook；commit d9b38a5 + cbde90b（registry-cache initCache/newRouter 提取修复） |
+| 5 | staging 集群复测（kind 实测） | 完成 | CI run [40119911250](https://github.com/tianqiongenze/enterprise-travel-agent/actions/runs/40119911250) canary **promote**：5 服务 Running、双通道成功率 100%（gap=0.0）、go-ranker p95 5.6ms；发现并修复 4 项真实缺陷（policy.rego 缺失 CrashLoop、registry-cache SA 未定义、指标落盘 500、Pulsar publish 30s 阻塞）；`stress/staging_retest_report.{json,md}` + `stress/ci-evidence/` + `docs/staging-retest-runbook.md` 入库 |
+
+统一回归（合并后 main 本地）：Python `run_python_tests_ci.py` OK（skipped=1）、Go 4 服务 `go test ./...` 全绿；main 推送后由远端 CI 复核全量（含 Maven/Frontend）。
+
+| # | 维度 | 二轮后 | 三轮后 | 变化依据 |
+|---|------|-------|-------|---------|
+| 1 | 需求分析与规格 | 62 | 62 | 本轮未动 |
+| 2 | 架构设计文档 | 72 | 72 | 本轮未动 |
+| 3 | DDD 落地 | 55 | 58 | TripPlan 聚合仓储持久化 + 领域事件外送落地，事件风暴文档 |
+| 4 | 后端实现真实度 | 70 | 73 | Spring AI advisor 下沉、真 embedding 契约验证、A2A 内部模式收口 |
+| 5 | 前端多端 | 70 | 70 | 本轮未动 |
+| 6 | 测试体系 | 68 | 71 | Go 对等/边界/并发测试 + -race CI 门禁、混沌演练、staging canary 双通道证据进 CI |
+| 7 | 部署与运维 | 75 | 77 | staging overlay 真集群（kind）部署验证、4 项真实缺陷修复、复测 CI 化可重复执行 |
+| 8 | 安全 | 65 | 69 | A2A 内部模式收口、dev mTLS、双窗口密钥轮换（fail-closed 测试覆盖） |
+| 9 | 文档治理 | 70 | 71 | staging retest runbook + 复测报告 + 事件风暴文档 |
+| 10 | UI/UX | 55 | 55 | 本轮未动 |
+| — | **加权总分** | **≈67.5** | **≈68.3** | **准生产加强 → 大厂准生产边缘（B-）** |
+
+### 距 ≥75 的剩余差距（下一轮建议）
+
+1. **前端多端**（70）：小程序/桌面端补齐 + 视觉规范全量（约 +2.5）。
+2. **需求分析与规格**（62）：SRS 与实现漂移的再对齐、NFR 量化验收（约 +2）。
+3. **架构设计文档**（72）：多区域/容灾架构决策记录 ADR 化（约 +1）。
+4. **测试体系**（71）：Playwright E2E 双链路进 CI + Go 混沌演练 CI 化（约 +1）。
+5. **后端真实度**（73）：业务 Agent 全链路 LLM 化（多工具编排）端到端验证（约 +1）。
+
+> 备注：kind 复测过程中暴露的 4 项缺陷均已修复并随回归验证入库；执行环境的容量/依赖降级适配仅存在于 CI 冒烟窗口（详见 `docs/staging-retest-runbook.md` §2），staging overlay 保持生产形态。
