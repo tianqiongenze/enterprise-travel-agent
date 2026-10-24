@@ -23,6 +23,7 @@
 | 监控 CRD | 预装 prometheus-operator v0.76.2 的 ServiceMonitor/PodMonitor/PrometheusRule CRD |
 | TLS Secret | CI 内以自签证书替换 `REPLACE_WITH_BASE64_CERT/KEY` 占位符（占位符非法 base64，apply 必失败；证书不入库） |
 | CronJob | `travel-agent-a2a-metrics-exporter` 冒烟窗口内 suspend（依赖外部 etcd，避免噪音） |
+| 容量适配 | staging overlay 携带生产级 HPA（api minReplicas=24/max=600，ranker min=4）；单节点 kind 调度不下，冒烟窗口内删除全部 HPA 并钉住副本（api/ranker/policy/fanout=2，registry-cache=1）。overlay 保持生产形态不变，此适配仅存在于执行环境 |
 
 ## 3. 流量与证据口径（禁止伪造，全部为集群真实测量）
 

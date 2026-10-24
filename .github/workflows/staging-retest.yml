@@ -95,6 +95,21 @@ jobs:
           kubectl patch cronjob travel-agent-a2a-metrics-exporter -p '{"spec":{"suspend":true}}'
           kubectl delete jobs --all -n default 2>/dev/null || true
 
+      - name: Fit smoke workload to single-node kind
+        run: |
+          set -euxo pipefail
+          # Staging overlay carries production-scale HPA (api minReplicas=24,
+          # max=600). A single-node kind cluster cannot schedule that; strip
+          # autoscaling for the smoke run and pin replicas.
+          kubectl delete hpa --all -n default 2>/dev/null || true
+          kubectl scale deployment/travel-agent-api --replicas=2
+          kubectl scale deployment/go-ranker --replicas=2
+          kubectl scale deployment/go-policy --replicas=2
+          kubectl scale deployment/go-fanout --replicas=2
+          kubectl scale statefulset/go-registry-cache --replicas=1
+          sleep 5
+          kubectl get hpa,pods -o wide || true
+
       - name: Wait for rollouts
         run: |
           set -uxo pipefail
