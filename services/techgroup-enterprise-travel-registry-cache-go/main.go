@@ -41,11 +41,10 @@ type cacheEntry struct {
 	expiresAt time.Time
 }
 
-func main() {
-	gin.SetMode(gin.ReleaseMode)
-	r := gin.New()
-	r.Use(gin.Recovery())
-
+// initCache wires the groupcache HTTP pool and the registry cache group. It
+// must be called at most once per process: groupcache panics on duplicate
+// group names.
+func initCache() {
 	self := os.Getenv("GROUPCACHE_SELF")
 	if self == "" {
 		self = "http://go-registry-cache-0.go-registry-cache-headless.default.svc.cluster.local:8093"
@@ -74,8 +73,13 @@ func main() {
 	if peers != "" {
 		cachePool.Set(strings.Split(peers, ",")...)
 	}
+}
 
-	go startPeerWatcher()
+// newRouter builds the HTTP surface: health, prometheus metrics and the
+// cache get/set endpoints.
+func newRouter() *gin.Engine {
+	r := gin.New()
+	r.Use(gin.Recovery())
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
@@ -117,6 +121,17 @@ func main() {
 		cacheMu.Unlock()
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
+
+	return r
+}
+
+func main() {
+	gin.SetMode(gin.ReleaseMode)
+	initCache()
+
+	go startPeerWatcher()
+
+	r := newRouter()
 
 	port := os.Getenv("GO_REGISTRY_CACHE_PORT")
 	if port == "" {
