@@ -268,13 +268,19 @@ class GoRankerClient:
             self._last_metrics_flush_at = now
             metrics_snapshot = dict(self._metrics)
         metrics_file = Path(self.metrics_path)
-        metrics_file.parent.mkdir(parents=True, exist_ok=True)
-        lines = [
-            f"{name} {value}"
-            for name, value in sorted(metrics_snapshot.items())
-        ]
-        lines.append(f"travel_ranker_metrics_timestamp {time.time()}")
-        metrics_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        try:
+            metrics_file.parent.mkdir(parents=True, exist_ok=True)
+            lines = [
+                f"{name} {value}"
+                for name, value in sorted(metrics_snapshot.items())
+            ]
+            lines.append(f"travel_ranker_metrics_timestamp {time.time()}")
+            metrics_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        except OSError as error:
+            # Telemetry must never break the request path: containers run with
+            # a read-only rootfs, so the stress metrics file may not be
+            # writable there.
+            print(f"go_ranker_metrics_flush_failed path={self.metrics_path} error={error}")
 
     def _ensure_grpc_stub(self) -> Any:
         if self._grpc_stub is not None:
