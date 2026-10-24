@@ -104,13 +104,14 @@ jobs:
           # pin one replica per service and shrink the api request for the
           # smoke window only.
           kubectl delete hpa --all -n default 2>/dev/null || true
-          kubectl scale deployment/travel-agent-api --replicas=1
           kubectl scale deployment/go-ranker --replicas=1
           kubectl scale deployment/go-policy --replicas=1
           kubectl scale deployment/go-fanout --replicas=1
           kubectl scale statefulset/go-registry-cache --replicas=1
+          kubectl scale deployment/travel-agent-api --replicas=0
           kubectl set resources deployment/travel-agent-api --containers=travel-agent-api \
-            --requests=cpu=500m,memory=512Mi --limits=cpu=1000m,memory=1Gi
+            --requests=cpu=200m,memory=384Mi --limits=cpu=1000m,memory=1Gi
+          kubectl scale deployment/travel-agent-api --replicas=1
           sleep 5
           kubectl get hpa,pods -o wide || true
 
