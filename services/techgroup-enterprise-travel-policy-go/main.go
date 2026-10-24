@@ -119,7 +119,21 @@ func main() {
 	}
 }
 
+var (
+	policyInitOnce sync.Once
+	policyInitErr  error
+)
+
+// initPolicy is idempotent: tests and main may both call it, and repeated
+// calls must not rewrite the prepared rego queries concurrently.
 func initPolicy() error {
+	policyInitOnce.Do(func() {
+		policyInitErr = preparePolicy()
+	})
+	return policyInitErr
+}
+
+func preparePolicy() error {
 	ctx := context.Background()
 	allowQuery, err := rego.New(
 		rego.Query("data.authz.allow"),
@@ -221,7 +235,16 @@ func emitDecisionLog(decisionID string, input map[string]any, decision string, r
 	deliverDecisionLog(entry)
 }
 
+var decisionLogWorkersOnce sync.Once
+
+// initDecisionLogWorkers is idempotent: the queue and workers are created
+// exactly once, so repeated calls never rewrite decisionLogQueue while
+// workers or requests touch it.
 func initDecisionLogWorkers() {
+	decisionLogWorkersOnce.Do(initDecisionLogWorkersOnce)
+}
+
+func initDecisionLogWorkersOnce() {
 	queueSize := envInt("GO_POLICY_LOG_QUEUE_SIZE", 2048)
 	workers := envInt("GO_POLICY_LOG_WORKERS", 2)
 	decisionLogQueue = make(chan DecisionLog, maxInt(64, queueSize))
