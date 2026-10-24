@@ -10,6 +10,8 @@ jobs:
     name: kind staging retest (real cluster evidence)
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -95,12 +97,22 @@ jobs:
 
       - name: Wait for rollouts
         run: |
-          set -euxo pipefail
-          kubectl rollout status deployment/travel-agent-api --timeout=300s
-          kubectl rollout status deployment/go-ranker --timeout=180s
-          kubectl rollout status deployment/go-policy --timeout=180s
-          kubectl rollout status deployment/go-fanout --timeout=180s
-          kubectl rollout status statefulset/go-registry-cache --timeout=300s
+          set -uxo pipefail
+          dump() {
+            echo "=== pods ===" ; kubectl get pods -o wide || true
+            echo "=== events ===" ; kubectl get events --sort-by=.lastTimestamp | tail -40 || true
+            echo "=== describe pods ===" ; kubectl describe pods || true
+            echo "=== api logs ===" ; kubectl logs deployment/travel-agent-api --all-containers --tail=100 || true
+            echo "=== ranker logs ===" ; kubectl logs deployment/go-ranker --tail=50 || true
+            echo "=== policy logs ===" ; kubectl logs deployment/go-policy --tail=50 || true
+            echo "=== fanout logs ===" ; kubectl logs deployment/go-fanout --tail=50 || true
+            echo "=== registry-cache logs ===" ; kubectl logs statefulset/go-registry-cache --tail=50 || true
+          }
+          if ! kubectl rollout status deployment/travel-agent-api --timeout=300s; then dump; exit 1; fi
+          if ! kubectl rollout status deployment/go-ranker --timeout=180s; then dump; exit 1; fi
+          if ! kubectl rollout status deployment/go-policy --timeout=180s; then dump; exit 1; fi
+          if ! kubectl rollout status deployment/go-fanout --timeout=180s; then dump; exit 1; fi
+          if ! kubectl rollout status statefulset/go-registry-cache --timeout=300s; then dump; exit 1; fi
           kubectl get pods -o wide
 
       - name: Smoke load + canary evidence (real traffic via port-forward)
@@ -213,6 +225,19 @@ jobs:
           kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.phase}{"\t"}{.status.podIP}{"\n"}{end}' > "$E/pods.txt" || true
           mkdir -p staging-retest-evidence
           cp "$E"/* staging-retest-evidence/ || true
+
+      - name: Commit evidence to repo (network-proof retrieval)
+        if: always()
+        run: |
+          set -euo pipefail
+          E="$RUNNER_TEMP/staging-retest"
+          mkdir -p stress/ci-evidence
+          cp "$E"/* stress/ci-evidence/ 2>/dev/null || true
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add stress/ci-evidence
+          git commit -m "ci: staging retest evidence for run ${GITHUB_RUN_ID} [skip ci]" || echo "nothing to commit"
+          git push origin HEAD:"${GITHUB_REF_NAME}" || echo "evidence push failed"
 
       - name: Upload retest artifacts
         if: always()
