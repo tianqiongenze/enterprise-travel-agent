@@ -10,13 +10,13 @@ canary_gate_action{action="rollback"} 1
 canary_gate_reason_count 1
 # HELP canary_gate_success_rate_gap Observed success rate gap between legacy and new
 # TYPE canary_gate_success_rate_gap gauge
-canary_gate_success_rate_gap 1.0
+canary_gate_success_rate_gap 0.5
 # HELP canary_gate_p95_drift_ratio Canary p95 drift ratio against legacy
 # TYPE canary_gate_p95_drift_ratio gauge
-canary_gate_p95_drift_ratio -0.9993094537312522
+canary_gate_p95_drift_ratio -0.9984236585456476
 # HELP canary_gate_p99_drift_ratio Canary p99 drift ratio against legacy
 # TYPE canary_gate_p99_drift_ratio gauge
-canary_gate_p99_drift_ratio -0.9992081442088454
+canary_gate_p99_drift_ratio -0.9976455656356074
 # HELP canary_gate_threshold_success_gap Configured success gap threshold
 # TYPE canary_gate_threshold_success_gap gauge
 canary_gate_threshold_success_gap 0.03
@@ -28,7 +28,7 @@ canary_gate_threshold_p95_drift 0.08
 canary_gate_threshold_p99_drift 0.1
 # HELP canary_gate_last_eval_timestamp Last gate evaluation unix timestamp
 # TYPE canary_gate_last_eval_timestamp gauge
-canary_gate_last_eval_timestamp 1792862128.0
+canary_gate_last_eval_timestamp 1792863699.0
 # HELP canary_gate_event_consumer_lag_seconds Event consumer lag seen by gate
 # TYPE canary_gate_event_consumer_lag_seconds gauge
 canary_gate_event_consumer_lag_seconds 0.001002
