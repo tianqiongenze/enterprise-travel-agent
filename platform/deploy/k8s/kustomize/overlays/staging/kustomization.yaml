@@ -17,6 +17,27 @@ configMapGenerator:
       - TRAVEL_POLICY_SHADOW=true
       - TRAVEL_REGISTRY_CACHE_BACKEND=go
       - TRAVEL_REGISTRY_CACHE_URL=http://go-registry-cache.default.svc.cluster.local
+      - TRAVEL_INFLIGHT_LIMIT=64
+      - TRAVEL_LOCAL_INFLIGHT_LIMIT=16
       - CANARY_GATE_MAX_SUCCESS_GAP=0.03
       - CANARY_GATE_MAX_P95_DRIFT=0.08
       - CANARY_GATE_MAX_P99_DRIFT=0.10
+
+# Staging retest runs from locally loaded images (kind load docker-image),
+# not from a remote registry.
+images:
+  - name: your-registry/travel-agent-api
+    newName: enterprise-travel-agent-api
+    newTag: staging
+  - name: your-registry/go-ranker
+    newName: enterprise-travel-agent-go-ranker
+    newTag: local
+  - name: your-registry/go-policy
+    newName: enterprise-travel-agent-go-policy
+    newTag: local
+  - name: your-registry/go-fanout
+    newName: enterprise-travel-agent-go-fanout
+    newTag: local
+  - name: your-registry/go-registry-cache
+    newName: enterprise-travel-agent-go-registry-cache
+    newTag: local

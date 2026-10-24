@@ -1,0 +1,173 @@
+nacos register manager-agent failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register route-making-agent failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register trip-planner-agent failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register food-recommendation-agent failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register local-event-agent failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register local-lifestyle-agent failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register loyalty-growth-agent failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register weather-risk-agent failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register ancillary-revenue-agent failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register visa-compliance-agent failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register concierge-agent failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register mcp-tool-search_hotels failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register mcp-tool-search_transports failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register mcp-tool-search_attractions failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register mcp-tool-search_foods failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register mcp-tool-search_events failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register mcp-tool-search_activities failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+nacos register mcp-tool-search_souvenirs failed (HTTPConnectionPool(host='nacos.default.svc.cluster.local', port=8848): Max retries exceeded with url: /nacos/v1/ns/instance (Caused by NameResolutionError("HTTPConnection(host='nacos.default.svc.cluster.local', port=8848): Failed to resolve 'nacos.default.svc.cluster.local' ([Errno -2] Name or service not known)"))); degrading to local registry view
+TRAVEL_INTERNAL_SHARED_SECRET is not set - falling back to the public demo secret; this is acceptable for local dev only and is enforced by the go-live gate in staging/prod
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     10.244.0.1:57254 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41620 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:41624 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:52666 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:43604 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:52678 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:35846 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:52682 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:35858 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45966 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:45978 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:36194 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52894 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:36208 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:52902 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46926 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:45324 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46938 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:46948 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:57714 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:57716 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55868 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55884 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:42854 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:34604 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:34612 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42870 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:42884 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:48492 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:35824 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35830 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:53168 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39702 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:53172 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:39706 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:39720 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:41210 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50558 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:41218 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50566 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:43352 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:60286 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:43368 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:47688 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39082 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:47696 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39090 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:39092 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:50702 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48340 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:50712 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:48356 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53198 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:58362 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53210 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:53222 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:41528 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.244.0.1:41534 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:44060 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44068 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:49114 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:55386 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:55390 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49128 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:49140 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:47280 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55520 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:55534 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:35910 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47068 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:35916 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:47084 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:56536 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:60860 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56550 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:60876 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:56562 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:50898 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39446 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:39450 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:52326 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50514 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:52328 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50518 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:50532 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:49300 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50078 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:49308 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50080 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:51232 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:52004 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:51248 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:51254 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:54116 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.244.0.1:54120 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:33820 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33834 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:34500 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     10.244.0.1:40724 - "GET /health HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     10.244.0.1:40726 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34502 - "POST /recommend HTTP/1.1" 200 OK
+go_ranker_metrics_flush_failed path=stress/ranker_transport_metrics.prom error=[Errno 30] Read-only file system: 'stress'
+INFO:     127.0.0.1:34512 - "POST /recommend HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36148 - "GET /metrics HTTP/1.1" 404 Not Found

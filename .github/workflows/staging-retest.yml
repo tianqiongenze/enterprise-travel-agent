@@ -1,0 +1,281 @@
+name: staging-retest-kind
+
+on:
+  push:
+    branches: ["gap/5-staging-retest", "main"]
+  workflow_dispatch:
+
+jobs:
+  kind-staging-retest:
+    name: kind staging retest (real cluster evidence)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install kustomize 5.5.0
+        run: |
+          set -euxo pipefail
+          curl -sfLo /tmp/kustomize.tgz "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.5.0/kustomize_v5.5.0_linux_amd64.tar.gz"
+          tar -xzf /tmp/kustomize.tgz -C /tmp
+          sudo mv /tmp/kustomize /usr/local/bin/kustomize
+          kustomize version
+
+      - name: Create kind cluster (v0.29.0)
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: travel-staging
+          version: v0.29.0
+
+      - name: Build service images
+        run: |
+          set -euxo pipefail
+          docker build -t enterprise-travel-agent-api:staging -f platform/deploy/docker/Dockerfile.travel-agent-api .
+          docker build -t enterprise-travel-agent-go-ranker:local services/techgroup-enterprise-travel-ranker-go
+          docker build -t enterprise-travel-agent-go-policy:local services/techgroup-enterprise-travel-policy-go
+          docker build -t enterprise-travel-agent-go-fanout:local services/techgroup-enterprise-travel-fanout-go
+          docker build -t enterprise-travel-agent-go-registry-cache:local services/techgroup-enterprise-travel-registry-cache-go
+
+      - name: Load images into kind
+        run: |
+          set -euxo pipefail
+          for img in \
+            enterprise-travel-agent-api:staging \
+            enterprise-travel-agent-go-ranker:local \
+            enterprise-travel-agent-go-policy:local \
+            enterprise-travel-agent-go-fanout:local \
+            enterprise-travel-agent-go-registry-cache:local ; do
+            kind load docker-image "$img" --name travel-staging
+          done
+
+      - name: Install monitoring CRDs (ServiceMonitor/PodMonitor/PrometheusRule)
+        run: |
+          set -euxo pipefail
+          kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.76.2/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+          kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.76.2/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+          kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.76.2/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+
+      - name: Render staging overlay
+        run: |
+          set -euxo pipefail
+          mkdir -p "$RUNNER_TEMP/staging-retest"
+          kustomize build --load-restrictor LoadRestrictionsNone \
+            platform/deploy/k8s/kustomize/overlays/staging \
+            > "$RUNNER_TEMP/staging-retest/staging-rendered.yaml"
+          wc -l "$RUNNER_TEMP/staging-retest/staging-rendered.yaml"
+
+      - name: Replace TLS secret placeholders with self-signed staging cert
+        run: |
+          set -euxo pipefail
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 \
+            -subj "/CN=travel-staging.local" \
+            -keyout "$RUNNER_TEMP/staging-retest/tls.key" \
+            -out "$RUNNER_TEMP/staging-retest/tls.crt"
+          python3 - "$RUNNER_TEMP/staging-retest" <<'PY'
+          import base64, sys, pathlib
+          d = pathlib.Path(sys.argv[1])
+          rendered = d / "staging-rendered.yaml"
+          text = rendered.read_text(encoding="utf-8")
+          cert = base64.b64encode((d / "tls.crt").read_bytes()).decode()
+          key = base64.b64encode((d / "tls.key").read_bytes()).decode()
+          assert "REPLACE_WITH_BASE64_CERT" in text and "REPLACE_WITH_BASE64_KEY" in text
+          text = text.replace("tls.crt: REPLACE_WITH_BASE64_CERT", "tls.crt: " + cert)
+          text = text.replace("tls.key: REPLACE_WITH_BASE64_KEY", "tls.key: " + key)
+          rendered.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Apply staging overlay
+        run: kubectl apply -f "$RUNNER_TEMP/staging-retest/staging-rendered.yaml"
+
+      - name: Suspend a2a metrics cronjob during smoke window
+        run: |
+          kubectl patch cronjob travel-agent-a2a-metrics-exporter -p '{"spec":{"suspend":true}}'
+          kubectl delete jobs --all -n default 2>/dev/null || true
+
+      - name: Fit smoke workload to single-node kind
+        run: |
+          set -euxo pipefail
+          # Staging overlay carries production-scale HPA (api minReplicas=24,
+          # max=600) and production resource requests (api 1000m/1Gi). A
+          # single-node kind cluster (~2 CPU allocatable) cannot fit that;
+          # pin one replica per service and shrink the api request for the
+          # smoke window only.
+          kubectl delete hpa --all -n default 2>/dev/null || true
+          kubectl scale deployment/go-ranker --replicas=1
+          kubectl scale deployment/go-policy --replicas=1
+          kubectl scale deployment/go-fanout --replicas=1
+          kubectl scale statefulset/go-registry-cache --replicas=1
+          kubectl scale deployment/travel-agent-api --replicas=0
+          kubectl set resources deployment/travel-agent-api --containers=travel-agent-api \
+            --requests=cpu=200m,memory=384Mi --limits=cpu=1000m,memory=1Gi
+          # Single-node kind has no pulsar/redis/nacos: pin the api to the
+          # same degraded-local env the CI test suite uses, otherwise every
+          # publish blocks 30s (pulsar send timeout) and /recommend starves.
+          kubectl set env deployment/travel-agent-api \
+            TRAVEL_EVENT_BUS=local \
+            TRAVEL_A2A_TRANSPORT=mock \
+            TRAVEL_A2A_AUDIT_MIRROR_PULSAR=false
+          kubectl scale deployment/travel-agent-api --replicas=1
+          sleep 5
+          kubectl get hpa,pods -o wide || true
+
+      - name: Wait for rollouts
+        run: |
+          set -uxo pipefail
+          dump() {
+            echo "=== pods ===" ; kubectl get pods -o wide || true
+            echo "=== events ===" ; kubectl get events --sort-by=.lastTimestamp | tail -40 || true
+            echo "=== describe pods ===" ; kubectl describe pods || true
+            echo "=== api logs ===" ; kubectl logs deployment/travel-agent-api --all-containers --tail=100 || true
+            echo "=== ranker logs ===" ; kubectl logs deployment/go-ranker --tail=50 || true
+            echo "=== policy logs ===" ; kubectl logs deployment/go-policy --tail=50 || true
+            echo "=== fanout logs ===" ; kubectl logs deployment/go-fanout --tail=50 || true
+            echo "=== registry-cache logs ===" ; kubectl logs statefulset/go-registry-cache --tail=50 || true
+          }
+          if ! kubectl rollout status deployment/travel-agent-api --timeout=600s; then dump; exit 1; fi
+          if ! kubectl rollout status deployment/go-ranker --timeout=300s; then dump; exit 1; fi
+          if ! kubectl rollout status deployment/go-policy --timeout=300s; then dump; exit 1; fi
+          if ! kubectl rollout status deployment/go-fanout --timeout=300s; then dump; exit 1; fi
+          if ! kubectl rollout status statefulset/go-registry-cache --timeout=600s; then dump; exit 1; fi
+          kubectl get pods -o wide
+
+      - name: Smoke load + canary evidence (real traffic via port-forward)
+        run: |
+          set -euxo pipefail
+          E="$RUNNER_TEMP/staging-retest"
+          kubectl port-forward --address 127.0.0.1 deployment/travel-agent-api 18000:8000 > "$E/pf-api.log" 2>&1 &
+          PF1=$!
+          kubectl port-forward --address 127.0.0.1 deployment/go-ranker 18090:8090 > "$E/pf-ranker.log" 2>&1 &
+          PF2=$!
+          trap 'kill $PF1 $PF2 2>/dev/null || true' EXIT
+          python3 - "$E" <<'PY'
+          import datetime, json, math, pathlib, sys, time, urllib.request
+
+          d = pathlib.Path(sys.argv[1])
+          LEGACY_URL = "http://127.0.0.1:18000"
+          NEW_URL = "http://127.0.0.1:18090"
+          N = 60
+
+          def wait_ready(url, tries=60):
+              last = None
+              for _ in range(tries):
+                  try:
+                      with urllib.request.urlopen(url, timeout=2) as r:
+                          if r.status == 200:
+                              return
+                  except Exception as exc:
+                      last = exc
+                  time.sleep(1)
+              raise SystemExit(f"endpoint not ready: {url}: {last}")
+
+          wait_ready(LEGACY_URL + "/health")
+          wait_ready(NEW_URL + "/health")
+
+          legacy_payload = json.dumps({}).encode()
+          new_payload = json.dumps({
+              "price": 860.0, "rating": 4.6, "duration": 2.5,
+              "tags": ["wifi", "breakfast"], "budget": 1200.0,
+              "weights": {"price": 0.4, "rating": 0.4, "duration": 0.2},
+          }).encode()
+
+          def run_load(url, payload):
+              ok, lat, errs = 0, [], []
+              for _ in range(N):
+                  req = urllib.request.Request(
+                      url, data=payload,
+                      headers={"Content-Type": "application/json"}, method="POST")
+                  t0 = time.perf_counter()
+                  try:
+                      with urllib.request.urlopen(req, timeout=30) as r:
+                          body = r.read()
+                          if r.status == 200:
+                              ok += 1
+                          elif len(errs) < 5:
+                              errs.append({"status": r.status, "body": body[:300].decode("utf-8", "replace")})
+                  except Exception as exc:
+                      if len(errs) < 5:
+                          errs.append({"status": "EXC", "body": repr(exc)[:300]})
+                  lat.append((time.perf_counter() - t0) * 1000.0)
+              return ok, lat, errs
+
+          def pct(sorted_lat, p):
+              idx = max(0, math.ceil(p / 100.0 * len(sorted_lat)) - 1)
+              return sorted_lat[idx]
+
+          legacy_ok, legacy_lat, legacy_errs = run_load(LEGACY_URL + "/recommend", legacy_payload)
+          new_ok, new_lat, new_errs = run_load(NEW_URL + "/v1/score/hotel", new_payload)
+
+          legacy_lat_s, new_lat_s = sorted(legacy_lat), sorted(new_lat)
+          legacy_sr, new_sr = legacy_ok / N, new_ok / N
+          summary = {
+              "success_rate_gap": round(abs(legacy_sr - new_sr), 6),
+              "legacy_p95_latency_ms": round(pct(legacy_lat_s, 95), 3),
+              "legacy_p99_latency_ms": round(pct(legacy_lat_s, 99), 3),
+              "new_p95_latency_ms": round(pct(new_lat_s, 95), 3),
+              "new_p99_latency_ms": round(pct(new_lat_s, 99), 3),
+              "legacy_success_rate": round(legacy_sr, 6),
+              "new_success_rate": round(new_sr, 6),
+              "sample_size_per_path": N,
+              "legacy_endpoint": "POST /recommend (travel-agent-api, python legacy ranker + go-ranker shadow)",
+              "new_endpoint": "POST /v1/score/hotel (go-ranker)",
+              "environment": "kind cluster travel-staging (GitHub Actions ubuntu runner)",
+              "measured_at_utc": datetime.datetime.utcnow().isoformat() + "Z",
+              "method": "sequential HTTP load via kubectl port-forward; success = HTTP 200; percentiles nearest-rank",
+          }
+          (d / "canary_report.json").write_text(json.dumps({
+              "summary": summary,
+              "legacy_errors_sample": legacy_errs,
+              "new_errors_sample": new_errs,
+              "raw": {
+                  "legacy_latencies_ms": [round(x, 3) for x in legacy_lat],
+                  "new_latencies_ms": [round(x, 3) for x in new_lat],
+              },
+          }, ensure_ascii=False, indent=2), encoding="utf-8")
+          print(json.dumps(summary, ensure_ascii=False, indent=2))
+          PY
+          curl -sf http://127.0.0.1:18000/metrics > "$E/api_metrics.txt" 2>/dev/null || echo "api /metrics unavailable" > "$E/api_metrics.txt"
+          kubectl logs deployment/travel-agent-api --tail=300 > "$E/api_logs.txt" 2>&1 || true
+          python3 platform/deploy/scripts/canary_gate.py \
+            --report "$E/canary_report.json" \
+            --max-success-gap 0.03 --max-p95-drift 0.08 --max-p99-drift 0.10 \
+            --out "$E/canary_gate_decision.json" \
+            --metrics-out "$E/canary_gate_metrics.prom"
+          cat "$E/canary_gate_decision.json"
+          grep -q '"action": "promote"' "$E/canary_gate_decision.json"
+
+      - name: Collect cluster evidence
+        if: always()
+        run: |
+          E="$RUNNER_TEMP/staging-retest"
+          {
+            kubectl get all -o wide
+            kubectl get events --sort-by=.lastTimestamp | tail -80
+            kubectl describe nodes
+          } > "$E/cluster_state.txt" 2>&1 || true
+          kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.phase}{"\t"}{.status.podIP}{"\n"}{end}' > "$E/pods.txt" || true
+          mkdir -p staging-retest-evidence
+          cp "$E"/* staging-retest-evidence/ || true
+
+      - name: Commit evidence to repo (network-proof retrieval)
+        if: always()
+        run: |
+          set -euo pipefail
+          E="$RUNNER_TEMP/staging-retest"
+          mkdir -p stress/ci-evidence
+          cp "$E"/* stress/ci-evidence/ 2>/dev/null || true
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add stress/ci-evidence
+          git commit -m "ci: staging retest evidence for run ${GITHUB_RUN_ID} [skip ci]" || echo "nothing to commit"
+          git push origin HEAD:"${GITHUB_REF_NAME}" || echo "evidence push failed"
+
+      - name: Upload retest artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-retest-evidence
+          path: staging-retest-evidence/
+          if-no-files-found: error
