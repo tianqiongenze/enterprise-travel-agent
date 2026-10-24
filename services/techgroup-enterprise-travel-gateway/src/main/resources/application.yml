@@ -30,4 +30,7 @@ travel:
   internal:
     # Required outside local dev; the go-live gate rejects the demo value.
     shared-secret: ${TRAVEL_INTERNAL_SHARED_SECRET:demo-internal-secret}
+    # Previous secret, set only during a rotation window so signatures made
+    # before the flip keep verifying while the runtime catches up.
+    shared-secret-previous: ${TRAVEL_INTERNAL_SHARED_SECRET_PREVIOUS:}
     mtls-client-id: ${TRAVEL_INTERNAL_CLIENT_ID:techgroup-enterprise-travel-gateway}

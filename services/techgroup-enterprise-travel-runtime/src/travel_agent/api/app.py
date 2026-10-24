@@ -13,6 +13,7 @@ if fastapi_module is not None:
     fastapi_loaded = importlib.import_module("fastapi")
     FastAPI = getattr(fastapi_loaded, "FastAPI")
     FastAPIRequest = getattr(fastapi_loaded, "Request")
+    HTTPException = getattr(fastapi_loaded, "HTTPException")
 
 from ..access.control import enforce_tools_for_tier, evaluate_policy
 from ..application.recommend_service import RecommendApplicationService
@@ -35,6 +36,13 @@ if not shared_secret:
         "the go-live gate in staging/prod"
     )
 trusted_client_id = os.getenv("TRAVEL_INTERNAL_CLIENT_ID", "techgroup-enterprise-travel-gateway")
+# Dual-window secret acceptance for zero-downtime rotation: while the gateway
+# has already switched to the new secret, the old one keeps verifying. Empty
+# by default; set only during a rotation window.
+shared_secret_previous = os.getenv("TRAVEL_INTERNAL_SHARED_SECRET_PREVIOUS", "")
+# When true, /a2a/* endpoints require a valid internal HMAC signature even
+# outside oidc mode: A2A traffic is service-to-service only.
+a2a_internal_only = os.getenv("TRAVEL_A2A_INTERNAL_ONLY", "false").strip().lower() == "true"
 membership_store = MembershipStore()
 traffic_guard = TrafficGuard()
 max_runtime_log_payload = int(os.getenv("TRAVEL_RUNTIME_RESPONSE_LOG_LIMIT", "50"))
@@ -56,7 +64,28 @@ def require_bearer_identity(authorization_header: str) -> Dict[str, str]:
 def _verify_signature(idempotency_key: str, client_id: str, signature: str) -> bool:
     from ..security import verify_internal_signature
 
-    return verify_internal_signature(idempotency_key, shared_secret, client_id, signature)
+    if verify_internal_signature(idempotency_key, shared_secret, client_id, signature):
+        return True
+    if shared_secret_previous:
+        return verify_internal_signature(idempotency_key, shared_secret_previous, client_id, signature)
+    return False
+
+
+def verify_a2a_internal_access(headers: Dict[str, Any]) -> None:
+    """Gate /a2a/* when TRAVEL_A2A_INTERNAL_ONLY=true (401 on failure).
+
+    Signature covers the receiver and sender so a captured header cannot be
+    replayed against another inbox or sender.
+    """
+    if not a2a_internal_only:
+        return
+    client_id = str(headers.get("X-Internal-Client-Id", ""))
+    signature = str(headers.get("X-Internal-Signature", ""))
+    scope = str(headers.get("X-A2A-Scope", ""))
+    if client_id != trusted_client_id:
+        raise PermissionError("untrusted internal client")
+    if not scope or not _verify_signature(scope, client_id, signature):
+        raise PermissionError("invalid internal signature for a2a access")
 
 
 def recommend(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -225,14 +254,34 @@ else:
 
     @app.post("/a2a/send")
     def a2a_send_endpoint(payload: Dict[str, Any], request: FastAPIRequest = None) -> Dict[str, Any]:
-        if request is not None and auth_mode() == "oidc":
-            require_bearer_identity(request.headers.get("Authorization", ""))
+        if request is not None:
+            a2a_headers = {
+                "X-Internal-Client-Id": request.headers.get("X-Internal-Client-Id", ""),
+                "X-Internal-Signature": request.headers.get("X-Internal-Signature", ""),
+                "X-A2A-Scope": request.headers.get("X-A2A-Scope", ""),
+            }
+            try:
+                verify_a2a_internal_access(a2a_headers)
+            except PermissionError as auth_error:
+                raise HTTPException(status_code=401, detail=str(auth_error)) from auth_error
+            if auth_mode() == "oidc":
+                require_bearer_identity(request.headers.get("Authorization", ""))
         return a2a_send(payload)
 
     @app.get("/a2a/inbox/{receiver}")
     def a2a_inbox_endpoint(receiver: str, request: FastAPIRequest = None) -> Dict[str, Any]:
-        if request is not None and auth_mode() == "oidc":
-            require_bearer_identity(request.headers.get("Authorization", ""))
+        if request is not None:
+            a2a_headers = {
+                "X-Internal-Client-Id": request.headers.get("X-Internal-Client-Id", ""),
+                "X-Internal-Signature": request.headers.get("X-Internal-Signature", ""),
+                "X-A2A-Scope": f"inbox.{receiver}",
+            }
+            try:
+                verify_a2a_internal_access(a2a_headers)
+            except PermissionError as auth_error:
+                raise HTTPException(status_code=401, detail=str(auth_error)) from auth_error
+            if auth_mode() == "oidc":
+                require_bearer_identity(request.headers.get("Authorization", ""))
         return a2a_inbox(receiver)
 
     if os.getenv("TRAVEL_RUNTIME_GRPC_ENABLED", "false").strip().lower() == "true":

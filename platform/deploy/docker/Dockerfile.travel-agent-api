@@ -18,5 +18,8 @@ COPY data /app/data
 ENV PYTHONPATH=/app/services/techgroup-enterprise-travel-runtime
 
 EXPOSE 8000
-CMD ["uvicorn", "src.travel_agent.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# TLS is opt-in: mount the certs and set TRAVEL_TLS_CERT/TRAVEL_TLS_KEY (and
+# TRAVEL_TLS_CA + --ssl-certfile-style client auth when mTLS is required).
+# Without those env vars the container starts plain-HTTP exactly as before.
+CMD ["sh", "-c", "if [ -n \"$TRAVEL_TLS_CERT\" ] && [ -n \"$TRAVEL_TLS_KEY\" ]; then uvicorn src.travel_agent.api.app:app --host 0.0.0.0 --port 8000 --ssl-certfile \"$TRAVEL_TLS_CERT\" --ssl-keyfile \"$TRAVEL_TLS_KEY\"; else uvicorn src.travel_agent.api.app:app --host 0.0.0.0 --port 8000; fi"]
 
