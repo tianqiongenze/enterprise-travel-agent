@@ -1,5 +1,5 @@
-go-fanout-7b9fb4786f-c88cv	Running	10.244.0.5
-go-policy-f948dc5cf-gl27k	Running	10.244.0.6
-go-ranker-6dbc8b7ffd-cqxr8	Running	10.244.0.7
-go-registry-cache-0	Running	10.244.0.10
-travel-agent-api-9bdcd4cfc-d97gj	Running	10.244.0.11
+go-fanout-7b9fb4786f-rmmcr	Running	10.244.0.5
+go-policy-f948dc5cf-5l8js	Running	10.244.0.6
+go-ranker-6dbc8b7ffd-6cfmv	Running	10.244.0.10
+go-registry-cache-0	Running	10.244.0.11
+travel-agent-api-9bdcd4cfc-zrmzh	Running	10.244.0.12

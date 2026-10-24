@@ -1,8 +1,6 @@
 {
-  "action": "rollback",
-  "reasons": [
-    "success_gap_exceeds_threshold"
-  ],
+  "action": "promote",
+  "reasons": [],
   "thresholds": {
     "max_success_gap": 0.03,
     "max_p95_drift": 0.08,
