@@ -1,113 +1,119 @@
-NAME                                   READY   STATUS             RESTARTS        AGE     IP            NODE                           NOMINATED NODE   READINESS GATES
-pod/go-fanout-7b9fb4786f-jbm5c         1/1     Running            0               5m10s   10.244.0.9    travel-staging-control-plane   <none>           <none>
-pod/go-fanout-7b9fb4786f-kk89s         1/1     Running            0               5m10s   10.244.0.8    travel-staging-control-plane   <none>           <none>
-pod/go-policy-f948dc5cf-lxp74          0/1     CrashLoopBackOff   5 (2m8s ago)    5m10s   10.244.0.10   travel-staging-control-plane   <none>           <none>
-pod/go-policy-f948dc5cf-xtls9          0/1     CrashLoopBackOff   5 (2m21s ago)   5m10s   10.244.0.5    travel-staging-control-plane   <none>           <none>
-pod/go-ranker-6dbc8b7ffd-6b6qv         0/1     Pending            0               5m10s   <none>        <none>                         <none>           <none>
-pod/go-ranker-6dbc8b7ffd-9pff2         1/1     Running            0               5m10s   10.244.0.6    travel-staging-control-plane   <none>           <none>
-pod/go-registry-cache-0                0/1     Pending            0               5m10s   <none>        <none>                         <none>           <none>
-pod/travel-agent-api-b975568f4-4dtbk   0/1     Pending            0               5m10s   <none>        <none>                         <none>           <none>
-pod/travel-agent-api-b975568f4-f7hw6   0/1     Pending            0               5m10s   <none>        <none>                         <none>           <none>
+NAME                                   READY   STATUS             RESTARTS       AGE     IP            NODE                           NOMINATED NODE   READINESS GATES
+pod/go-fanout-7b9fb4786f-chj2w         1/1     Running            0              5m10s   10.244.0.5    travel-staging-control-plane   <none>           <none>
+pod/go-policy-f948dc5cf-dw84w          0/1     CrashLoopBackOff   5 (2m6s ago)   5m10s   10.244.0.6    travel-staging-control-plane   <none>           <none>
+pod/go-ranker-6dbc8b7ffd-t6847         1/1     Running            0              5m10s   10.244.0.7    travel-staging-control-plane   <none>           <none>
+pod/go-registry-cache-0                1/1     Running            0              5m10s   10.244.0.10   travel-staging-control-plane   <none>           <none>
+pod/travel-agent-api-b975568f4-lm2tb   0/1     Pending            0              5m10s   <none>        <none>                         <none>           <none>
+pod/travel-agent-api-db899c8db-vtqmj   0/1     Pending            0              5m6s    <none>        <none>                         <none>           <none>
 
 NAME                                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE     SELECTOR
-service/go-fanout                    ClusterIP   10.96.214.138   <none>        80/TCP,8092/TCP   5m10s   app=go-fanout
-service/go-policy                    ClusterIP   10.96.169.140   <none>        80/TCP,8091/TCP   5m10s   app=go-policy
-service/go-ranker                    ClusterIP   10.96.107.112   <none>        80/TCP,8090/TCP   5m10s   app=go-ranker
-service/go-registry-cache            ClusterIP   10.96.133.34    <none>        80/TCP,8093/TCP   5m10s   app=go-registry-cache
-service/go-registry-cache-headless   ClusterIP   None            <none>        8093/TCP          5m10s   app=go-registry-cache
+service/go-fanout                    ClusterIP   10.96.207.153   <none>        80/TCP,8092/TCP   5m11s   app=go-fanout
+service/go-policy                    ClusterIP   10.96.61.127    <none>        80/TCP,8091/TCP   5m11s   app=go-policy
+service/go-ranker                    ClusterIP   10.96.44.7      <none>        80/TCP,8090/TCP   5m11s   app=go-ranker
+service/go-registry-cache            ClusterIP   10.96.206.218   <none>        80/TCP,8093/TCP   5m11s   app=go-registry-cache
+service/go-registry-cache-headless   ClusterIP   None            <none>        8093/TCP          5m11s   app=go-registry-cache
 service/kubernetes                   ClusterIP   10.96.0.1       <none>        443/TCP           12m     <none>
-service/travel-agent-a2a-metrics     ClusterIP   10.96.242.95    <none>        9909/TCP          5m10s   app=travel-agent-a2a-metrics
-service/travel-agent-api             ClusterIP   10.96.26.93     <none>        80/TCP,8000/TCP   5m10s   app=travel-agent-api
+service/travel-agent-a2a-metrics     ClusterIP   10.96.191.187   <none>        9909/TCP          5m11s   app=travel-agent-a2a-metrics
+service/travel-agent-api             ClusterIP   10.96.178.40    <none>        80/TCP,8000/TCP   5m10s   app=travel-agent-api
 
 NAME                               READY   UP-TO-DATE   AVAILABLE   AGE     CONTAINERS         IMAGES                                    SELECTOR
-deployment.apps/go-fanout          2/2     2            2           5m10s   go-fanout          enterprise-travel-agent-go-fanout:local   app=go-fanout
-deployment.apps/go-policy          0/2     2            0           5m10s   go-policy          enterprise-travel-agent-go-policy:local   app=go-policy
-deployment.apps/go-ranker          1/2     2            1           5m10s   go-ranker          enterprise-travel-agent-go-ranker:local   app=go-ranker
-deployment.apps/travel-agent-api   0/2     2            0           5m10s   travel-agent-api   enterprise-travel-agent-api:staging       app=travel-agent-api
+deployment.apps/go-fanout          1/1     1            1           5m10s   go-fanout          enterprise-travel-agent-go-fanout:local   app=go-fanout
+deployment.apps/go-policy          0/1     1            0           5m10s   go-policy          enterprise-travel-agent-go-policy:local   app=go-policy
+deployment.apps/go-ranker          1/1     1            1           5m10s   go-ranker          enterprise-travel-agent-go-ranker:local   app=go-ranker
+deployment.apps/travel-agent-api   0/1     1            0           5m10s   travel-agent-api   enterprise-travel-agent-api:staging       app=travel-agent-api
 
 NAME                                         DESIRED   CURRENT   READY   AGE     CONTAINERS         IMAGES                                    SELECTOR
-replicaset.apps/go-fanout-7b9fb4786f         2         2         2       5m10s   go-fanout          enterprise-travel-agent-go-fanout:local   app=go-fanout,pod-template-hash=7b9fb4786f
-replicaset.apps/go-policy-f948dc5cf          2         2         0       5m10s   go-policy          enterprise-travel-agent-go-policy:local   app=go-policy,pod-template-hash=f948dc5cf
-replicaset.apps/go-ranker-6dbc8b7ffd         2         2         1       5m10s   go-ranker          enterprise-travel-agent-go-ranker:local   app=go-ranker,pod-template-hash=6dbc8b7ffd
-replicaset.apps/travel-agent-api-b975568f4   2         2         0       5m10s   travel-agent-api   enterprise-travel-agent-api:staging       app=travel-agent-api,pod-template-hash=b975568f4
+replicaset.apps/go-fanout-7b9fb4786f         1         1         1       5m10s   go-fanout          enterprise-travel-agent-go-fanout:local   app=go-fanout,pod-template-hash=7b9fb4786f
+replicaset.apps/go-policy-f948dc5cf          1         1         0       5m10s   go-policy          enterprise-travel-agent-go-policy:local   app=go-policy,pod-template-hash=f948dc5cf
+replicaset.apps/go-ranker-6dbc8b7ffd         1         1         1       5m10s   go-ranker          enterprise-travel-agent-go-ranker:local   app=go-ranker,pod-template-hash=6dbc8b7ffd
+replicaset.apps/travel-agent-api-b975568f4   1         1         0       5m10s   travel-agent-api   enterprise-travel-agent-api:staging       app=travel-agent-api,pod-template-hash=b975568f4
+replicaset.apps/travel-agent-api-db899c8db   1         1         0       5m6s    travel-agent-api   enterprise-travel-agent-api:staging       app=travel-agent-api,pod-template-hash=db899c8db
 
 NAME                                 READY   AGE     CONTAINERS          IMAGES
-statefulset.apps/go-registry-cache   0/1     5m10s   go-registry-cache   enterprise-travel-agent-go-registry-cache:local
+statefulset.apps/go-registry-cache   1/1     5m10s   go-registry-cache   enterprise-travel-agent-go-registry-cache:local
 
 NAME                                              SCHEDULE      TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE     CONTAINERS                              IMAGES                                                 SELECTOR
 cronjob.batch/travel-agent-a2a-metrics-exporter   */1 * * * *   <none>     True      0        <none>          5m10s   a2a-metrics-exporter,a2a-metrics-http   enterprise-travel-agent-api:staging,python:3.12-slim   <none>
-LAST SEEN   TYPE      REASON                    OBJECT                                  MESSAGE
-12m         Normal    Starting                  node/travel-staging-control-plane       
-12m         Normal    Starting                  node/travel-staging-control-plane       Starting kubelet.
 12m         Normal    NodeHasSufficientPID      node/travel-staging-control-plane       Node travel-staging-control-plane status is now: NodeHasSufficientPID
-12m         Normal    NodeHasNoDiskPressure     node/travel-staging-control-plane       Node travel-staging-control-plane status is now: NodeHasNoDiskPressure
+12m         Normal    NodeAllocatableEnforced   node/travel-staging-control-plane       Updated Node Allocatable limit across pods
 12m         Normal    NodeHasSufficientMemory   node/travel-staging-control-plane       Node travel-staging-control-plane status is now: NodeHasSufficientMemory
 12m         Normal    NodeAllocatableEnforced   node/travel-staging-control-plane       Updated Node Allocatable limit across pods
-12m         Normal    RegisteredNode            node/travel-staging-control-plane       Node travel-staging-control-plane event: Registered Node travel-staging-control-plane in Controller
-12m         Normal    NodeReady                 node/travel-staging-control-plane       Node travel-staging-control-plane status is now: NodeReady
-5m10s       Warning   FailedScheduling          pod/travel-agent-api-b975568f4-8z67r    0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
-5m10s       Normal    Scheduled                 pod/go-ranker-6dbc8b7ffd-9pff2          Successfully assigned default/go-ranker-6dbc8b7ffd-9pff2 to travel-staging-control-plane
-5m10s       Normal    Scheduled                 pod/go-fanout-7b9fb4786f-jzlv9          Successfully assigned default/go-fanout-7b9fb4786f-jzlv9 to travel-staging-control-plane
-5m10s       Normal    ScalingReplicaSet         deployment/travel-agent-api             Scaled up replica set travel-agent-api-b975568f4 from 0 to 4
-5m10s       Normal    SuccessfulCreate          replicaset/travel-agent-api-b975568f4   Created pod: travel-agent-api-b975568f4-4dtbk
-5m10s       Normal    SuccessfulCreate          replicaset/go-fanout-7b9fb4786f         Created pod: go-fanout-7b9fb4786f-jzlv9
-5m10s       Normal    SuccessfulCreate          replicaset/go-fanout-7b9fb4786f         Created pod: go-fanout-7b9fb4786f-kk89s
-5m10s       Normal    SuccessfulCreate          replicaset/go-fanout-7b9fb4786f         Created pod: go-fanout-7b9fb4786f-jbm5c
-5m10s       Normal    SuccessfulCreate          replicaset/travel-agent-api-b975568f4   Created pod: travel-agent-api-b975568f4-f7hw6
+12m         Normal    Starting                  node/travel-staging-control-plane       Starting kubelet.
+12m         Normal    NodeHasNoDiskPressure     node/travel-staging-control-plane       Node travel-staging-control-plane status is now: NodeHasNoDiskPressure
+12m         Normal    NodeHasSufficientPID      node/travel-staging-control-plane       Node travel-staging-control-plane status is now: NodeHasSufficientPID
+11m         Normal    RegisteredNode            node/travel-staging-control-plane       Node travel-staging-control-plane event: Registered Node travel-staging-control-plane in Controller
+11m         Normal    NodeReady                 node/travel-staging-control-plane       Node travel-staging-control-plane status is now: NodeReady
+5m10s       Normal    SuccessfulCreate          replicaset/go-ranker-6dbc8b7ffd         Created pod: go-ranker-6dbc8b7ffd-fb4cq
+5m10s       Normal    SuccessfulCreate          replicaset/go-fanout-7b9fb4786f         Created pod: go-fanout-7b9fb4786f-chj2w
+5m10s       Normal    SuccessfulCreate          replicaset/go-fanout-7b9fb4786f         Created pod: go-fanout-7b9fb4786f-r5nlv
+5m10s       Normal    SuccessfulCreate          replicaset/go-fanout-7b9fb4786f         Created pod: go-fanout-7b9fb4786f-s7zk8
+5m10s       Normal    SuccessfulCreate          replicaset/travel-agent-api-b975568f4   Created pod: travel-agent-api-b975568f4-lm2tb
+5m10s       Normal    SuccessfulCreate          replicaset/travel-agent-api-b975568f4   Created pod: travel-agent-api-b975568f4-c4jpd
 5m10s       Normal    ScalingReplicaSet         deployment/go-fanout                    Scaled up replica set go-fanout-7b9fb4786f from 0 to 3
-5m10s       Normal    SuccessfulCreate          replicaset/travel-agent-api-b975568f4   Created pod: travel-agent-api-b975568f4-8z67r
-5m10s       Warning   FailedScheduling          pod/go-policy-f948dc5cf-hs5qs           0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
-5m10s       Warning   FailedScheduling          pod/go-policy-f948dc5cf-lxp74           0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
-5m10s       Normal    SuccessfulCreate          replicaset/travel-agent-api-b975568f4   Created pod: travel-agent-api-b975568f4-tbq9w
-5m10s       Warning   FailedScheduling          pod/travel-agent-api-b975568f4-tbq9w    0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
-5m10s       Normal    Scheduled                 pod/go-fanout-7b9fb4786f-jbm5c          Successfully assigned default/go-fanout-7b9fb4786f-jbm5c to travel-staging-control-plane
+5m10s       Warning   FailedScheduling          pod/travel-agent-api-b975568f4-k8lvm    0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+5m10s       Warning   FailedScheduling          pod/go-policy-f948dc5cf-5ps8h           0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+5m10s       Normal    Scheduled                 pod/go-policy-f948dc5cf-dw84w           Successfully assigned default/go-policy-f948dc5cf-dw84w to travel-staging-control-plane
+5m10s       Normal    Scheduled                 pod/go-fanout-7b9fb4786f-r5nlv          Successfully assigned default/go-fanout-7b9fb4786f-r5nlv to travel-staging-control-plane
+5m10s       Warning   FailedScheduling          pod/travel-agent-api-b975568f4-hx8z2    0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+5m10s       Warning   FailedScheduling          pod/travel-agent-api-b975568f4-c4jpd    0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
 5m10s       Normal    SuccessfulCreate          statefulset/go-registry-cache           create Pod go-registry-cache-0 in StatefulSet go-registry-cache successful
-5m10s       Normal    ScalingReplicaSet         deployment/go-ranker                    Scaled up replica set go-ranker-6dbc8b7ffd from 0 to 3
-5m10s       Normal    Scheduled                 pod/go-policy-f948dc5cf-xtls9           Successfully assigned default/go-policy-f948dc5cf-xtls9 to travel-staging-control-plane
-5m10s       Normal    SuccessfulCreate          replicaset/go-ranker-6dbc8b7ffd         Created pod: go-ranker-6dbc8b7ffd-qgfvb
-5m10s       Normal    SuccessfulCreate          replicaset/go-ranker-6dbc8b7ffd         Created pod: go-ranker-6dbc8b7ffd-6b6qv
-5m10s       Normal    SuccessfulCreate          replicaset/go-ranker-6dbc8b7ffd         Created pod: go-ranker-6dbc8b7ffd-9pff2
-5m10s       Warning   FailedScheduling          pod/go-ranker-6dbc8b7ffd-qgfvb          0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
-5m10s       Normal    SuccessfulCreate          replicaset/go-policy-f948dc5cf          Created pod: go-policy-f948dc5cf-xtls9
-5m10s       Normal    SuccessfulCreate          replicaset/go-policy-f948dc5cf          Created pod: go-policy-f948dc5cf-lxp74
-5m10s       Normal    SuccessfulCreate          replicaset/go-policy-f948dc5cf          Created pod: go-policy-f948dc5cf-hs5qs
-5m10s       Normal    Scheduled                 pod/go-fanout-7b9fb4786f-kk89s          Successfully assigned default/go-fanout-7b9fb4786f-kk89s to travel-staging-control-plane
+5m10s       Warning   FailedScheduling          pod/go-policy-f948dc5cf-spzms           0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+5m10s       Normal    SuccessfulCreate          replicaset/go-policy-f948dc5cf          Created pod: go-policy-f948dc5cf-dw84w
+5m10s       Normal    SuccessfulCreate          replicaset/go-policy-f948dc5cf          Created pod: go-policy-f948dc5cf-spzms
+5m10s       Normal    SuccessfulCreate          replicaset/go-policy-f948dc5cf          Created pod: go-policy-f948dc5cf-5ps8h
+5m10s       Normal    Scheduled                 pod/go-fanout-7b9fb4786f-s7zk8          Successfully assigned default/go-fanout-7b9fb4786f-s7zk8 to travel-staging-control-plane
+5m10s       Normal    SuccessfulCreate          replicaset/travel-agent-api-b975568f4   Created pod: travel-agent-api-b975568f4-k8lvm
 5m10s       Normal    ScalingReplicaSet         deployment/go-policy                    Scaled up replica set go-policy-f948dc5cf from 0 to 3
-5m9s        Normal    Pulled                    pod/go-ranker-6dbc8b7ffd-9pff2          Container image "enterprise-travel-agent-go-ranker:local" already present on machine
-5m9s        Normal    Pulled                    pod/go-fanout-7b9fb4786f-jzlv9          Container image "enterprise-travel-agent-go-fanout:local" already present on machine
-5m9s        Normal    Created                   pod/go-fanout-7b9fb4786f-kk89s          Created container: go-fanout
-5m9s        Normal    Started                   pod/go-fanout-7b9fb4786f-jzlv9          Started container go-fanout
-5m9s        Normal    Created                   pod/go-ranker-6dbc8b7ffd-9pff2          Created container: go-ranker
-5m9s        Normal    Started                   pod/go-ranker-6dbc8b7ffd-9pff2          Started container go-ranker
-5m9s        Normal    Pulled                    pod/go-fanout-7b9fb4786f-jbm5c          Container image "enterprise-travel-agent-go-fanout:local" already present on machine
-5m9s        Normal    Created                   pod/go-fanout-7b9fb4786f-jbm5c          Created container: go-fanout
-5m9s        Normal    Started                   pod/go-fanout-7b9fb4786f-jbm5c          Started container go-fanout
-5m9s        Normal    Pulled                    pod/go-fanout-7b9fb4786f-kk89s          Container image "enterprise-travel-agent-go-fanout:local" already present on machine
-5m9s        Normal    Created                   pod/go-fanout-7b9fb4786f-jzlv9          Created container: go-fanout
-5m9s        Normal    Started                   pod/go-fanout-7b9fb4786f-kk89s          Started container go-fanout
-5m6s        Normal    ScalingReplicaSet         deployment/go-ranker                    Scaled down replica set go-ranker-6dbc8b7ffd from 3 to 2
-5m6s        Normal    SuccessfulDelete          replicaset/go-ranker-6dbc8b7ffd         Deleted pod: go-ranker-6dbc8b7ffd-qgfvb
-5m6s        Normal    SuccessfulDelete          replicaset/go-policy-f948dc5cf          Deleted pod: go-policy-f948dc5cf-hs5qs
-5m6s        Normal    Killing                   pod/go-fanout-7b9fb4786f-jzlv9          Stopping container go-fanout
-5m6s        Normal    ScalingReplicaSet         deployment/travel-agent-api             Scaled down replica set travel-agent-api-b975568f4 from 4 to 2
-5m6s        Normal    ScalingReplicaSet         deployment/go-policy                    Scaled down replica set go-policy-f948dc5cf from 3 to 2
-5m6s        Normal    SuccessfulDelete          replicaset/travel-agent-api-b975568f4   Deleted pod: travel-agent-api-b975568f4-8z67r
-5m6s        Normal    SuccessfulDelete          replicaset/travel-agent-api-b975568f4   Deleted pod: travel-agent-api-b975568f4-tbq9w
-5m6s        Normal    ScalingReplicaSet         deployment/go-fanout                    Scaled down replica set go-fanout-7b9fb4786f from 3 to 2
-5m6s        Normal    SuccessfulDelete          replicaset/go-fanout-7b9fb4786f         Deleted pod: go-fanout-7b9fb4786f-jzlv9
-5m5s        Warning   FailedScheduling          pod/travel-agent-api-b975568f4-f7hw6    0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
-5m5s        Normal    Scheduled                 pod/go-policy-f948dc5cf-lxp74           Successfully assigned default/go-policy-f948dc5cf-lxp74 to travel-staging-control-plane
-5m5s        Warning   FailedScheduling          pod/go-ranker-6dbc8b7ffd-6b6qv          0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
-5m5s        Warning   FailedScheduling          pod/travel-agent-api-b975568f4-4dtbk    0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
-5m5s        Warning   FailedScheduling          pod/go-registry-cache-0                 0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
-2m21s       Normal    Pulled                    pod/go-policy-f948dc5cf-xtls9           Container image "enterprise-travel-agent-go-policy:local" already present on machine
-2m21s       Normal    Created                   pod/go-policy-f948dc5cf-xtls9           Created container: go-policy
-2m21s       Normal    Started                   pod/go-policy-f948dc5cf-xtls9           Started container go-policy
-2m8s        Normal    Pulled                    pod/go-policy-f948dc5cf-lxp74           Container image "enterprise-travel-agent-go-policy:local" already present on machine
-2m8s        Normal    Created                   pod/go-policy-f948dc5cf-lxp74           Created container: go-policy
-2m8s        Normal    Started                   pod/go-policy-f948dc5cf-lxp74           Started container go-policy
-95s         Warning   BackOff                   pod/go-policy-f948dc5cf-xtls9           Back-off restarting failed container go-policy in pod go-policy-f948dc5cf-xtls9_default(2d98c446-2e97-4f9f-b4a2-09207fba9940)
-1s          Warning   BackOff                   pod/go-policy-f948dc5cf-lxp74           Back-off restarting failed container go-policy in pod go-policy-f948dc5cf-lxp74_default(9b3f083b-2a81-426f-b369-ec0add130256)
+5m10s       Normal    ScalingReplicaSet         deployment/travel-agent-api             Scaled up replica set travel-agent-api-b975568f4 from 0 to 4
+5m10s       Warning   FailedScheduling          pod/go-ranker-6dbc8b7ffd-6l79t          0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+5m10s       Warning   FailedScheduling          pod/go-ranker-6dbc8b7ffd-fb4cq          0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+5m10s       Normal    Scheduled                 pod/go-ranker-6dbc8b7ffd-t6847          Successfully assigned default/go-ranker-6dbc8b7ffd-t6847 to travel-staging-control-plane
+5m10s       Normal    Pulled                    pod/go-ranker-6dbc8b7ffd-t6847          Container image "enterprise-travel-agent-go-ranker:local" already present on machine
+5m10s       Normal    Created                   pod/go-ranker-6dbc8b7ffd-t6847          Created container: go-ranker
+5m10s       Warning   FailedScheduling          pod/go-registry-cache-0                 0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+5m10s       Normal    SuccessfulCreate          replicaset/go-ranker-6dbc8b7ffd         Created pod: go-ranker-6dbc8b7ffd-t6847
+5m10s       Normal    Scheduled                 pod/go-fanout-7b9fb4786f-chj2w          Successfully assigned default/go-fanout-7b9fb4786f-chj2w to travel-staging-control-plane
+5m10s       Normal    SuccessfulCreate          replicaset/go-ranker-6dbc8b7ffd         Created pod: go-ranker-6dbc8b7ffd-6l79t
+5m10s       Normal    SuccessfulCreate          replicaset/travel-agent-api-b975568f4   Created pod: travel-agent-api-b975568f4-hx8z2
+5m10s       Normal    ScalingReplicaSet         deployment/go-ranker                    Scaled up replica set go-ranker-6dbc8b7ffd from 0 to 3
+5m9s        Normal    SuccessfulDelete          replicaset/travel-agent-api-b975568f4   Deleted pod: travel-agent-api-b975568f4-c4jpd
+5m9s        Normal    Created                   pod/go-fanout-7b9fb4786f-chj2w          Created container: go-fanout
+5m9s        Normal    Started                   pod/go-ranker-6dbc8b7ffd-t6847          Started container go-ranker
+5m9s        Normal    Created                   pod/go-fanout-7b9fb4786f-s7zk8          Created container: go-fanout
+5m9s        Normal    SuccessfulDelete          replicaset/travel-agent-api-b975568f4   Deleted pod: travel-agent-api-b975568f4-hx8z2
+5m9s        Normal    SuccessfulDelete          replicaset/travel-agent-api-b975568f4   Deleted pod: travel-agent-api-b975568f4-k8lvm
+5m9s        Normal    Started                   pod/go-fanout-7b9fb4786f-r5nlv          Started container go-fanout
+5m9s        Normal    ScalingReplicaSet         deployment/travel-agent-api             Scaled down replica set travel-agent-api-b975568f4 from 4 to 1
+5m9s        Normal    Started                   pod/go-fanout-7b9fb4786f-s7zk8          Started container go-fanout
+5m9s        Normal    Created                   pod/go-fanout-7b9fb4786f-r5nlv          Created container: go-fanout
+5m9s        Normal    Pulled                    pod/go-fanout-7b9fb4786f-r5nlv          Container image "enterprise-travel-agent-go-fanout:local" already present on machine
+5m9s        Normal    Started                   pod/go-fanout-7b9fb4786f-chj2w          Started container go-fanout
+5m9s        Normal    Pulled                    pod/go-fanout-7b9fb4786f-s7zk8          Container image "enterprise-travel-agent-go-fanout:local" already present on machine
+5m9s        Normal    Pulled                    pod/go-fanout-7b9fb4786f-chj2w          Container image "enterprise-travel-agent-go-fanout:local" already present on machine
+5m8s        Normal    ScalingReplicaSet         deployment/go-ranker                    Scaled down replica set go-ranker-6dbc8b7ffd from 3 to 1
+5m8s        Normal    SuccessfulDelete          replicaset/go-ranker-6dbc8b7ffd         Deleted pod: go-ranker-6dbc8b7ffd-6l79t
+5m8s        Normal    ScalingReplicaSet         deployment/go-policy                    Scaled down replica set go-policy-f948dc5cf from 3 to 1
+5m8s        Normal    SuccessfulDelete          replicaset/go-ranker-6dbc8b7ffd         Deleted pod: go-ranker-6dbc8b7ffd-fb4cq
+5m6s        Normal    Killing                   pod/go-fanout-7b9fb4786f-r5nlv          Stopping container go-fanout
+5m6s        Normal    SuccessfulDelete          replicaset/go-policy-f948dc5cf          Deleted pod: go-policy-f948dc5cf-spzms
+5m6s        Normal    SuccessfulDelete          replicaset/go-fanout-7b9fb4786f         Deleted pod: go-fanout-7b9fb4786f-s7zk8
+5m6s        Normal    SuccessfulCreate          replicaset/travel-agent-api-db899c8db   Created pod: travel-agent-api-db899c8db-vtqmj
+5m6s        Normal    Scheduled                 pod/go-registry-cache-0                 Successfully assigned default/go-registry-cache-0 to travel-staging-control-plane
+5m6s        Normal    SuccessfulDelete          replicaset/go-fanout-7b9fb4786f         Deleted pod: go-fanout-7b9fb4786f-r5nlv
+5m6s        Normal    ScalingReplicaSet         deployment/travel-agent-api             Scaled up replica set travel-agent-api-db899c8db from 0 to 1
+5m6s        Normal    Killing                   pod/go-fanout-7b9fb4786f-s7zk8          Stopping container go-fanout
+5m6s        Normal    ScalingReplicaSet         deployment/go-fanout                    Scaled down replica set go-fanout-7b9fb4786f from 3 to 1
+5m6s        Normal    SuccessfulDelete          replicaset/go-policy-f948dc5cf          Deleted pod: go-policy-f948dc5cf-5ps8h
+5m5s        Warning   FailedMount               pod/go-registry-cache-0                 MountVolume.SetUp failed for volume "kube-api-access-7r2l8" : failed to sync configmap cache: timed out waiting for the condition
+5m4s        Normal    Started                   pod/go-registry-cache-0                 Started container go-registry-cache
+5m4s        Normal    Created                   pod/go-registry-cache-0                 Created container: go-registry-cache
+5m4s        Normal    Pulled                    pod/go-registry-cache-0                 Container image "enterprise-travel-agent-go-registry-cache:local" already present on machine
+2m6s        Normal    Started                   pod/go-policy-f948dc5cf-dw84w           Started container go-policy
+2m6s        Normal    Created                   pod/go-policy-f948dc5cf-dw84w           Created container: go-policy
+2m6s        Normal    Pulled                    pod/go-policy-f948dc5cf-dw84w           Container image "enterprise-travel-agent-go-policy:local" already present on machine
+64s         Warning   BackOff                   pod/go-policy-f948dc5cf-dw84w           Back-off restarting failed container go-policy in pod go-policy-f948dc5cf-dw84w_default(53a4159a-7018-4769-80b3-d142c6bdbc0d)
+2s          Warning   FailedScheduling          pod/travel-agent-api-b975568f4-lm2tb    0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+2s          Warning   FailedScheduling          pod/travel-agent-api-db899c8db-vtqmj    0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
 Name:               travel-staging-control-plane
 Roles:              control-plane
 Labels:             beta.kubernetes.io/arch=amd64
@@ -119,20 +125,20 @@ Labels:             beta.kubernetes.io/arch=amd64
 Annotations:        kubeadm.alpha.kubernetes.io/cri-socket: unix:///run/containerd/containerd.sock
                     node.alpha.kubernetes.io/ttl: 0
                     volumes.kubernetes.io/controller-managed-attach-detach: true
-CreationTimestamp:  Sat, 24 Oct 2026 15:23:52 +0000
+CreationTimestamp:  Sat, 24 Oct 2026 15:44:46 +0000
 Taints:             <none>
 Unschedulable:      false
 Lease:
   HolderIdentity:  travel-staging-control-plane
   AcquireTime:     <unset>
-  RenewTime:       Sat, 24 Oct 2026 15:36:41 +0000
+  RenewTime:       Sat, 24 Oct 2026 15:56:51 +0000
 Conditions:
   Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
   ----             ------  -----------------                 ------------------                ------                       -------
-  MemoryPressure   False   Sat, 24 Oct 2026 15:35:58 +0000   Sat, 24 Oct 2026 15:23:50 +0000   KubeletHasSufficientMemory   kubelet has sufficient memory available
-  DiskPressure     False   Sat, 24 Oct 2026 15:35:58 +0000   Sat, 24 Oct 2026 15:23:50 +0000   KubeletHasNoDiskPressure     kubelet has no disk pressure
-  PIDPressure      False   Sat, 24 Oct 2026 15:35:58 +0000   Sat, 24 Oct 2026 15:23:50 +0000   KubeletHasSufficientPID      kubelet has sufficient PID available
-  Ready            True    Sat, 24 Oct 2026 15:35:58 +0000   Sat, 24 Oct 2026 15:24:15 +0000   KubeletReady                 kubelet is posting ready status
+  MemoryPressure   False   Sat, 24 Oct 2026 15:56:44 +0000   Sat, 24 Oct 2026 15:44:43 +0000   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Sat, 24 Oct 2026 15:56:44 +0000   Sat, 24 Oct 2026 15:44:43 +0000   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Sat, 24 Oct 2026 15:56:44 +0000   Sat, 24 Oct 2026 15:44:43 +0000   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Sat, 24 Oct 2026 15:56:44 +0000   Sat, 24 Oct 2026 15:45:11 +0000   KubeletReady                 kubelet is posting ready status
 Addresses:
   InternalIP:  172.18.0.2
   Hostname:    travel-staging-control-plane
@@ -151,9 +157,9 @@ Allocatable:
   memory:             8122104Ki
   pods:               110
 System Info:
-  Machine ID:                 5709ecad089644949ec5004555c7eeb2
-  System UUID:                13573fdf-46f4-46f8-b37c-5802d7403da4
-  Boot ID:                    40656895-9b81-4569-8856-63c4fd5ccccd
+  Machine ID:                 1d39a4aa8f9945b2aa1b7ef12ef02177
+  System UUID:                72af8e96-96e8-4e6c-8569-c89420c1f0b4
+  Boot ID:                    d678b6d2-f3ea-4d5d-a188-95c4410033a1
   Kernel Version:             7.0.0-1017-azure
   OS Image:                   Debian GNU/Linux 12 (bookworm)
   Operating System:           linux
@@ -164,40 +170,44 @@ System Info:
 PodCIDR:                      10.244.0.0/24
 PodCIDRs:                     10.244.0.0/24
 ProviderID:                   kind://docker/travel-staging/travel-staging-control-plane
-Non-terminated Pods:          (14 in total)
+Non-terminated Pods:          (13 in total)
   Namespace                   Name                                                    CPU Requests  CPU Limits   Memory Requests  Memory Limits  Age
   ---------                   ----                                                    ------------  ----------   ---------------  -------------  ---
-  default                     go-fanout-7b9fb4786f-jbm5c                              200m (10%)    1 (50%)      256Mi (3%)       1Gi (12%)      5m10s
-  default                     go-fanout-7b9fb4786f-kk89s                              200m (10%)    1 (50%)      256Mi (3%)       1Gi (12%)      5m10s
-  default                     go-policy-f948dc5cf-lxp74                               200m (10%)    1 (50%)      256Mi (3%)       1Gi (12%)      5m10s
-  default                     go-policy-f948dc5cf-xtls9                               200m (10%)    1 (50%)      256Mi (3%)       1Gi (12%)      5m10s
-  default                     go-ranker-6dbc8b7ffd-9pff2                              250m (12%)    1500m (75%)  256Mi (3%)       1Gi (12%)      5m10s
-  kube-system                 coredns-674b8bbfcf-92bc6                                100m (5%)     0 (0%)       70Mi (0%)        170Mi (2%)     12m
-  kube-system                 coredns-674b8bbfcf-94fkk                                100m (5%)     0 (0%)       70Mi (0%)        170Mi (2%)     12m
+  default                     go-fanout-7b9fb4786f-chj2w                              200m (10%)    1 (50%)      256Mi (3%)       1Gi (12%)      5m10s
+  default                     go-policy-f948dc5cf-dw84w                               200m (10%)    1 (50%)      256Mi (3%)       1Gi (12%)      5m10s
+  default                     go-ranker-6dbc8b7ffd-t6847                              250m (12%)    1500m (75%)  256Mi (3%)       1Gi (12%)      5m10s
+  default                     go-registry-cache-0                                     100m (5%)     500m (25%)   128Mi (1%)       512Mi (6%)     5m10s
+  kube-system                 coredns-674b8bbfcf-9pk7w                                100m (5%)     0 (0%)       70Mi (0%)        170Mi (2%)     11m
+  kube-system                 coredns-674b8bbfcf-tfhvv                                100m (5%)     0 (0%)       70Mi (0%)        170Mi (2%)     11m
   kube-system                 etcd-travel-staging-control-plane                       100m (5%)     0 (0%)       100Mi (1%)       0 (0%)         12m
-  kube-system                 kindnet-779nj                                           100m (5%)     100m (5%)    50Mi (0%)        50Mi (0%)      12m
+  kube-system                 kindnet-b69x6                                           100m (5%)     100m (5%)    50Mi (0%)        50Mi (0%)      11m
   kube-system                 kube-apiserver-travel-staging-control-plane             250m (12%)    0 (0%)       0 (0%)           0 (0%)         12m
   kube-system                 kube-controller-manager-travel-staging-control-plane    200m (10%)    0 (0%)       0 (0%)           0 (0%)         12m
-  kube-system                 kube-proxy-j5kh2                                        0 (0%)        0 (0%)       0 (0%)           0 (0%)         12m
+  kube-system                 kube-proxy-2zxpq                                        0 (0%)        0 (0%)       0 (0%)           0 (0%)         11m
   kube-system                 kube-scheduler-travel-staging-control-plane             100m (5%)     0 (0%)       0 (0%)           0 (0%)         12m
-  local-path-storage          local-path-provisioner-7dc846544d-hkl6f                 0 (0%)        0 (0%)       0 (0%)           0 (0%)         12m
+  local-path-storage          local-path-provisioner-7dc846544d-c22p5                 0 (0%)        0 (0%)       0 (0%)           0 (0%)         11m
 Allocated resources:
   (Total limits may be over 100 percent, i.e., overcommitted.)
   Resource           Requests      Limits
   --------           --------      ------
-  cpu                2 (100%)      5600m (280%)
-  memory             1570Mi (19%)  5510Mi (69%)
+  cpu                1700m (85%)   4100m (204%)
+  memory             1186Mi (14%)  3974Mi (50%)
   ephemeral-storage  0 (0%)        0 (0%)
   hugepages-1Gi      0 (0%)        0 (0%)
   hugepages-2Mi      0 (0%)        0 (0%)
 Events:
-  Type    Reason                   Age   From             Message
-  ----    ------                   ----  ----             -------
-  Normal  Starting                 12m   kube-proxy       
-  Normal  Starting                 12m   kubelet          Starting kubelet.
-  Normal  NodeAllocatableEnforced  12m   kubelet          Updated Node Allocatable limit across pods
-  Normal  NodeHasSufficientMemory  12m   kubelet          Node travel-staging-control-plane status is now: NodeHasSufficientMemory
-  Normal  NodeHasNoDiskPressure    12m   kubelet          Node travel-staging-control-plane status is now: NodeHasNoDiskPressure
-  Normal  NodeHasSufficientPID     12m   kubelet          Node travel-staging-control-plane status is now: NodeHasSufficientPID
-  Normal  RegisteredNode           12m   node-controller  Node travel-staging-control-plane event: Registered Node travel-staging-control-plane in Controller
-  Normal  NodeReady                12m   kubelet          Node travel-staging-control-plane status is now: NodeReady
+  Type    Reason                   Age                From             Message
+  ----    ------                   ----               ----             -------
+  Normal  Starting                 11m                kube-proxy       
+  Normal  Starting                 12m                kubelet          Starting kubelet.
+  Normal  NodeHasSufficientMemory  12m (x8 over 12m)  kubelet          Node travel-staging-control-plane status is now: NodeHasSufficientMemory
+  Normal  NodeHasNoDiskPressure    12m (x8 over 12m)  kubelet          Node travel-staging-control-plane status is now: NodeHasNoDiskPressure
+  Normal  NodeHasSufficientPID     12m (x7 over 12m)  kubelet          Node travel-staging-control-plane status is now: NodeHasSufficientPID
+  Normal  NodeAllocatableEnforced  12m                kubelet          Updated Node Allocatable limit across pods
+  Normal  Starting                 12m                kubelet          Starting kubelet.
+  Normal  NodeAllocatableEnforced  12m                kubelet          Updated Node Allocatable limit across pods
+  Normal  NodeHasSufficientMemory  12m                kubelet          Node travel-staging-control-plane status is now: NodeHasSufficientMemory
+  Normal  NodeHasNoDiskPressure    12m                kubelet          Node travel-staging-control-plane status is now: NodeHasNoDiskPressure
+  Normal  NodeHasSufficientPID     12m                kubelet          Node travel-staging-control-plane status is now: NodeHasSufficientPID
+  Normal  RegisteredNode           11m                node-controller  Node travel-staging-control-plane event: Registered Node travel-staging-control-plane in Controller
+  Normal  NodeReady                11m                kubelet          Node travel-staging-control-plane status is now: NodeReady
