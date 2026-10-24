@@ -64,6 +64,12 @@ class TripPlan:
     - travelers >= 1
     - a plan must have at least one hotel and one transport option before it
       can be marked ``confirmed``
+
+    Domain events are recorded on the aggregate (``events``) for the
+    application layer to publish after persistence succeeds:
+    - ``TripPlanCreated`` - on first materialization
+    - ``TripPlanOptionsAttached`` - when candidates are attached
+    - ``TripPlanConfirmed`` - the finalize transition (``confirm()``)
     """
 
     city: str
@@ -88,6 +94,22 @@ class TripPlan:
         if self.travelers < 1:
             raise ValueError(f"travelers must be >= 1, got {self.travelers}")
         self.preferences = [p if isinstance(p, Preference) else Preference(str(p)) for p in self.preferences]
+        # Domain event: TripPlanCreated is recorded exactly once, when the
+        # aggregate is first materialized. Rehydrated aggregates come back
+        # with their stored event history (non-empty ``events``) and must not
+        # emit a second creation event.
+        if not self.events:
+            self._raise(
+                "TripPlanCreated",
+                {
+                    "plan_id": self.plan_id,
+                    "city": self.city,
+                    "days": self.days,
+                    "travelers": self.travelers,
+                    "budget": self.budget.amount,
+                    "membership_tier": self.membership_tier,
+                },
+            )
 
     def attach_options(
         self,
