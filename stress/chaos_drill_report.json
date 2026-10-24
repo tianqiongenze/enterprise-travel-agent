@@ -1,0 +1,6 @@
+{
+  "timestamp": "2026-09-20T04:05:21Z",
+  "gitSha": "ef5a05aeaff9f1f97ff33d3421f2036de23c67ee",
+  "overall": "SKIPPED",
+  "scenarios": [{"name":"cluster-prerequisite","status":"SKIPPED","detail":"namespace travel unreachable via kubectl","recoverySeconds":0}]
+}
