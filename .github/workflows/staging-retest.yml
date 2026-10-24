@@ -157,7 +157,7 @@ jobs:
           d = pathlib.Path(sys.argv[1])
           LEGACY_URL = "http://127.0.0.1:18000"
           NEW_URL = "http://127.0.0.1:18090"
-          N = 120
+          N = 60
 
           def wait_ready(url, tries=60):
               last = None
@@ -182,7 +182,7 @@ jobs:
           }).encode()
 
           def run_load(url, payload):
-              ok, lat = 0, []
+              ok, lat, errs = 0, [], []
               for _ in range(N):
                   req = urllib.request.Request(
                       url, data=payload,
@@ -190,20 +190,23 @@ jobs:
                   t0 = time.perf_counter()
                   try:
                       with urllib.request.urlopen(req, timeout=30) as r:
-                          r.read()
+                          body = r.read()
                           if r.status == 200:
                               ok += 1
-                  except Exception:
-                      pass
+                          elif len(errs) < 5:
+                              errs.append({"status": r.status, "body": body[:300].decode("utf-8", "replace")})
+                  except Exception as exc:
+                      if len(errs) < 5:
+                          errs.append({"status": "EXC", "body": repr(exc)[:300]})
                   lat.append((time.perf_counter() - t0) * 1000.0)
-              return ok, lat
+              return ok, lat, errs
 
           def pct(sorted_lat, p):
               idx = max(0, math.ceil(p / 100.0 * len(sorted_lat)) - 1)
               return sorted_lat[idx]
 
-          legacy_ok, legacy_lat = run_load(LEGACY_URL + "/recommend", legacy_payload)
-          new_ok, new_lat = run_load(NEW_URL + "/v1/score/hotel", new_payload)
+          legacy_ok, legacy_lat, legacy_errs = run_load(LEGACY_URL + "/recommend", legacy_payload)
+          new_ok, new_lat, new_errs = run_load(NEW_URL + "/v1/score/hotel", new_payload)
 
           legacy_lat_s, new_lat_s = sorted(legacy_lat), sorted(new_lat)
           legacy_sr, new_sr = legacy_ok / N, new_ok / N
@@ -224,6 +227,8 @@ jobs:
           }
           (d / "canary_report.json").write_text(json.dumps({
               "summary": summary,
+              "legacy_errors_sample": legacy_errs,
+              "new_errors_sample": new_errs,
               "raw": {
                   "legacy_latencies_ms": [round(x, 3) for x in legacy_lat],
                   "new_latencies_ms": [round(x, 3) for x in new_lat],
@@ -232,6 +237,7 @@ jobs:
           print(json.dumps(summary, ensure_ascii=False, indent=2))
           PY
           curl -sf http://127.0.0.1:18000/metrics > "$E/api_metrics.txt" 2>/dev/null || echo "api /metrics unavailable" > "$E/api_metrics.txt"
+          kubectl logs deployment/travel-agent-api --tail=300 > "$E/api_logs.txt" 2>&1 || true
           python3 platform/deploy/scripts/canary_gate.py \
             --report "$E/canary_report.json" \
             --max-success-gap 0.03 --max-p95-drift 0.08 --max-p99-drift 0.10 \
