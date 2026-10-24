@@ -84,6 +84,34 @@ public class TravelGatewayController {
         ));
     }
 
+    /**
+     * Assistant text rewrite via Spring AI Alibaba. Degrades gracefully
+     * (degraded=true + deterministic fallback text) when the advisor is
+     * disabled or the chat model is unavailable.
+     */
+    @PostMapping("/assistant/rewrite")
+    public ResponseEntity<Map<String, Object>> assistantRewrite(
+            @Valid @RequestBody AssistantRewriteRequest request,
+            @RequestHeader(value = "X-Trace-Id", required = false) String traceId
+    ) {
+        String effectiveTraceId = traceId == null || traceId.isBlank() ? UUID.randomUUID().toString() : traceId;
+        TravelRecommendRequest context = new TravelRecommendRequest(
+                "assistant", "assistant", "policy-default", effectiveTraceId, effectiveTraceId,
+                request.city() == null || request.city().isBlank() ? "未指定城市" : request.city(),
+                1, 1.0, 1, null, List.of(), 1, 1, List.of()
+        );
+        SpringAiAlibabaAdvisorService.AdvisorResult result =
+                springAiAlibabaAdvisorService.advise(context, request.text());
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("traceId", effectiveTraceId);
+        body.put("rewritten", result.rationale());
+        body.put("degraded", result.degraded());
+        if (result.reason() != null) {
+            body.put("degradedReason", result.reason());
+        }
+        return ResponseEntity.ok(body);
+    }
+
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> getList(Map<String, Object> payload, String key) {
         Object value = payload.get(key);
