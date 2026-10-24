@@ -1,0 +1,1110 @@
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  labels:
+    app: travel-agent-api
+  name: travel-agent-api
+---
+apiVersion: v1
+data:
+  CANARY_GATE_MAX_P95_DRIFT: "0.08"
+  CANARY_GATE_MAX_P99_DRIFT: "0.10"
+  CANARY_GATE_MAX_SUCCESS_GAP: "0.03"
+  TRAVEL_GO_POLICY_URL: http://go-policy.default.svc.cluster.local
+  TRAVEL_GO_RANKER_DIFF_THRESHOLD: "0.08"
+  TRAVEL_GO_RANKER_SHADOW: "true"
+  TRAVEL_GO_RANKER_TIMEOUT: "0.4"
+  TRAVEL_GO_RANKER_URL: http://go-ranker.default.svc.cluster.local
+  TRAVEL_INFLIGHT_LIMIT: "64"
+  TRAVEL_LOCAL_INFLIGHT_LIMIT: "16"
+  TRAVEL_POLICY_BACKEND: go
+  TRAVEL_POLICY_SHADOW: "true"
+  TRAVEL_RANKER_BACKEND: go
+  TRAVEL_REGISTRY_CACHE_BACKEND: go
+  TRAVEL_REGISTRY_CACHE_URL: http://go-registry-cache.default.svc.cluster.local
+kind: ConfigMap
+metadata:
+  name: travel-agent-env-mc8m97g26m
+---
+apiVersion: v1
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURIekNDQWdlZ0F3SUJBZ0lVS3VZcnBJTlBEUk5YMDZFOExPN25BNlZoUmpZd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0h6RWRNQnNHQTFVRUF3d1VkSEpoZG1Wc0xYTjBZV2RwYm1jdWJHOWpZV3d3SGhjTk1qWXhNREkwTVRRMQpPRFU1V2hjTk1qWXhNREkxTVRRMU9EVTVXakFmTVIwd0d3WURWUVFEREJSMGNtRjJaV3d0YzNSaFoybHVaeTVzCmIyTmhiRENDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFOUjJnV09pSi9pM3EyWTEKNk9LSzNDTWZMdE16Y3VqRUVlR2hSc2xKVHZCSDM2QkIzcktYckt4MFlnQlpmb1czbjlRaVMzZmRCcyt4c2VydwpOaGhnUzJncTk4M2NKTkZtOGNaZmNzc0FVMnYySTIrT0hQZWNENFJqVHNXQnNlOTlxN05SSi9UV2lFWklhREU0CjhtTUFFUG9vYUxiZEVPaDlWeFhidnJuNmlWVkZ2ZXBtem1RZmVFT2ZVdWhvL0ltajRMU2pPdjl0elJocERLRXEKNXNibWJzN21NQ0hicUkxdEszOEx2QnhZb1AyS29OakZyZ2IrUWpmY3NWbW4xeUE1ZFlzenVrQi9UY2RUQmFhUAoxRC9iWjZ6UUxEYnl3WXF6OGN3a3d3VDVic0lnTS9pZTMyaGZkVTIxUkNXM0RlMElUQ1RDTUVjdkJTSURtdnhGCkt1UkRFMUVDQXdFQUFhTlRNRkV3SFFZRFZSME9CQllFRkN5TUtPdUFTbGUzVHNsbTBFTUdDb1NaRER0bU1COEcKQTFVZEl3UVlNQmFBRkN5TUtPdUFTbGUzVHNsbTBFTUdDb1NaRER0bU1BOEdBMVVkRXdFQi93UUZNQU1CQWY4dwpEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBTHRkWXc1RHlyYkdseHRVa2ZVOFRNMEJxcVVLUitYekh6MUQ5cnBxCmMwWnlKdFA2RVErUTJlUEV2c1B2cHYwM3JPUHNnZG9HV3BLUmxBMUVkUEZEdXdvSTcrN0gwMzd5WWlqY3hMUksKMko2bW5jbG83YVdvNExrUW9wOWhlNzlpbVh6VjFORzR5czFWbFAzbmIrdXBjZXBVRklWRXJjelNLbjV3azg0NApwd1ppUUFLL0FiaG1KY3FzNlN5OVNhSUd2VmJic3d4Ky9OZVAvR0NoK01Db1ZiUmtRY1NNRkhiY2dLZjFlcWxRCmxSMzZKYUtqSlA1SW5jK283Z2xXaE8wRUF5TnY3Q2ZtZHV0TzNFNDFIdUZ5OEhDaW9rbHoxS2txWnlEQ2lSN3kKaTFramVsVitBaEhHWlhzOVFpK3ZsV0tLOG9EZUZVUzUrajlOSU1sVTNzNTh3V009Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+  tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRRFVkb0Zqb2lmNHQ2dG0KTmVqaWl0d2pIeTdUTTNMb3hCSGhvVWJKU1U3d1I5K2dRZDZ5bDZ5c2RHSUFXWDZGdDUvVUlrdDMzUWJQc2JIcQo4RFlZWUV0b0t2Zk4zQ1RSWnZIR1gzTExBRk5yOWlOdmpoejNuQStFWTA3RmdiSHZmYXV6VVNmMDFvaEdTR2d4Ck9QSmpBQkQ2S0dpMjNSRG9mVmNWMjc2NStvbFZSYjNxWnM1a0gzaERuMUxvYVB5Sm8rQzBvenIvYmMwWWFReWgKS3ViRzVtN081akFoMjZpTmJTdC9DN3djV0tEOWlxRFl4YTRHL2tJMzNMRlpwOWNnT1hXTE03cEFmMDNIVXdXbQpqOVEvMjJlczBDdzI4c0dLcy9ITUpNTUUrVzdDSURQNG50OW9YM1ZOdFVRbHR3M3RDRXdrd2pCSEx3VWlBNXI4ClJTcmtReE5SQWdNQkFBRUNnZ0VBSnROV0gwY3pmMEhQTm1FdEl2TUZ1Znhaa2ZwaHFoUWtnV00zdkpKak5Na3AKbms5VE96YzQ5SlhiRDkzSzMzUTRKcXV5dDErQ2ZtTm1WRHpiNGRYOUNiYnFiR25wcDRPa3RKL2VLaWN2MTNlVwpMNjFjY1VwSlVxUFVNZ2NhcFYyRmlrSVBKM0NwM0JBZ3pEZndJWFBTWm1pS2hEby9QQUVsc0NhbFFyYThNSUwyCkxXdUlreFNvS1RMQml5OVdiakpDNFQ3SGdjalFjQXdVc3B1S241YlFyWGl0KzNhbm5Sb3IzL3hScldlREhiNmQKak1QeEFWWlZnK3pOZkMvUVN5aFdyYXRJZEp5eStmMnhYTk1vaElseGd1akl0b051YU9aYzl5NHNCeFdtVnFHNwpMZS93SWNqUC9iakJPbXpSZ0tDMzVsWGhmZ3J1OTFpOFR1TGhFdWJCUFFLQmdRRHJDRy9uaEdGc241eVVnUmlPClhoZkJCQzBoQnlrOThHZlVQbUl6cngxQUcyUVA4RDVocFlZRWRuS3A2anBkSDRYN2ppTHNjVWZEektsMzhacFoKeVJURGViekc0aXdaM0d1RWxkeGYrbVZqT2JnWVoyRVgwajFBYy9zMkhrVUhhaWNjVFNPWkttMXBqT0tPUjd0agpNMzBubkF2M05hTTdtRmtYMU1ZcHNidFI3UUtCZ1FEbmFxQUdxWmZKNGJFZ1c5UEt1SFpRVENCREhkVi9VSVdhCjVEZ1Q1OTVMdlQ0Y0JjSmlLTithSGQ0dUxWTjJtaWxjMjM1SjlmWEtUVlRmRlh1Zlp6R1JOVmJTQmxMVHEzSjEKcXBLMXh6VGxQU3hMendLWTh4dHl5RVR0bXJ5N0xFSWpGaEExS2RacGVWWnpGZldqK0tKa3VyRlhudzNxcDBCQQpMb3BzNjFUcWRRS0JnQ29WdGF2NENWWGc4ckdvdUJQdUIwVFprWmNqYUNBZUp3bGJMa3hnNDlUeDBxWUQ5N2VXCll2dnpsYTZWTVdReFc5VmlheUI1WEVkVUkxaEYyOFNOKy9qUW1Kdm9MY3RucTV6dkZLbmU5VDZpUERPcWR6bEQKdlJJSWNvZ0xQWU1KWC8xeVZwaDdmMkh5QnpOQTV1M3BiMVNqWFlVamhwb0tPcEhJMkw3b2cwazFBb0dCQUp4bQo5dEtwNmpsNlBLRVhEdFFTeVh2Smg0QjArR2M4ZjUvSW9KSHJndFVEaUtlZHlOdFlybzdWb3VUb28yRWtIZEp4ClVqQWdlTWNLYnRMN0RQc1YzbTA2ZEh3cjQrekZFZTJ1bzhzUllKR1NQNDdZMFBPWVVyUEg0TFlKZjRhdENlSDIKdG11SDVDNlM0RGVWM3RlOFlkemNSS0Zva1JwSGdXZ2ZURlVDMC9oRkFvR0JBSzBUbDFvcnR5cDJaeFlIdkhvSAp5TXpPWmJyK21LM1VuazUzQ2E0bkUweTR1cWxrZEhmODQ1dkhTb0ZyWENieWEyMFlSWktOS2M2QW5BY2ttczRCCkY1ejY2Nkp2SVYwL3MyR3VvUmM3MXl4bndETXJBMTBKYmNWUG9yWmpOMVNFZFJDNy9FbFY0d2RxVHc0UWhuaWwKR2VlcVY3MmlhNjlYY3JTMis1Q2hWZlVvCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K
+kind: Secret
+metadata:
+  name: travel-agent-tls
+type: kubernetes.io/tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-fanout
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8092
+  - name: metrics
+    port: 8092
+    targetPort: 8092
+  selector:
+    app: go-fanout
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-policy
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8091
+  - name: metrics
+    port: 8091
+    targetPort: 8091
+  selector:
+    app: go-policy
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-ranker
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8090
+  - name: metrics
+    port: 8090
+    targetPort: 8090
+  selector:
+    app: go-ranker
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-registry-cache
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8093
+  - name: metrics
+    port: 8093
+    targetPort: 8093
+  selector:
+    app: go-registry-cache
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-registry-cache-headless
+spec:
+  clusterIP: None
+  ports:
+  - port: 8093
+    targetPort: 8093
+  selector:
+    app: go-registry-cache
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: travel-agent-a2a-metrics
+    component: metrics-exporter
+  name: travel-agent-a2a-metrics
+spec:
+  ports:
+  - name: metrics
+    port: 9909
+    targetPort: metrics
+  selector:
+    app: travel-agent-a2a-metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: travel-agent-api
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8000
+  - name: metrics
+    port: 8000
+    targetPort: 8000
+  selector:
+    app: travel-agent-api
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-fanout
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: go-fanout
+  template:
+    metadata:
+      labels:
+        app: go-fanout
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: GO_FANOUT_PORT
+          value: "8092"
+        image: enterprise-travel-agent-go-fanout:local
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8092
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        name: go-fanout
+        ports:
+        - containerPort: 8092
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8092
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 200m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp
+      securityContext:
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - emptyDir: {}
+        name: tmp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-policy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: go-policy
+  template:
+    metadata:
+      labels:
+        app: go-policy
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: GO_POLICY_PORT
+          value: "8091"
+        image: enterprise-travel-agent-go-policy:local
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8091
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        name: go-policy
+        ports:
+        - containerPort: 8091
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8091
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 200m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp
+      securityContext:
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - emptyDir: {}
+        name: tmp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-ranker
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: go-ranker
+  template:
+    metadata:
+      labels:
+        app: go-ranker
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: GO_RANKER_PORT
+          value: "8090"
+        image: enterprise-travel-agent-go-ranker:local
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8090
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        name: go-ranker
+        ports:
+        - containerPort: 8090
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8090
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 1500m
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp
+      securityContext:
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - emptyDir: {}
+        name: tmp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: travel-agent-api
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: travel-agent-api
+  template:
+    metadata:
+      labels:
+        app: travel-agent-api
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: LOG_LEVEL
+          value: INFO
+        - name: TRAVEL_REGISTRY
+          value: nacos-real
+        - name: NACOS_SERVER_ADDR
+          value: http://nacos.default.svc.cluster.local:8848
+        - name: ETCD_HOST
+          value: etcd.default.svc.cluster.local
+        - name: ETCD_PORT
+          value: "2379"
+        - name: TRAVEL_ETCD_CLIENT_MODE
+          value: legacy
+        - name: TRAVEL_RANKER_BACKEND
+          valueFrom:
+            configMapKeyRef:
+              key: TRAVEL_RANKER_BACKEND
+              name: travel-agent-env-mc8m97g26m
+        - name: TRAVEL_GO_RANKER_URL
+          valueFrom:
+            configMapKeyRef:
+              key: TRAVEL_GO_RANKER_URL
+              name: travel-agent-env-mc8m97g26m
+        - name: TRAVEL_GO_RANKER_TRANSPORT
+          valueFrom:
+            configMapKeyRef:
+              key: TRAVEL_GO_RANKER_TRANSPORT
+              name: travel-agent-env-mc8m97g26m
+              optional: true
+        - name: TRAVEL_GO_RANKER_GRPC_TARGET
+          valueFrom:
+            configMapKeyRef:
+              key: TRAVEL_GO_RANKER_GRPC_TARGET
+              name: travel-agent-env-mc8m97g26m
+              optional: true
+        - name: TRAVEL_GO_RANKER_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              key: TRAVEL_GO_RANKER_TIMEOUT
+              name: travel-agent-env-mc8m97g26m
+        - name: TRAVEL_GO_RANKER_SHADOW
+          valueFrom:
+            configMapKeyRef:
+              key: TRAVEL_GO_RANKER_SHADOW
+              name: travel-agent-env-mc8m97g26m
+              optional: true
+        - name: TRAVEL_GO_RANKER_DIFF_THRESHOLD
+          valueFrom:
+            configMapKeyRef:
+              key: TRAVEL_GO_RANKER_DIFF_THRESHOLD
+              name: travel-agent-env-mc8m97g26m
+              optional: true
+        - name: TRAVEL_INFLIGHT_LIMIT
+          valueFrom:
+            configMapKeyRef:
+              key: TRAVEL_INFLIGHT_LIMIT
+              name: travel-agent-env-mc8m97g26m
+              optional: true
+        - name: TRAVEL_LOCAL_INFLIGHT_LIMIT
+          valueFrom:
+            configMapKeyRef:
+              key: TRAVEL_LOCAL_INFLIGHT_LIMIT
+              name: travel-agent-env-mc8m97g26m
+              optional: true
+        image: enterprise-travel-agent-api:staging
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 15
+          timeoutSeconds: 2
+        name: travel-agent-api
+        ports:
+        - containerPort: 8000
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 2
+        resources:
+          limits:
+            cpu: 4000m
+            memory: 4Gi
+          requests:
+            cpu: 1000m
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp
+      securityContext:
+        fsGroup: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: travel-agent-api
+      volumes:
+      - emptyDir: {}
+        name: tmp
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: go-registry-cache
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: go-registry-cache
+  serviceName: go-registry-cache-headless
+  template:
+    metadata:
+      labels:
+        app: go-registry-cache
+    spec:
+      automountServiceAccountToken: true
+      containers:
+      - env:
+        - name: GO_REGISTRY_CACHE_PORT
+          value: "8093"
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: GROUPCACHE_HEADLESS_SERVICE
+          value: go-registry-cache-headless
+        - name: GROUPCACHE_SELF
+          value: http://go-registry-cache-0.go-registry-cache-headless.default.svc.cluster.local:8093
+        - name: GROUPCACHE_PEERS
+          value: http://go-registry-cache-0.go-registry-cache-headless.default.svc.cluster.local:8093,http://go-registry-cache-1.go-registry-cache-headless.default.svc.cluster.local:8093
+        image: enterprise-travel-agent-go-registry-cache:local
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8093
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        name: go-registry-cache
+        ports:
+        - containerPort: 8093
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8093
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+      securityContext:
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: go-registry-cache-sa
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    app: travel-agent-a2a-metrics
+    component: metrics-exporter
+  name: travel-agent-a2a-metrics-exporter
+spec:
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: travel-agent-a2a-metrics
+            component: metrics-exporter
+        spec:
+          containers:
+          - command:
+            - sh
+            - -c
+            - |
+              python -u platform/deploy/scripts/export_a2a_stream_metrics.py
+              sleep ${TRAVEL_A2A_METRICS_SCRAPE_GRACE_SEC:-45}
+            env:
+            - name: TRAVEL_A2A_REDIS_URL
+              value: redis://redis-cluster.default.svc.cluster.local:7000
+            - name: TRAVEL_A2A_KEY_PREFIX
+              value: a2a:stream
+            - name: TRAVEL_A2A_STREAM_GROUP
+              value: a2a-consumers
+            - name: TRAVEL_A2A_METRICS_PATH
+              value: /metrics/a2a_stream_metrics.prom
+            image: enterprise-travel-agent-api:staging
+            imagePullPolicy: IfNotPresent
+            name: a2a-metrics-exporter
+            volumeMounts:
+            - mountPath: /metrics
+              name: a2a-metrics
+          - command:
+            - python
+            - -m
+            - http.server
+            - "9909"
+            - --directory
+            - /metrics
+            image: python:3.12-slim
+            imagePullPolicy: IfNotPresent
+            name: a2a-metrics-http
+            ports:
+            - containerPort: 9909
+              name: metrics
+            volumeMounts:
+            - mountPath: /metrics
+              name: a2a-metrics
+          restartPolicy: OnFailure
+          volumes:
+          - emptyDir: {}
+            name: a2a-metrics
+  schedule: '*/1 * * * *'
+  successfulJobsHistoryLimit: 2
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: go-fanout-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: go-fanout
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: go-policy-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: go-policy
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: go-ranker-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: go-ranker
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: go-registry-cache-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: go-registry-cache
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: travel-agent-api-pdb
+spec:
+  minAvailable: 4
+  selector:
+    matchLabels:
+      app: travel-agent-api
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: go-fanout-hpa
+spec:
+  maxReplicas: 60
+  metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 60
+        type: Utilization
+    type: Resource
+  minReplicas: 3
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: go-fanout
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: go-policy-hpa
+spec:
+  maxReplicas: 60
+  metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 60
+        type: Utilization
+    type: Resource
+  minReplicas: 3
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: go-policy
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: go-ranker-hpa
+spec:
+  maxReplicas: 80
+  metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 60
+        type: Utilization
+    type: Resource
+  minReplicas: 4
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: go-ranker
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: travel-agent-api-hpa
+spec:
+  maxReplicas: 600
+  metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 65
+        type: Utilization
+    type: Resource
+  minReplicas: 24
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: travel-agent-api
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app: travel-agent
+    release: kube-prometheus-stack
+  name: travel-agent-a2a-metrics
+spec:
+  namespaceSelector:
+    any: true
+  podMetricsEndpoints:
+  - interval: 30s
+    path: /a2a_stream_metrics.prom
+    port: metrics
+    scrapeTimeout: 10s
+  selector:
+    matchLabels:
+      app: travel-agent-a2a-metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app: travel-agent
+  name: travel-agent-runtime-alerts
+spec:
+  groups:
+  - name: groupcache-runtime.rules
+    rules:
+    - alert: GroupcachePeersTooLow
+      annotations:
+        description: groupcache peer count is below 2 for over 5 minutes; peer discovery
+          may be unhealthy.
+        summary: groupcache peers below expected floor
+      expr: groupcache_peers_count < 2
+      for: 5m
+      labels:
+        component: go-registry-cache
+        severity: warning
+    - alert: GroupcachePeerRefreshStale
+      annotations:
+        description: go-registry-cache has not refreshed endpoint peers in the last
+          120 seconds.
+        summary: groupcache peer refresh is stale
+      expr: time() - groupcache_peer_refresh_timestamp > 120
+      for: 5m
+      labels:
+        component: go-registry-cache
+        severity: critical
+    - alert: GroupcachePeerRefreshErrorsIncreasing
+      annotations:
+        description: go-registry-cache endpoint refresh errors increased over the
+          last 10 minutes.
+        summary: groupcache refresh errors detected
+      expr: increase(groupcache_peer_refresh_errors_total[10m]) > 0
+      for: 10m
+      labels:
+        component: go-registry-cache
+        severity: warning
+  - name: canary-gate.rules
+    rules:
+    - alert: CanaryGateRollbackDecision
+      annotations:
+        description: canary gate evaluated rollback. Check canary drift and revert/pause
+          promotion.
+        summary: canary gate currently in rollback state
+      expr: canary_gate_status == 0
+      for: 2m
+      labels:
+        component: canary-gate
+        severity: critical
+    - alert: CanaryGateSuccessGapExceeded
+      annotations:
+        description: success rate gap is above configured threshold for canary gate.
+        summary: canary success-rate gap exceeded
+      expr: canary_gate_success_rate_gap > canary_gate_threshold_success_gap
+      for: 2m
+      labels:
+        component: canary-gate
+        severity: critical
+    - alert: CanaryGateP95DriftExceeded
+      annotations:
+        description: p95 latency drift ratio is above threshold for canary gate.
+        summary: canary p95 drift exceeded
+      expr: canary_gate_p95_drift_ratio > canary_gate_threshold_p95_drift
+      for: 2m
+      labels:
+        component: canary-gate
+        severity: warning
+    - alert: CanaryGateP99DriftExceeded
+      annotations:
+        description: p99 latency drift ratio is above threshold for canary gate.
+        summary: canary p99 drift exceeded
+      expr: canary_gate_p99_drift_ratio > canary_gate_threshold_p99_drift
+      for: 2m
+      labels:
+        component: canary-gate
+        severity: warning
+    - alert: CanaryGateMetricsStale
+      annotations:
+        description: No fresh canary gate evaluation has been published in the last
+          15 minutes.
+        summary: canary gate metrics are stale
+      expr: time() - canary_gate_last_eval_timestamp > 900
+      for: 5m
+      labels:
+        component: canary-gate
+        severity: warning
+  - name: event-consumer.rules
+    rules:
+    - alert: EventConsumerLagHigh
+      annotations:
+        description: event consumer lag has exceeded 60 seconds for over 5 minutes.
+        summary: event consumer lag is high
+      expr: travel_event_consumer_lag_seconds > 60
+      for: 5m
+      labels:
+        component: event-consumer
+        severity: warning
+    - alert: EventConsumerDLQIncreasing
+      annotations:
+        description: DLQ count increased in the last 10 minutes. Check failing handlers
+          or malformed events.
+        summary: event consumer DLQ traffic detected
+      expr: increase(travel_event_consumer_dlq_total[10m]) > 0
+      for: 10m
+      labels:
+        component: event-consumer
+        severity: critical
+    - alert: EventConsumerNoProgress
+      annotations:
+        description: No processed events recorded in the last 10 minutes.
+        summary: event consumer has no processing progress
+      expr: increase(travel_event_consumer_processed_total[10m]) == 0
+      for: 10m
+      labels:
+        component: event-consumer
+        severity: warning
+    - alert: EventConsumerHandlerFailuresIncreasing
+      annotations:
+        description: Handler failures increased in the last 10 minutes. Review retry
+          policy and downstream dependencies.
+        summary: event consumer handler failures detected
+      expr: increase(travel_event_consumer_handler_failures_total[10m]) > 0
+      for: 10m
+      labels:
+        component: event-consumer
+        severity: warning
+    - alert: EventConsumerQueueFullDropsIncreasing
+      annotations:
+        description: Worker queue reached capacity and dropped/requeued messages in
+          last 10 minutes.
+        summary: event consumer queue full drops detected
+      expr: increase(travel_event_consumer_queue_full_drop_total[10m]) > 0
+      for: 5m
+      labels:
+        component: event-consumer
+        severity: warning
+  - name: a2a-stream.rules
+    rules:
+    - alert: A2AStreamPendingHigh
+      annotations:
+        description: Redis Streams pending entries exceed 500 for over 5 minutes.
+          Check consumers and retry throughput.
+        summary: A2A stream pending backlog is high
+      expr: travel_a2a_stream_pending_total > 500
+      for: 5m
+      labels:
+        component: a2a-stream
+        severity: warning
+    - alert: A2AStreamLagHigh
+      annotations:
+        description: A2A stream lag exceeds 30 seconds. Investigate stream claim/ack
+          latency.
+        summary: A2A stream lag is high
+      expr: travel_a2a_stream_lag_ms > 30000
+      for: 5m
+      labels:
+        component: a2a-stream
+        severity: warning
+    - alert: A2AStreamMetricsStale
+      annotations:
+        description: No fresh A2A stream metrics exported in the last 10 minutes.
+        summary: A2A stream metrics are stale
+      expr: time() - travel_a2a_stream_metrics_timestamp > 600
+      for: 5m
+      labels:
+        component: a2a-stream
+        severity: warning
+  - name: runtime-slo.rules
+    rules:
+    - expr: |
+        sum(rate(http_requests_total{app="travel-agent-api",status=~"5.."}[5m]))
+        /
+        clamp_min(sum(rate(http_requests_total{app="travel-agent-api"}[5m])), 1)
+      record: travel_agent_api_error_rate_5m
+    - alert: TravelAgentAPIErrorRateHigh
+      annotations:
+        description: 5xx error-rate over last 5m is above 1%.
+        summary: travel-agent-api error rate exceeds SLO
+      expr: travel_agent_api_error_rate_5m > 0.01
+      for: 5m
+      labels:
+        component: travel-agent-api
+        severity: critical
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: travel-agent
+  name: go-services-servicemonitor
+spec:
+  endpoints:
+  - interval: 30s
+    path: /metrics
+    port: metrics
+    scrapeTimeout: 10s
+  namespaceSelector:
+    any: true
+  selector:
+    matchExpressions:
+    - key: app
+      operator: In
+      values:
+      - go-ranker
+      - go-policy
+      - go-fanout
+      - go-registry-cache
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: travel-agent
+    release: kube-prometheus-stack
+  name: travel-agent-a2a-metrics
+spec:
+  endpoints:
+  - interval: 30s
+    path: /a2a_stream_metrics.prom
+    port: metrics
+    scrapeTimeout: 10s
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app: travel-agent-a2a-metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: travel-agent
+  name: travel-agent-api-servicemonitor
+spec:
+  endpoints:
+  - interval: 30s
+    path: /metrics
+    port: metrics
+    scrapeTimeout: 10s
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app: travel-agent-api
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "30"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  name: travel-agent-ingress
+spec:
+  rules:
+  - host: travel.example.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: travel-agent-api
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - travel.example.com
+    secretName: travel-agent-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-travel-api
+spec:
+  egress:
+  - ports:
+    - port: 8090
+      protocol: TCP
+    - port: 9090
+      protocol: TCP
+    - port: 8091
+      protocol: TCP
+    to:
+    - podSelector:
+        matchLabels:
+          app: travel-gateway
+    - podSelector:
+        matchLabels:
+          app: go-ranker
+    - podSelector:
+        matchLabels:
+          app: go-policy
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+  podSelector:
+    matchLabels:
+      app: travel-agent-api
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-travel-api
+spec:
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: travel-gateway
+    ports:
+    - port: 8000
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app: travel-agent-api
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-travel-gateway
+spec:
+  egress:
+  - ports:
+    - port: 8000
+      protocol: TCP
+    to:
+    - podSelector:
+        matchLabels:
+          app: travel-agent-api
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+    ports:
+    - port: 8080
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app: travel-gateway
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
