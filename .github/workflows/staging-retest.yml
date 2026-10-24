@@ -111,6 +111,13 @@ jobs:
           kubectl scale deployment/travel-agent-api --replicas=0
           kubectl set resources deployment/travel-agent-api --containers=travel-agent-api \
             --requests=cpu=200m,memory=384Mi --limits=cpu=1000m,memory=1Gi
+          # Single-node kind has no pulsar/redis/nacos: pin the api to the
+          # same degraded-local env the CI test suite uses, otherwise every
+          # publish blocks 30s (pulsar send timeout) and /recommend starves.
+          kubectl set env deployment/travel-agent-api \
+            TRAVEL_EVENT_BUS=local \
+            TRAVEL_A2A_TRANSPORT=mock \
+            TRAVEL_A2A_AUDIT_MIRROR_PULSAR=false
           kubectl scale deployment/travel-agent-api --replicas=1
           sleep 5
           kubectl get hpa,pods -o wide || true
@@ -182,7 +189,7 @@ jobs:
                       headers={"Content-Type": "application/json"}, method="POST")
                   t0 = time.perf_counter()
                   try:
-                      with urllib.request.urlopen(req, timeout=10) as r:
+                      with urllib.request.urlopen(req, timeout=30) as r:
                           r.read()
                           if r.status == 200:
                               ok += 1

@@ -24,6 +24,7 @@
 | TLS Secret | CI 内以自签证书替换 `REPLACE_WITH_BASE64_CERT/KEY` 占位符（占位符非法 base64，apply 必失败；证书不入库） |
 | CronJob | `travel-agent-a2a-metrics-exporter` 冒烟窗口内 suspend（依赖外部 etcd，避免噪音） |
 | 容量适配 | staging overlay 携带生产级 HPA（api minReplicas=24/max=600，ranker min=4）与生产级资源请求（api 1000m/1Gi）；单节点 kind（allocatable ≈2 CPU，system 占约 500m）调度不下。冒烟窗口内删除全部 HPA、每服务钉 1 副本、api 请求降为 200m/384Mi（缩 0 → 改规格 → 回 1，规避滚动更新双 RS 并存）。overlay 保持生产形态不变，此适配仅存在于执行环境 |
+| 依赖降级 | 单节点 kind 无 Pulsar/Redis/Nacos：api 冒烟窗口内注入 `TRAVEL_EVENT_BUS=local`、`TRAVEL_A2A_TRANSPORT=mock`、`TRAVEL_A2A_AUDIT_MIRROR_PULSAR=false`（与 CI 测试套件一致）。Pulsar 客户端构造不抛错但 `publish()` 每次阻塞 30s（sendTimeout），不注入时 /recommend 全部超时——已本地复现并验证（tmp_repro_recommend.py，修复后 200/4.1s） |
 
 ## 3. 流量与证据口径（禁止伪造，全部为集群真实测量）
 
