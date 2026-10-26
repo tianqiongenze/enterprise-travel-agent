@@ -339,3 +339,45 @@
 4. ruff F401×2 + F821 `async_session`（PEP 562 惰性属性不能用裸全局名访问）——已修。
 
 staging-retest-kind 在 main 上连续两轮 **success**（run 40123671022 等）。仍红的两项为预存问题：`python-tests`（2026-09-19 起即红，CI Python 3.12 与本地 3.14 行为差异，需在可读 CI 日志的网络环境定位）与 `security-scan`（"Set up job" 阶段失败，runner 基础设施层，与代码无关）。二者不计入本轮评分。
+
+---
+
+## 十二、第四轮复盘评分（2026-10-27，百万级并发口径）
+
+> 审查与重构全程：docs/fourth-round-review-and-refactor-plan.md；测试报告：stress/fourth_round_test_report.md。
+> 运行环境：10.167.2.175/176 真实 K8s 集群实测（非本地模拟）。
+
+| # | 差距项（四轮方案 R1-R12） | 结果 | 证据 |
+|---|--------|------|------|
+| 1 | R1 GraphQL 查询层 | 完成 | strawberry schema + 深度/成本守卫 + 契约 SDL；/graphql 集群实测双面对齐；tests/test_graphql_contract.py |
+| 2 | R2 读写分离 | 完成 | RoutingSessionFactory（SQLAlchemy 2.0 官方模式）+ TiDB follower-read 引擎；TRAVEL_DB_READ_URL 环境开关 |
+| 3 | R3 多级缓存 | 完成 | L1 TTLCache facade + L2 Redis fail-open + pub/sub 失效广播；集群微基准 10 万次命中 232ms |
+| 4 | R4 令牌桶限流 | 完成 | 原子 Lua 消费替换固定窗口；tests/test_token_bucket.py |
+| 5 | R5 异步行程削峰 | 完成 | ItineraryQueue（local/Pulsar 双后端）+ 并发 worker；tests/test_itinerary_queue.py |
+| 6 | R8 Prometheus 指标 | 完成 | 请求计数/延迟直方图中间件 + /metrics + 缓存命中率导出 |
+| 7 | R9 功能全链路 | 完成 | REST 7 路由 + GraphQL + metrics 全面功能测试 11 用例 + BDD 5 场景（pytest-bdd）全绿 |
+| 8 | R10/R11 K6+Locust | 完成 | k6 三轮（200/50 VU）：50VU 稳态 252 req/s、P95 262ms、错误率 0%；Locust 400 用户分布式 31,793 请求 0 失败 |
+| 9 | R12 容量外推 | 完成 | 1M 并发扩容清单（API 4,000 pods/LB 20 台/压测集群 60 节点），全部有实测锚点 |
+| 10 | 真实缺陷修复 | 完成 | 压测与探针发现 3 项（TTLCache API、同步协程静默空结果、契约缺字段），本地回归 120 OK |
+
+| # | 维度 | 三轮后 | 四轮 | 变化依据 |
+|---|------|-------|------|---------|
+| 1 | 需求分析与规格 | 62 | 63 | 1M 口径容量模型与 NFR 阈值落文档 |
+| 2 | 架构设计文档 | 74 | 76 | GraphQL/读写分离/多级缓存 ADR 级设计 + 容量外推方法 |
+| 3 | DDD 落地 | 58 | 60 | 仓储层读写分离支撑聚合持久化 |
+| 4 | 后端实现真实度 | 73 | 77 | 6 项重构全部真实实现并有集群实测验证 |
+| 5 | 前端多端 | 70 | 70 | 本轮未动 |
+| 6 | 测试体系 | 71 | 75 | 功能+BDD+k6+locust 四层测试体系闭环，CI 阈值即门禁 |
+| 7 | 部署与运维（1M 口径） | 56 | 68 | 真实集群部署+HPA 实测扩容+metrics 补齐+扩容清单（物理上限已声明） |
+| 8 | 安全 | 69 | 70 | 令牌桶限流升级 |
+| 9 | 文档治理 | 71 | 73 | 四轮方案/测试报告/证据链完整入库 |
+| 10 | UI/UX | 55 | 55 | 本轮未动 |
+| — | **加权总分** | **≈68.3** | **≈68.7（工程口径）/ 1M 口径自 63.5 → 66.2** | **工程完成度与 1M 承载证据同步提升** |
+
+### 距 ≥75 的剩余（五轮候选）
+
+1. ingress-nginx → Gateway API 迁移（ADR-0006 已立）。
+2. granian/多 worker 替换 uvicorn 单进程（rest_latency P95 466ms→300ms 内）。
+3. Milvus 语义缓存 L3 落地（命中率指标进门禁）。
+4. KEDA 按 Pulsar backlog 扩容生成 worker。
+5. python-tests / security-scan 两项预存红修复（需可读 CI 日志网络）。
