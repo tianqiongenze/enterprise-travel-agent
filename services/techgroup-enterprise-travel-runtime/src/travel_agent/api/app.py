@@ -101,6 +101,8 @@ def recommend(payload: Dict[str, Any]) -> Dict[str, Any]:
     )
     result = orchestrator.recommend(request)
     return {
+        "city": request.city,
+        "days": request.days,
         "hotel_options": [item.__dict__ for item in result.hotel_options],
         "transport_options": [item.__dict__ for item in result.transport_options],
         "itinerary": result.itinerary,
@@ -324,14 +326,16 @@ else:
             return {"status": "ok", "grpc_port": os.getenv("TRAVEL_RUNTIME_GRPC_PORT", "9092")}
 
     # GraphQL layer (fourth-round R1): mounted inside the app-build branch so
-    # a missing optional dependency cannot break the REST surface.
+    # a missing optional dependency cannot break the REST surface. The health
+    # route is registered BEFORE the mount — a Mount at /graphql would
+    # otherwise swallow /graphql/health and serve GraphiQL HTML.
+    @app.get("/graphql/health")
+    def graphql_health() -> Dict[str, str]:
+        return {"status": "graphql-schema-loaded"}
+
     try:
         from ..graphql_schema import build_graphql_app as _build_graphql_app
 
         app.mount("/graphql", _build_graphql_app())
-
-        @app.get("/graphql/health")
-        def graphql_health() -> Dict[str, str]:
-            return {"status": "graphql-schema-loaded"}
     except Exception as _graphql_error:  # pragma: no cover - optional dep
         print(f"[graphql] layer disabled: {_graphql_error}")
