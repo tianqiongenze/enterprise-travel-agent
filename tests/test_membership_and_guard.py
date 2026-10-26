@@ -11,6 +11,32 @@ class _FakeGuardRedis:
     def __init__(self) -> None:
         self.values = {}
 
+    def register_script(self, lua):
+        # Token-bucket path (fourth-round R4): emulate the Lua script's
+        # contract in Python so the fixed-window assertions keep working.
+        client = self
+
+        class _Script:
+            def __call__(self, keys, args):
+                import math
+
+                key = keys[0]
+                capacity, refill, now, requested = (float(a) for a in args)
+                st = client.values.get(key)
+                if st is None:
+                    tokens, ts = capacity, now
+                else:
+                    tokens, ts = st
+                elapsed = max(0.0, now - ts)
+                tokens = min(capacity, tokens + elapsed * refill)
+                allowed = 1 if tokens >= requested else 0
+                if allowed:
+                    tokens -= requested
+                client.values[key] = (tokens, now)
+                return allowed
+
+        return _Script()
+
     def incr(self, key: str) -> int:
         value = int(self.values.get(key, 0)) + 1
         self.values[key] = value
@@ -63,6 +89,9 @@ class MembershipAndGuardTestCase(unittest.TestCase):
         old_window = os.environ.get("TRAVEL_RATE_LIMIT_WINDOW_SEC")
         os.environ["TRAVEL_RATE_LIMIT_PER_MINUTE"] = "2"
         os.environ["TRAVEL_RATE_LIMIT_WINDOW_SEC"] = "30"
+        # Token bucket (R4): capacity = limit × burst(1.5) = 3, so the third
+        # request is still inside the burst; the fourth must be rejected.
+        os.environ["TRAVEL_RATE_BURST"] = "1.0"
         try:
             guard = TrafficGuard()
             guard._client = _FakeGuardRedis()
@@ -79,6 +108,8 @@ class MembershipAndGuardTestCase(unittest.TestCase):
                 del os.environ["TRAVEL_RATE_LIMIT_WINDOW_SEC"]
             else:
                 os.environ["TRAVEL_RATE_LIMIT_WINDOW_SEC"] = old_window
+            if "TRAVEL_RATE_BURST" in os.environ:
+                del os.environ["TRAVEL_RATE_BURST"]
 
     def test_traffic_guard_circuit_breaker(self) -> None:
         old_threshold = os.environ.get("TRAVEL_CIRCUIT_FAIL_THRESHOLD")
