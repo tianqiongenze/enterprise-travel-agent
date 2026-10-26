@@ -1,1 +1,55 @@
-api /metrics unavailable
+# HELP travel_runtime_requests_total HTTP requests handled
+# TYPE travel_runtime_requests_total counter
+travel_runtime_requests_total{code="200",route="/health"} 42.0
+travel_runtime_requests_total{code="200",route="/recommend"} 60.0
+# HELP travel_runtime_requests_created HTTP requests handled
+# TYPE travel_runtime_requests_created gauge
+travel_runtime_requests_created{code="200",route="/health"} 1.7930365512901714e+09
+travel_runtime_requests_created{code="200",route="/recommend"} 1.7930365568700151e+09
+# HELP travel_runtime_request_latency_seconds Request latency
+# TYPE travel_runtime_request_latency_seconds histogram
+travel_runtime_request_latency_seconds_bucket{le="0.005",route="/health"} 42.0
+travel_runtime_request_latency_seconds_bucket{le="0.01",route="/health"} 42.0
+travel_runtime_request_latency_seconds_bucket{le="0.025",route="/health"} 42.0
+travel_runtime_request_latency_seconds_bucket{le="0.05",route="/health"} 42.0
+travel_runtime_request_latency_seconds_bucket{le="0.075",route="/health"} 42.0
+travel_runtime_request_latency_seconds_bucket{le="0.1",route="/health"} 42.0
+travel_runtime_request_latency_seconds_bucket{le="0.25",route="/health"} 42.0
+travel_runtime_request_latency_seconds_bucket{le="0.5",route="/health"} 42.0
+travel_runtime_request_latency_seconds_bucket{le="0.75",route="/health"} 42.0
+travel_runtime_request_latency_seconds_bucket{le="1.0",route="/health"} 42.0
+travel_runtime_request_latency_seconds_bucket{le="2.5",route="/health"} 42.0
+travel_runtime_request_latency_seconds_bucket{le="5.0",route="/health"} 42.0
+travel_runtime_request_latency_seconds_bucket{le="7.5",route="/health"} 42.0
+travel_runtime_request_latency_seconds_bucket{le="10.0",route="/health"} 42.0
+travel_runtime_request_latency_seconds_bucket{le="+Inf",route="/health"} 42.0
+travel_runtime_request_latency_seconds_count{route="/health"} 42.0
+travel_runtime_request_latency_seconds_sum{route="/health"} 0.035231193000129224
+travel_runtime_request_latency_seconds_bucket{le="0.005",route="/recommend"} 0.0
+travel_runtime_request_latency_seconds_bucket{le="0.01",route="/recommend"} 0.0
+travel_runtime_request_latency_seconds_bucket{le="0.025",route="/recommend"} 0.0
+travel_runtime_request_latency_seconds_bucket{le="0.05",route="/recommend"} 0.0
+travel_runtime_request_latency_seconds_bucket{le="0.075",route="/recommend"} 0.0
+travel_runtime_request_latency_seconds_bucket{le="0.1",route="/recommend"} 0.0
+travel_runtime_request_latency_seconds_bucket{le="0.25",route="/recommend"} 0.0
+travel_runtime_request_latency_seconds_bucket{le="0.5",route="/recommend"} 0.0
+travel_runtime_request_latency_seconds_bucket{le="0.75",route="/recommend"} 0.0
+travel_runtime_request_latency_seconds_bucket{le="1.0",route="/recommend"} 0.0
+travel_runtime_request_latency_seconds_bucket{le="2.5",route="/recommend"} 0.0
+travel_runtime_request_latency_seconds_bucket{le="5.0",route="/recommend"} 60.0
+travel_runtime_request_latency_seconds_bucket{le="7.5",route="/recommend"} 60.0
+travel_runtime_request_latency_seconds_bucket{le="10.0",route="/recommend"} 60.0
+travel_runtime_request_latency_seconds_bucket{le="+Inf",route="/recommend"} 60.0
+travel_runtime_request_latency_seconds_count{route="/recommend"} 60.0
+travel_runtime_request_latency_seconds_sum{route="/recommend"} 244.82732259300008
+# HELP travel_runtime_request_latency_seconds_created Request latency
+# TYPE travel_runtime_request_latency_seconds_created gauge
+travel_runtime_request_latency_seconds_created{route="/health"} 1.7930365512902029e+09
+travel_runtime_request_latency_seconds_created{route="/recommend"} 1.7930365568700411e+09
+# HELP travel_runtime_rejects_total Requests rejected by guard
+# TYPE travel_runtime_rejects_total counter
+travel_cache_l1_hits_total 0
+travel_cache_l2_hits_total 0
+travel_cache_misses_total 0
+travel_cache_invalidations_total 0
+travel_cache_hit_rate 0.0000
