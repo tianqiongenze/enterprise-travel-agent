@@ -1,0 +1,60 @@
+# GraphQL contract — single fact source (fourth-round R1).
+# Mirrored by services/techgroup-enterprise-travel-runtime/src/travel_agent/graphql_schema.py
+# Contract drift is asserted by tests/test_graphql_contract.py.
+
+input WeightsInput {
+  price: Float = 0.4
+  rating: Float = 0.4
+  duration: Float = 0.2
+}
+
+input RecommendInput {
+  city: String = "北京"
+  days: Int = 3
+  budget: Float = 3000
+  travelers: Int = 1
+  preferences: [String!]
+  membershipTier: String = "basic"
+}
+
+type HotelOption {
+  name: String!
+  price: Float!
+  rating: Float!
+  score: Float
+}
+
+type TransportOption {
+  name: String!
+  price: Float!
+  duration: Float!
+  score: Float
+}
+
+type Engagement {
+  title: String!
+  detail: String!
+}
+
+type ItineraryDay {
+  day: Int!
+  summary: String!
+}
+
+type TravelRecommendation {
+  city: String!
+  days: Int!
+  hotels: [HotelOption!]!
+  transports: [TransportOption!]!
+  itinerary: [ItineraryDay!]!
+  engagements: [Engagement!]!
+}
+
+type Query {
+  recommend(payload: RecommendInput): TravelRecommendation!
+  health: String!
+}
+
+type Mutation {
+  invalidateCache(keys: [String!]!): Int!
+}
