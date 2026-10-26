@@ -19,3 +19,4 @@ numpy==2.3.3
 cachetools>=5.5.0
 strawberry-graphql>=0.338.0
 prometheus-client>=0.21.0
+pytest-bdd>=7.1.0
