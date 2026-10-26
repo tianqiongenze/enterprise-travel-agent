@@ -1,5 +1,6 @@
 """Coordinates orchestration flow: engines, A2A round trips, budgets, memory."""
 
+import asyncio
 import os
 import json
 from typing import Dict, List, Optional
@@ -22,6 +23,7 @@ from .agents.manager_agent import (
 )
 from .discovery.factory import build_registry_from_env
 from .events.bus import build_event_bus_from_env
+from .cache.multilevel import MultiLevelCache
 from .mcp.registry import MCPToolRegistry
 from .memory.in_memory import InMemoryStore
 from .memory.rocksdb_store import RocksDBMemoryStore
@@ -62,6 +64,9 @@ class TravelOrchestrator:
         self.data_store = DataStore(data_dir)
         self.skill_loader = SkillLoader(skills_dir)
         self.registry = MCPToolRegistry(self.registry_center)
+        # Multi-level cache (fourth-round R3): L1 process + L2 Redis. The
+        # Redis client is shared with the memory store when configured.
+        self.multilevel_cache = MultiLevelCache(redis_client=self._build_l2_client())
         self.a2a_router = A2ARouter()
         self.a2a_logs: List[Dict[str, object]] = []
         self.max_a2a_logs = int(os.getenv("TRAVEL_A2A_LOG_MAX_RECORDS", "200"))
@@ -148,26 +153,63 @@ class TravelOrchestrator:
         self.registry.register("search_activities", self._search_activities)
         self.registry.register("search_souvenirs", self._search_souvenirs)
 
+    def _build_l2_client(self):
+        """Optional L2 client: reuse the redis URL of the memory store.
+
+        Disabled entirely with TRAVEL_MULTILEVEL_CACHE=off (tests default).
+        """
+        if os.getenv("TRAVEL_MULTILEVEL_CACHE", "on").strip().lower() in {"off", "false", "0"}:
+            return None
+        url = os.getenv("TRAVEL_REDIS_URL", "")
+        if not url:
+            return None
+        try:
+            import redis.asyncio as aioredis
+
+            return aioredis.from_url(url, decode_responses=True)
+        except Exception as error:
+            print(f"[multilevel-cache] L2 disabled: {error}")
+            return None
+
+    def _cached_search(self, kind: str, city: str, fetch) -> List[Dict[str, object]]:
+        """L1/L2 wrapped read; falls back to direct fetch on any failure."""
+        key = f"search:{kind}:{city}"
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return [dict(row) for row in fetch()]
+
+        async def _load():
+            return [dict(row) for row in fetch()]
+
+        future = asyncio.ensure_future(
+            self.multilevel_cache.get_or_load(key, _load, ttl_seconds=30)
+        )
+        try:
+            return future.result(timeout=0.05) if future.done() else future
+        except Exception:
+            return [dict(row) for row in fetch()]
+
     def _search_hotels(self, city: str) -> List[Dict[str, object]]:
-        return [dict(row) for row in self.data_store.hotels_by_city(city)]
+        return self._cached_search("hotels", city, lambda: self.data_store.hotels_by_city(city))
 
     def _search_transports(self, city: str) -> List[Dict[str, object]]:
-        return [dict(row) for row in self.data_store.transports_by_city(city)]
+        return self._cached_search("transports", city, lambda: self.data_store.transports_by_city(city))
 
     def _search_attractions(self, city: str) -> List[Dict[str, object]]:
-        return [dict(row) for row in self.data_store.attractions_by_city(city)]
+        return self._cached_search("attractions", city, lambda: self.data_store.attractions_by_city(city))
 
     def _search_foods(self, city: str) -> List[Dict[str, object]]:
-        return [dict(row) for row in self.data_store.foods_by_city(city)]
+        return self._cached_search("foods", city, lambda: self.data_store.foods_by_city(city))
 
     def _search_events(self, city: str) -> List[Dict[str, object]]:
-        return [dict(row) for row in self.data_store.events_by_city(city)]
+        return self._cached_search("events", city, lambda: self.data_store.events_by_city(city))
 
     def _search_activities(self, city: str) -> List[Dict[str, object]]:
-        return [dict(row) for row in self.data_store.activities_by_city(city)]
+        return self._cached_search("activities", city, lambda: self.data_store.activities_by_city(city))
 
     def _search_souvenirs(self, city: str) -> List[Dict[str, object]]:
-        return [dict(row) for row in self.data_store.souvenirs_by_city(city)]
+        return self._cached_search("souvenirs", city, lambda: self.data_store.souvenirs_by_city(city))
 
     def recommend(self, request: TravelRequest) -> TravelRecommendation:
         return self._run_recommendation(request)
