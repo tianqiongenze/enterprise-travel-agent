@@ -1,0 +1,88 @@
+---
+# Fourth-round Locust distributed run (plan §四.R11): 1 master + N workers.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: locust-fourth-round-scripts
+  namespace: default
+data:
+  fourth_round_locust.py: |
+    # rendered from stress/fourth_round_locust.py — placeholder
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: locust-master
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: locust-master
+  template:
+    metadata:
+      labels:
+        app: locust-master
+    spec:
+      containers:
+        - name: locust
+          image: 10.167.2.175:30500/base/python:3.12-slim
+          command: ["sh", "-c", "pip install --no-cache-dir locust >/dev/null 2>&1 && locust -f /scripts/fourth_round_locust.py --master --expect-workers 4"]
+          ports:
+            - containerPort: 8089
+            - containerPort: 5557
+            - containerPort: 5558
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            requests: {cpu: "500m", memory: 512Mi}
+      volumes:
+        - name: scripts
+          configMap:
+            name: locust-fourth-round-scripts
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: locust-master
+  namespace: default
+spec:
+  selector:
+    app: locust-master
+  ports:
+    - {name: web, port: 8089, targetPort: 8089}
+    - {name: comm, port: 5557, targetPort: 5557}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: locust-worker
+  namespace: default
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: locust-worker
+  template:
+    metadata:
+      labels:
+        app: locust-worker
+    spec:
+      containers:
+        - name: locust
+          image: 10.167.2.175:30500/base/python:3.12-slim
+          command: ["sh", "-c", "pip install --no-cache-dir locust >/dev/null 2>&1 && locust -f /scripts/fourth_round_locust.py --worker --master-host locust-master"]
+          env:
+            - name: BASE_URL
+              value: "http://travel-agent-api.default.svc.cluster.local"
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            requests: {cpu: "1", memory: 1Gi}
+            limits: {cpu: "2", memory: 2Gi}
+      volumes:
+        - name: scripts
+          configMap:
+            name: locust-fourth-round-scripts

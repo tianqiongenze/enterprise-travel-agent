@@ -1,0 +1,53 @@
+---
+# Fourth-round K6 distributed run on the 10.167.2.175 cluster (plan §四.R10).
+# Requires k6-operator CRDs; falls back to a plain Job (single-shard) when
+# the operator is absent — the Job path is what this cluster runs first.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-fourth-round
+  namespace: default
+  labels:
+    app: k6-fourth-round
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: k6-fourth-round
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: 10.167.2.175:30500/base/grafana/k6:latest
+          command: ["k6", "run", "/scripts/fourth_round_k6.js"]
+          env:
+            - name: BASE_URL
+              value: "http://travel-agent-api.default.svc.cluster.local"
+            - name: VUS
+              value: "500"
+            - name: DURATION
+              value: "5m"
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: "1"
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+      volumes:
+        - name: scripts
+          configMap:
+            name: k6-fourth-round-scripts
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-fourth-round-scripts
+  namespace: default
+data:
+  fourth_round_k6.js: |
+    // rendered from stress/fourth_round_k6.js by deploy scripts — placeholder
