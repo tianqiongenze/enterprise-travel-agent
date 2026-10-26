@@ -71,16 +71,34 @@ class _SimpleTTLCache:
             self._data.clear()
 
 
+class _TTLCacheFacade:
+    """cachetools.TTLCache uses item access; unify on get/set/delete/clear."""
+
+    def __init__(self, maxsize: int, ttl: float) -> None:
+        self._cache = TTLCache(maxsize=maxsize, ttl=ttl)
+
+    def get(self, key: str) -> Any:
+        return self._cache.get(key)
+
+    def set(self, key: str, value: Any) -> None:
+        self._cache[key] = value
+
+    def delete(self, key: str) -> None:
+        try:
+            del self._cache[key]
+        except KeyError:
+            pass
+
+    def clear(self) -> None:
+        self._cache.clear()
+
+
 def _build_l1() -> Any:
+    size = int(os.getenv("TRAVEL_L1_CACHE_SIZE", "2048"))
+    ttl = float(os.getenv("TRAVEL_L1_CACHE_TTL_SECONDS", "5"))
     if _HAS_CACHETOOLS:
-        return TTLCache(
-            maxsize=int(os.getenv("TRAVEL_L1_CACHE_SIZE", "2048")),
-            ttl=float(os.getenv("TRAVEL_L1_CACHE_TTL_SECONDS", "5")),
-        )
-    return _SimpleTTLCache(
-        maxsize=int(os.getenv("TRAVEL_L1_CACHE_SIZE", "2048")),
-        ttl=float(os.getenv("TRAVEL_L1_CACHE_TTL_SECONDS", "5")),
-    )
+        return _TTLCacheFacade(size, ttl)
+    return _SimpleTTLCache(size, ttl)
 
 
 class MultiLevelCache:
