@@ -1,0 +1,50 @@
+
+running (3m47.0s), 09/50 VUs, 22306 complete and 0 interrupted iterations
+browse_read   [  99% ] 09/50 VUs  3m47.0s/3m50.0s
+
+running (3m48.0s), 06/50 VUs, 22329 complete and 0 interrupted iterations
+browse_read   [  99% ] 06/50 VUs  3m48.0s/3m50.0s
+
+running (3m49.0s), 04/50 VUs, 22341 complete and 0 interrupted iterations
+browse_read   [ 100% ] 04/50 VUs  3m49.0s/3m50.0s
+
+running (3m50.0s), 01/50 VUs, 22349 complete and 0 interrupted iterations
+browse_read   [ 100% ] 01/50 VUs  3m50.0s/3m50.0s
+
+     █ read path (90%)
+
+       ✓ graphql 200
+       ✓ no gql errors
+       ✓ rest 200
+
+     █ probes (10%)
+
+       ✓ health 200
+
+     cache_l1_hits_observed.........: 11215   48.663216/s
+     checks.........................: 100.00% 55835 out of 55835
+     data_received..................: 59 MB   255 kB/s
+     data_sent......................: 15 MB   63 kB/s
+   ✓ graphql_latency................: avg=84.22ms  min=6.28ms   med=56.68ms  max=991.96ms p(90)=179.1ms  p(95)=244.47ms
+     group_duration.................: avg=81.16ms  min=1.13ms   med=37.88ms  max=1.37s    p(90)=221.73ms p(95)=315.91ms
+     http_req_blocked...............: avg=5.77µs   min=1.74µs   med=4.76µs   max=2.46ms   p(90)=7.25µs   p(95)=8.26µs  
+     http_req_connecting............: avg=246ns    min=0s       med=0s       max=715.23µs p(90)=0s       p(95)=0s      
+   ✓ http_req_duration..............: avg=62.3ms   min=733.06µs med=22.41ms  max=1.37s    p(90)=174.22ms p(95)=262.22ms
+       { expected_response:true }...: avg=62.3ms   min=733.06µs med=22.41ms  max=1.37s    p(90)=174.22ms p(95)=262.22ms
+   ✓ http_req_failed................: 0.00%   0 out of 58089
+     http_req_receiving.............: avg=987.96µs min=19.78µs  med=185.81µs max=438.91ms p(90)=696.46µs p(95)=1.86ms  
+     http_req_sending...............: avg=23.33µs  min=5.71µs   med=19.65µs  max=7.03ms   p(90)=37.11µs  p(95)=44.16µs 
+     http_req_tls_handshaking.......: avg=0s       min=0s       med=0s       max=0s       p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=61.29ms  min=676.19µs med=21.82ms  max=1.36s    p(90)=171.49ms p(95)=258.13ms
+     http_reqs......................: 58089   252.055068/s
+     iteration_duration.............: avg=462.35ms min=108.52ms med=440.18ms max=1.73s    p(90)=728.24ms p(95)=842.65ms
+     iterations.....................: 22350   96.979303/s
+   ✗ rest_latency...................: avg=148.66ms min=2.98ms   med=99.2ms   max=1.37s    p(90)=351.78ms p(95)=466.43ms
+   ✓ surface_error_rate.............: 0.00%   0 out of 22350
+     vus............................: 1       min=1              max=50
+     vus_max........................: 50      min=50             max=50
+
+
+running (3m50.5s), 00/50 VUs, 22350 complete and 0 interrupted iterations
+browse_read ✓ [ 100% ] 00/50 VUs  3m50s
+time="2026-10-26T17:08:27Z" level=error msg="thresholds on metrics 'rest_latency' have been crossed"
