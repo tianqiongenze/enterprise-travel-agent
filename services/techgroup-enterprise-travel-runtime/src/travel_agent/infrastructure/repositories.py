@@ -98,7 +98,17 @@ class SqlAlchemyTripPlanRepository:
                 from ..db import database as db_database
 
                 engine = db_database.engine
-            session_factory = build_session_factory(engine)
+            # Read/write routing (fourth-round R2): when a read replica is
+            # configured (TRAVEL_DB_READ_URL), SELECTs go there and writes
+            # stay on the primary. Without it this is exactly the plain
+            # primary-only factory.
+            from ..db.routing import build_read_engine, build_routing_session_factory
+
+            read_engine = build_read_engine()
+            if read_engine is not None:
+                session_factory = build_routing_session_factory(engine, read_engine)
+            else:
+                session_factory = build_session_factory(engine)
         self._engine = engine
         self._session_factory = session_factory
         self._runner = _BackgroundLoopRunner.instance()
