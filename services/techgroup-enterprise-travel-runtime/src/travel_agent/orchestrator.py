@@ -172,23 +172,23 @@ class TravelOrchestrator:
             return None
 
     def _cached_search(self, kind: str, city: str, fetch) -> List[Dict[str, object]]:
-        """L1/L2 wrapped read; falls back to direct fetch on any failure."""
+        """L1/L2 wrapped read; falls back to direct fetch on any failure.
+
+        ``_search_*`` is a synchronous call inside a sync pipeline — it can
+        never await. Returning an un-awaited coroutine/future silently yields
+        empty results (caught by the in-cluster GraphQL probe), so the cache
+        only answers when it can do so synchronously: L1 hit, or a *already
+        completed* L2 future. Anything else goes straight to the origin —
+        correct first, fast later.
+        """
         key = f"search:{kind}:{city}"
         try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            return [dict(row) for row in fetch()]
-
-        async def _load():
-            return [dict(row) for row in fetch()]
-
-        future = asyncio.ensure_future(
-            self.multilevel_cache.get_or_load(key, _load, ttl_seconds=30)
-        )
-        try:
-            return future.result(timeout=0.05) if future.done() else future
+            value = self.multilevel_cache.l1_get(key)
+            if value is not None:
+                return value
         except Exception:
-            return [dict(row) for row in fetch()]
+            pass
+        return [dict(row) for row in fetch()]
 
     def _search_hotels(self, city: str) -> List[Dict[str, object]]:
         return self._cached_search("hotels", city, lambda: self.data_store.hotels_by_city(city))

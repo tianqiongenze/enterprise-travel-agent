@@ -115,6 +115,13 @@ class MultiLevelCache:
         )
 
     # -- read path ---------------------------------------------------------
+    def l1_get(self, key: str) -> Any:
+        """Synchronous L1 probe for sync callers (never awaits)."""
+        return self._l1.get(key)
+
+    def l1_put(self, key: str, value: Any) -> None:
+        self._l1.set(key, value)
+
     async def get_or_load(
         self,
         key: str,
