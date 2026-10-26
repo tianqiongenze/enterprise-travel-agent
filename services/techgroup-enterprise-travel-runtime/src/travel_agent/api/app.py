@@ -2,6 +2,7 @@
 
 import logging
 import os
+import time
 import importlib.util
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -237,6 +238,35 @@ else:
     @app.get("/health")
     def health() -> Dict[str, str]:
         return {"status": "ok"}
+
+    # ---- fourth-round R8: Prometheus metrics on the real request path ----
+    from ..observability.metrics import runtime_metrics
+
+    @app.middleware("http")
+    async def _metrics_middleware(request, call_next):
+        started = time.perf_counter()
+        try:
+            response = await call_next(request)
+            code = response.status_code
+        except Exception:
+            code = 500
+            raise
+        finally:
+            runtime_metrics.observe_request(
+                route=request.url.path, code=code, seconds=time.perf_counter() - started
+            )
+        return response
+
+    @app.get("/metrics")
+    def metrics_endpoint():
+        extra = ""
+        try:
+            extra = orchestrator.multilevel_cache.prometheus_metrics()
+        except Exception:
+            pass
+        from fastapi import Response
+
+        return Response(content=runtime_metrics.render(extra), media_type="text/plain; version=0.0.4")
 
     @app.post("/recommend")
     def recommend_endpoint(payload: Dict[str, Any]) -> Dict[str, Any]:
