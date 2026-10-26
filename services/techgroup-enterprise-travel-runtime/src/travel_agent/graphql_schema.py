@@ -126,12 +126,25 @@ async def load_recommend(payload: RecommendInput) -> dict[str, Any]:
     )
 
 
+def _f(row: dict[str, Any], *keys: str, default: float = 0.0) -> float:
+    """First present numeric key (hotel dicts carry price but no rating;
+    transport dicts carry duration)."""
+    for k in keys:
+        v = row.get(k)
+        if v is not None:
+            try:
+                return float(v)
+            except (TypeError, ValueError):
+                continue
+    return default
+
+
 def _rows_to_hotels(rows: list[dict[str, Any]]) -> list[HotelOption]:
     return [
         HotelOption(
             name=str(row.get("name", "")),
-            price=float(row.get("price", 0.0)),
-            rating=float(row.get("rating", 0.0)),
+            price=_f(row, "price"),
+            rating=_f(row, "rating", "score", default=0.0),
             score=row.get("score"),
         )
         for row in rows
@@ -142,8 +155,8 @@ def _rows_to_transports(rows: list[dict[str, Any]]) -> list[TransportOption]:
     return [
         TransportOption(
             name=str(row.get("name", "")),
-            price=float(row.get("price", 0.0)),
-            duration=float(row.get("duration", 0.0)),
+            price=_f(row, "price"),
+            duration=_f(row, "duration"),
             score=row.get("score"),
         )
         for row in rows
