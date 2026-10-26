@@ -33,6 +33,7 @@ class TrafficGuard:
         self._local_lock = threading.Lock()
         self._local_inflight: Dict[str, int] = {}
         self._local_rate: Dict[str, deque] = {}
+        self._local_buckets: dict = {}
         self._local_idempotency: Dict[str, float] = {}
         self._local_circuits: Dict[str, Dict[str, float]] = {}
         self._degraded = True
@@ -81,18 +82,33 @@ class TrafficGuard:
 
     # ------------------------------------------------------------------ rate
     def allow_request(self, scope: str) -> bool:
-        limit = int(os.getenv("TRAVEL_RATE_LIMIT_PER_MINUTE", "200"))
-        window = int(os.getenv("TRAVEL_RATE_LIMIT_WINDOW_SEC", "60"))
-        key = f"{_RATE_KEY_PREFIX}{scope}"
+        """Token-bucket rate limit (fourth-round R4).
+
+        Fixed-window INCR+EXPIRE had two flaws: a burst at the window
+        boundary passes up to 2× limit, and the counter is window-aligned.
+        The token bucket refills continuously; capacity (burst) and refill
+        are env-tunable while keeping the per-minute limit semantics.
+        """
+        from .token_bucket import redis_allow, token_bucket_env
+
+        capacity, refill = token_bucket_env()
+        key = f"{_RATE_KEY_PREFIX}tb:{scope}"
         if self._client is not None:
-            try:
-                value = self._client.incr(key)
-                if int(value) == 1:
-                    self._client.expire(key, window)
-                return int(value) <= limit
-            except Exception:
-                self._enter_degraded("allow_request")
-        return self._local_allow_request(scope, limit, window)
+            allowed = redis_allow(self._client, key, capacity, refill)
+            if allowed is not None:
+                return allowed
+            self._enter_degraded("allow_request")
+        return self._local_token_bucket_allow(scope, capacity, refill)
+
+    def _local_token_bucket_allow(self, scope: str, capacity: int, refill: float) -> bool:
+        from .token_bucket import TokenBucket
+
+        with self._local_lock:
+            bucket = self._local_buckets.get(scope)
+            if bucket is None:
+                bucket = TokenBucket(capacity, refill)
+                self._local_buckets[scope] = bucket
+            return bucket.allow()
 
     def _local_allow_request(self, scope: str, limit: int, window: int) -> bool:
         now = time.monotonic()
