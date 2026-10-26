@@ -155,10 +155,16 @@ class Query:
     @strawberry.field
     async def recommend(self, payload: RecommendInput | None = None) -> TravelRecommendationType:
         data = await load_recommend(payload or RecommendInput())
-        itinerary = [
-            ItineraryDay(day=int(d.get("day", i + 1)), summary=str(d.get("summary", d.get("plan", ""))))
-            for i, d in enumerate(data.get("itinerary", []) if isinstance(data.get("itinerary"), list) else [])
-        ]
+        itinerary = []
+        for i, d in enumerate(data.get("itinerary", []) if isinstance(data.get("itinerary"), list) else []):
+            raw_day = d.get("day", i + 1)
+            try:
+                day_no = int(raw_day)
+            except (TypeError, ValueError):
+                # entries look like "Day 1 ..." — fall back to position
+                day_no = i + 1
+            summary = str(d.get("summary") or d.get("plan") or d.get("title") or "")
+            itinerary.append(ItineraryDay(day=day_no, summary=summary))
         return TravelRecommendationType(
             city=str(data.get("city", "")),
             days=int(data.get("days", 0)),
