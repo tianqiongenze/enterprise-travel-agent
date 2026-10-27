@@ -4,8 +4,8 @@ travel_runtime_requests_total{code="200",route="/health"} 42.0
 travel_runtime_requests_total{code="200",route="/recommend"} 60.0
 # HELP travel_runtime_requests_created HTTP requests handled
 # TYPE travel_runtime_requests_created gauge
-travel_runtime_requests_created{code="200",route="/health"} 1.7930365512901714e+09
-travel_runtime_requests_created{code="200",route="/recommend"} 1.7930365568700151e+09
+travel_runtime_requests_created{code="200",route="/health"} 1.7930598655163012e+09
+travel_runtime_requests_created{code="200",route="/recommend"} 1.7930598709874778e+09
 # HELP travel_runtime_request_latency_seconds Request latency
 # TYPE travel_runtime_request_latency_seconds histogram
 travel_runtime_request_latency_seconds_bucket{le="0.005",route="/health"} 42.0
@@ -24,7 +24,7 @@ travel_runtime_request_latency_seconds_bucket{le="7.5",route="/health"} 42.0
 travel_runtime_request_latency_seconds_bucket{le="10.0",route="/health"} 42.0
 travel_runtime_request_latency_seconds_bucket{le="+Inf",route="/health"} 42.0
 travel_runtime_request_latency_seconds_count{route="/health"} 42.0
-travel_runtime_request_latency_seconds_sum{route="/health"} 0.035231193000129224
+travel_runtime_request_latency_seconds_sum{route="/health"} 0.027255864000267138
 travel_runtime_request_latency_seconds_bucket{le="0.005",route="/recommend"} 0.0
 travel_runtime_request_latency_seconds_bucket{le="0.01",route="/recommend"} 0.0
 travel_runtime_request_latency_seconds_bucket{le="0.025",route="/recommend"} 0.0
@@ -41,11 +41,11 @@ travel_runtime_request_latency_seconds_bucket{le="7.5",route="/recommend"} 60.0
 travel_runtime_request_latency_seconds_bucket{le="10.0",route="/recommend"} 60.0
 travel_runtime_request_latency_seconds_bucket{le="+Inf",route="/recommend"} 60.0
 travel_runtime_request_latency_seconds_count{route="/recommend"} 60.0
-travel_runtime_request_latency_seconds_sum{route="/recommend"} 244.82732259300008
+travel_runtime_request_latency_seconds_sum{route="/recommend"} 244.4137583010001
 # HELP travel_runtime_request_latency_seconds_created Request latency
 # TYPE travel_runtime_request_latency_seconds_created gauge
-travel_runtime_request_latency_seconds_created{route="/health"} 1.7930365512902029e+09
-travel_runtime_request_latency_seconds_created{route="/recommend"} 1.7930365568700411e+09
+travel_runtime_request_latency_seconds_created{route="/health"} 1.7930598655163605e+09
+travel_runtime_request_latency_seconds_created{route="/recommend"} 1.7930598709875038e+09
 # HELP travel_runtime_rejects_total Requests rejected by guard
 # TYPE travel_runtime_rejects_total counter
 travel_cache_l1_hits_total 0
