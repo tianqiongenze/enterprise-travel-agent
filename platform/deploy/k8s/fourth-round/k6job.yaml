@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-fourth-round
+  namespace: travel-prod
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels: {app: k6-fourth-round}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: 10.167.2.175:30500/perf/k6:0.1.3
+          command: ["k6", "run", "/scripts/fourth_round_k6.js"]
+          env:
+            - name: BASE_URL
+              value: "http://travel-agent-api.travel-prod.svc.cluster.local"
+            - name: VUS
+              value: "50"
+            - name: DURATION
+              value: "3m"
+            - name: K6_NO_USAGE_REPORT
+              value: "true"
+          volumeMounts: [{name: scripts, mountPath: /scripts}]
+          resources:
+            requests: {cpu: "2", memory: 1Gi}
+            limits: {cpu: "4", memory: 2Gi}
+      volumes:
+        - name: scripts
+          configMap: {name: k6-fourth-round-scripts}

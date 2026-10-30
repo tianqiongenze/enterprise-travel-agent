@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: travel-prod
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: travel-agent-api
+  namespace: travel-prod
+  labels: {app: travel-agent-api, round: fourth}
+spec:
+  replicas: 3
+  selector: {matchLabels: {app: travel-agent-api}}
+  template:
+    metadata:
+      labels: {app: travel-agent-api}
+    spec:
+      containers:
+        - name: api
+          image: 10.167.2.175:30500/travel/enterprise-travel-agent-api:fourth
+          ports: [{containerPort: 8000}]
+          env:
+            - {name: TRAVEL_EVENT_BUS, value: 'local'}
+            - {name: TRAVEL_EVENT_BUS_STRICT, value: 'false'}
+            - {name: TRAVEL_A2A_AUDIT_MIRROR_PULSAR, value: 'false'}
+            - {name: TRAVEL_A2A_TRANSPORT, value: 'mock'}
+            - {name: TRAVEL_MULTILEVEL_CACHE, value: 'on'}
+            - {name: TRAVEL_REDIS_URL, value: 'redis://redis.infra.svc.cluster.local:6379'}
+            - {name: TRAVEL_GRAPHQL_MAX_DEPTH, value: '7'}
+            - {name: TRAVEL_GRAPHQL_MAX_COST, value: '1000'}
+            - {name: TRAVEL_RATE_LIMIT_PER_MINUTE, value: '600'}
+          readinessProbe:
+            httpGet: {path: /health, port: 8000}
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests: {cpu: 500m, memory: 512Mi}
+            limits: {cpu: '2', memory: 2Gi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: travel-agent-api
+  namespace: travel-prod
+spec:
+  selector: {app: travel-agent-api}
+  ports:
+    - {port: 80, targetPort: 8000}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-ranker
+  namespace: travel-prod
+  labels: {app: go-ranker, round: fourth}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: go-ranker}}
+  template:
+    metadata:
+      labels: {app: go-ranker}
+    spec:
+      containers:
+        - name: ranker
+          image: 10.167.2.175:30500/travel/go-ranker:fourth
+          ports: [{containerPort: 8090}]
+          env: [{name: GO_RANKER_PORT, value: '8090'}]
+          readinessProbe:
+            httpGet: {path: /health, port: 8090}
+            initialDelaySeconds: 2
+          resources:
+            requests: {cpu: 250m, memory: 256Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-ranker
+  namespace: travel-prod
+spec:
+  selector: {app: go-ranker}
+  ports:
+    - {port: 80, targetPort: 8090}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: travel-agent-api-hpa
+  namespace: travel-prod
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: travel-agent-api}
+  minReplicas: 3
+  maxReplicas: 30
+  metrics:
+    - type: Resource
+      resource: {name: cpu, target: {type: Utilization, averageUtilization: 65}}

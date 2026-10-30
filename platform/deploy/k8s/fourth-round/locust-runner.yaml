@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: locust-fourth-runner
+  namespace: travel-prod
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: locust-fourth-runner
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: locust
+          image: 10.167.2.175:30500/base/python:3.13-slim
+          command:
+            - sh
+            - -c
+            - pip install -q locust==2.32.6 && locust -f /scripts/fourth_round_locust.py --master --expect-workers 2 --headless -u 400 -r 40 --run-time 3m --host http://travel-agent-api.travel-prod.svc.cluster.local 2>&1 | tee /tmp/locust_run.log
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+      volumes:
+        - name: scripts
+          configMap:
+            name: locust-fourth-scripts
